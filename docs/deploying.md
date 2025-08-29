@@ -150,8 +150,8 @@ Standard fare:
 
 ```
 cd ~
-git clone https://github.com/Pomax/browser-based-web-editor.git
-cd browser-based-web-editor
+git clone https://github.com/Pomax/make-webbly-things.git
+cd make-webbly-things
 nvm use 22
 npm i
 ```
