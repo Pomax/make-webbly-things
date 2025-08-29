@@ -1,5 +1,5 @@
-import { fetchFileContents } from "../utils.js";
-import { API } from "../api.js";
+import { fetchFileContents } from "../utils/utils.js";
+import { API } from "../utils/api.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
 

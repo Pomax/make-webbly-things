@@ -1,7 +1,7 @@
-import { fetchFileContents, getFileSum } from "./utils.js";
-import { createPatch } from "../../public/vendor/diff.js";
-import { updatePreview } from "../client/preview.js";
-import { API } from "./api.js";
+import { createPatch } from "/vendor/diff.js";
+import { fetchFileContents, getFileSum } from "../utils/utils.js";
+import { updatePreview } from "../preview/preview.js";
+import { API } from "../utils/api.js";
 
 /**
  * Sync the content of a file with the server by calculating
@@ -26,10 +26,19 @@ export async function syncContent(
   if (responseHash === getFileSum(newContent)) {
     entry.content = newContent;
     updatePreview();
-  }
+  } else {
+    // If we get here, then something went wrong.
+    //
+    // This could be an illegal edit by someone who doesn't have project
+    // edit rights (non-project-members should already be presented with
+    // a read-only editor, so this would be a circumvention attempt).
+    //
+    // Or, much more likely, the user's content has become desynced
+    // somehow and we resync it.
+    if (document.body.dataset.projectMember) {
+      entry.content = await fetchFileContents(projectName, filename);
+    }
 
-  // If a user tries to change a file they don't have rights to, we nix their changes.
-  else {
     entry.contentReset = true;
     entry.view.dispatch({
       changes: {
@@ -39,5 +48,6 @@ export async function syncContent(
       },
     });
   }
+
   entry.debounce = false;
 }

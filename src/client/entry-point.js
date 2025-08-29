@@ -1,11 +1,11 @@
-import "../../public/vendor/file-tree.esm.min.js";
-import { setupFileTree } from "./cm6/file-tree-utils.js";
-import { addEventHandling } from "./cm6/event-handling.js";
-import { updatePreview } from "./preview.js";
+import "/vendor/file-tree.esm.min.js";
+import { setupFileTree } from "./files/file-tree-utils.js";
+import { addEventHandling } from "./editor/event-handling.js";
+import { updatePreview } from "./preview/preview.js";
 
 const { projectId, projectName } = document.body.dataset;
 
-class CodeMirror6 {
+new class Editor {
   constructor() {
     Object.assign(this, { projectId, projectName });
     this.init();
@@ -19,5 +19,3 @@ class CodeMirror6 {
     updatePreview();
   }
 }
-
-new CodeMirror6();

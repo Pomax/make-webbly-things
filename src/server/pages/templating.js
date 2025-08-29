@@ -1,6 +1,6 @@
 // Set up the render engine:
 import nunjucks from "nunjucks";
-import { safify, scrubDateTime } from "../helpers.js";
+import { safify, scrubDateTime } from "../../helpers.js";
 
 export function setupTemplating(app) {
   const nenv = nunjucks.configure("src/server/pages", {
@@ -8,6 +8,8 @@ export function setupTemplating(app) {
     noCache: true,
     express: app,
   });
+
+  nenv.addFilter(`bool`, (thing, count) => !!thing);
 
   nenv.addFilter(`date`, (str, count) => scrubDateTime(str));
 

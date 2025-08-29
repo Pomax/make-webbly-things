@@ -1,14 +1,18 @@
-import { listEquals as equals } from "./utils.js";
+import { listEquals as equals } from "../utils/utils.js";
 
 /**
- * ...
+ * Do what it says on the tin
  */
 export function getMimeType(fileName) {
   return getViewType(fileName).type;
 }
 
 /**
- * ...
+ * This is "magic number" based affirmative mimetyping
+ * function, meaning we first naively assume the mimetype
+ * based on the extension, and then we check to verify
+ * that assumption based on knowing a fixed set of bytes
+ * that must be in that specific type of file.
  */
 export function getViewType(filename) {
   const ext = filename.substring(filename.lastIndexOf(`.`) + 1);

@@ -14,7 +14,10 @@ import { markdown } from "@codemirror/lang-markdown";
  */
 export function getInitialState(fileEntry, filename, data) {
   const doc = data.toString();
-  const extensions = [basicSetup];
+  const extensions = [
+    basicSetup,
+    EditorState.readOnly.of(!document.body.dataset.projectMember),
+  ];
 
   // Can we add syntax highlighting?
   const ext = filename.substring(filename.lastIndexOf(`.`) + 1);

@@ -1,16 +1,24 @@
-import { API } from "../api.js";
-import { getMimeType } from "../content-types.js";
-import { updatePreview } from "../preview.js";
-import { getOrCreateFileEditTab } from "./editor-components.js";
-import { DEFAULT_FILES } from "../default-files.js";
-import { unzip } from "../../../public/vendor/unzipit.module.js";
+import { API } from "../utils/api.js";
+import { getMimeType } from "./content-types.js";
+import { updatePreview } from "../preview/preview.js";
+import { getOrCreateFileEditTab } from "../editor/editor-components.js";
+import { DEFAULT_FILES } from "./default-files.js";
+
+import { unzip } from "/vendor/unzipit.module.js";
 
 const { projectId, projectName, defaultFile, defaultCollapse } =
   document.body.dataset;
+
 const fileTree = document.getElementById(`filetree`);
 
+/**
+ * When the file tree is ready, make sure to collapse anything
+ * that's beeen marked as auto-collapse as part of the project
+ * requirements.
+ */
 fileTree.addEventListener(`tree:ready`, async () => {
   let fileEntry;
+
   if (defaultFile) {
     fileEntry = fileTree.querySelector(`file-entry[path="${defaultFile}"]`);
   } else {
@@ -19,6 +27,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
       if (fileEntry) break;
     }
   }
+
   if (fileEntry) {
     getOrCreateFileEditTab(
       fileEntry,

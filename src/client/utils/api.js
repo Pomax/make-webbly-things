@@ -1,7 +1,7 @@
-// Make sure that "fetch()" automatically prepends the API
-// so that we don't need to include that in ever call:
 const PREFIX = `/v1`;
 
+// Make sure that "fetch()" automatically prepends the API
+// so that we don't need to include that in ever call:
 const fetch = (...args) =>
   globalThis.fetch(`${PREFIX}/${args.shift()}`, ...args);
 

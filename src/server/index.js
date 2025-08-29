@@ -4,7 +4,7 @@ import { setDefaultAspects, execPromise } from "../helpers.js";
 import { setupRoutes } from "./routing/index.js";
 import { watchForRebuild } from "./watcher.js";
 import { setupCaddy, startCaddy } from "./caddy/caddy.js";
-import { setupTemplating } from "./templating.js";
+import { setupTemplating } from "./pages/templating.js";
 
 // And our environment. Note that this kicks in AFTER
 // the import tree ahs been built, so we can't actually

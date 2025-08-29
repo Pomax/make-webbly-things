@@ -5,7 +5,7 @@
   "description": "",
   "main": "",
   "scripts": {
-    "build": "esbuild --log-level=info --bundle --format=esm src/client/script.js > public/js/editor.bundle.js",
+    "build": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
     "prettier": "npx prettier --write --no-config --ignore-path '' ",
     "start": "node src/server/index.js"
   },

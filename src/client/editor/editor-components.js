@@ -1,7 +1,7 @@
 import { getInitialState, setupView } from "./code-mirror-6.js";
-import { getViewType, verifyViewType } from "../content-types.js";
-import { fetchFileContents, create } from "../utils.js";
-import { syncContent } from "../sync.js";
+import { fetchFileContents, create } from "../utils/utils.js";
+import { getViewType, verifyViewType } from "../files/content-types.js";
+import { syncContent } from "../files/sync.js";
 
 const { projectId, projectName } = document.body.dataset;
 

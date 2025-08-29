@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/cm6.css" />
   </head>
   <body
+    {% if projectMember %}data-project-member="true"{% endif %}
     data-project-id="{{ projectId }}"
     data-project-name="{{ projectName }}"
     data-default-file="{{ viewFile if viewFile else projectSettings.default_file }}"

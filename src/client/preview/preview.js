@@ -1,4 +1,4 @@
-import { API } from "./api.js";
+import { API } from "../utils/api.js";
 
 const restart = document.querySelector(`#preview-buttons .restart`);
 const newtab = document.querySelector(`#preview-buttons .newtab`);
