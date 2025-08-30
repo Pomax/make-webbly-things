@@ -29,6 +29,7 @@ import {
   renameContainer,
   restartContainer as restartDockerContainer,
   runContainer,
+  runStaticSite,
 } from "../../../docker/docker-helpers.js";
 
 import {
@@ -47,14 +48,25 @@ import {
   updateSettingsForProject,
 } from "../../../database/index.js";
 
-import { removeCaddyEntry } from "../../../caddy/caddy.js";
+import { portBindings, removeCaddyEntry } from "../../../caddy/caddy.js";
 
 /**
  * ...docs go here...
  */
-export function checkContainerHealth(req, res, next) {
-  const projectName = res.locals.lookups.project.name;
-  res.locals.healthStatus = dockerHealthCheck(projectName);
+export async function checkProjectHealth(req, res, next) {
+  const { project } = res.locals.lookups;
+  const settings = loadSettingsForProject(project.id);
+  if (settings.app_type === `static`) {
+    try {
+      const port = portBindings[project.name];
+      await fetch(`http://localhost:${port}`);
+      res.locals.healthStatus = `ready`;
+    } catch (e) {
+      res.locals.healthStatus = `failed`;
+    }
+  } else {
+    res.locals.healthStatus = dockerHealthCheck(project.name);
+  }
   next();
 }
 
@@ -185,7 +197,7 @@ export async function loadProject(req, res, next) {
 
   if (projectSuspendedThroughOwner(projectName)) {
     suspended = true;
-    if (!use?.admin) {
+    if (!user?.admin) {
       return next(
         new Error(
           `This project has been suspended because its project owner is suspended`
@@ -200,7 +212,15 @@ export async function loadProject(req, res, next) {
   setupGit(dir, projectName);
 
   // Then get a container running
-  if (!suspended) await runContainer(projectName);
+  if (!suspended) {
+    // Is this a static project, or does it need a container?
+    const settings = loadSettingsForProject(projectId);
+    if (settings.app_type === `static`) {
+      runStaticSite(projectName);
+    } else {
+      await runContainer(projectName);
+    }
+  }
 
   // is this a logged in user?
   if (res.locals.user) {
@@ -316,14 +336,19 @@ export function startProject(req, res, next) {
     return next(new Error(`Not found`));
   }
 
+  // Is this project allowed to start?
   const { project } = res.locals.lookups;
-
   if (isProjectSuspended(project.id)) {
     return next(new Error(`suspended`));
   }
 
   // Is this a static project, or does it need a container?
-  runContainer(project.name);
+  const settings = loadSettingsForProject(project.id);
+  if (settings.app_type === `static`) {
+    runStaticSite(project.name);
+  } else {
+    runContainer(project.name);
+  }
 
   next();
 }

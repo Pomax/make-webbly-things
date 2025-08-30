@@ -178,7 +178,6 @@ export function getOwnedProjectsForUser(userNameOrId) {
  * ...docs go here...
  */
 export function getProject(projectNameOrId) {
-  console.log(`fetching ${projectNameOrId}`)
   let p;
   if (typeof projectNameOrId === `number`) {
     p = Project.find({ id: projectNameOrId });

@@ -54,7 +54,6 @@
     const url = `/v1/projects/settings/${projectId}`;
 
     const project = await fetch(url, { method: `GET` }).then((r) => r.json());
-    console.log(project);
     const template = (name) => {
       d.querySelector(`[name="${name}"]`).value = project[name];
     };

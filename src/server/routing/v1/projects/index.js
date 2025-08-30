@@ -7,7 +7,7 @@ import {
 } from "../../middleware.js";
 
 import {
-  checkContainerHealth,
+  checkProjectHealth,
   createProjectDownload,
   deleteProject,
   getProjectSettings,
@@ -80,7 +80,7 @@ projects.get(
   `/health/:project`,
   verifyLogin,
   bindCommonValues,
-  checkContainerHealth,
+  checkProjectHealth,
   (_req, res) => {
     res.send(res.locals.healthStatus);
   }
@@ -157,7 +157,7 @@ projects.get(
   bindCommonValues,
   startProject,
   (req, res) => {
-    const project = res.locals.lookups;
+    const { project } = res.locals.lookups;
     setTimeout(() => {
       res.redirect(`https://${project.name}.${WEB_EDITOR_APPS_HOSTNAME}`);
     }, 1000);

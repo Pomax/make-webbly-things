@@ -104,6 +104,24 @@ export async function restartContainer(name, rebuild = false) {
 }
 
 /**
+ * Run a static server for a static project, since we don't
+ * need a docker container for that, just an isolated server
+ * running on its own port, with content security.
+ * 
+* FIXME: this function doesn't feel like it should live here...
+ */
+export async function runStaticSite(projectName) {
+  const port = await getFreePort();
+  console.log(
+    `attempting to run static server for ${projectName} on port ${port}`
+  );
+  const runCommand = `node src/server/static.js --project ${projectName} --port ${port}`;
+  console.log(runCommand);
+  exec(runCommand, { shell: true, stdio: `inherit` });
+  updateCaddyFile(projectName, port);
+}
+
+/**
  * ...docs go here...
  */
 export async function runContainer(projectName) {
