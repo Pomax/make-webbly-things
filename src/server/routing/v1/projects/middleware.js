@@ -39,6 +39,7 @@ import {
   deleteProjectForUser,
   getAccessFor,
   getProjectSuspensions,
+  isProjectSuspended,
   isStarterProject,
   loadSettingsForProject,
   projectSuspendedThroughOwner,
@@ -307,6 +308,28 @@ export function restartContainer(req, res, next) {
 
 /**
  * ...docs go here...
+ */
+export function startProject(req, res, next) {
+  const { WEB_EDITOR_APP_SECRET } = process.env;
+
+  if (req.params.secret !== WEB_EDITOR_APP_SECRET) {
+    return next(new Error(`Not found`));
+  }
+
+  const { project } = res.locals.lookups;
+
+  if (isProjectSuspended(project.id)) {
+    return next(new Error(`suspended`));
+  }
+
+  // Is this a static project, or does it need a container?
+  runContainer(project.name);
+
+  next();
+}
+
+/**
+ * ...docs go here...
  * @returns
  */
 export async function updateProjectSettings(req, res, next) {
@@ -350,7 +373,7 @@ export async function updateProjectSettings(req, res, next) {
 
     res.locals.projectName = newName;
 
-      // Do we need to update our container files?
+    // Do we need to update our container files?
     let containerChange = false;
     if (run_script !== newSettings.run_script) {
       containerChange = true;

@@ -5,6 +5,7 @@ import { setupRoutes } from "./routing/index.js";
 import { watchForRebuild } from "./watcher.js";
 import { setupCaddy, startCaddy } from "./caddy/caddy.js";
 import { setupTemplating } from "./pages/templating.js";
+import { getMigrationStatus } from "./database/models.js";
 
 // And our environment. Note that this kicks in AFTER
 // the import tree ahs been built, so we can't actually
@@ -42,7 +43,17 @@ setupTemplating(app);
 setDefaultAspects(app);
 setupRoutes(app);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  const missingMigrations = await getMigrationStatus();
+  if (missingMigrations > 0) {
+    console.error(`
+Error: your datatabase is ${missingMigrations} migrations behind!
+
+Please rerun "node setup" to ensure your database schema is up to date.
+`);
+    process.exit(1);
+  }
+
   // Generate the server address notice
   const msg = `=   Server running on https://${WEB_EDITOR_HOSTNAME}   =`;
   const line = `=`.repeat(msg.length);

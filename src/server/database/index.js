@@ -4,6 +4,7 @@ import {
   OWNER,
   EDITOR,
   MEMBER,
+  getMigrationStatus,
 } from "./models.js";
 
 export {
@@ -12,6 +13,7 @@ export {
   OWNER,
   EDITOR,
   MEMBER,
+  getMigrationStatus,
 };
 
 // User related database functions

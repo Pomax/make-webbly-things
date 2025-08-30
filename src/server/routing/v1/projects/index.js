@@ -15,6 +15,7 @@ import {
   loadProjectHistory,
   remixProject,
   restartContainer,
+  startProject,
   updateProjectSettings,
 } from "./middleware.js";
 
@@ -22,9 +23,9 @@ import { getDirListing } from "../files/middleware.js";
 
 import { Router } from "express";
 import multer from "multer";
-import { runContainer } from "../../../docker/docker-helpers.js";
-import { isProjectSuspended } from "../../../database/project.js";
 export const projects = Router();
+
+const { WEB_EDITOR_APPS_HOSTNAME } = process.env;
 
 /**
  * Delete a project by name
@@ -142,8 +143,7 @@ projects.post(
   multer().none(),
   getProjectSettings,
   updateProjectSettings,
-  (_req, res) =>
-    res.send(`/v1/projects/edit/${res.locals.projectName}`)
+  (_req, res) => res.send(`/v1/projects/edit/${res.locals.projectName}`)
 );
 
 /**
@@ -155,20 +155,12 @@ projects.post(
 projects.get(
   `/start/:project/:secret`,
   bindCommonValues,
-  (req, res, next) => {
-    const { WEB_EDITOR_APP_SECRET } = process.env;
-    if (req.params.secret !== WEB_EDITOR_APP_SECRET) {
-      return next(new Error(`Not found`));
-    }
-    const { project } = res.locals.lookups;
-    if (isProjectSuspended(project.id)) {
-      return next(new Error(`suspended`));
-    }
-    runContainer(project.name);
+  startProject,
+  (req, res) => {
+    const project = res.locals.lookups;
     setTimeout(() => {
-      const { WEB_EDITOR_APPS_HOSTNAME } = process.env;
       res.redirect(`https://${project.name}.${WEB_EDITOR_APPS_HOSTNAME}`);
-    }, 2000);
+    }, 1000);
   },
   // Custom 404 for app domains
   (err, req, res, next) => {

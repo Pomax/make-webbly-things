@@ -16,7 +16,7 @@ import { dirname, join } from "node:path";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import sqlite3 from "better-sqlite3";
 import { setupCaddy } from "./src/server/caddy/caddy.js";
-import { pathExists, slugify } from "./src/helpers.js";
+import { pathExists, readContentDir, slugify } from "./src/helpers.js";
 import dotenv from "@dotenvx/dotenvx";
 dotenv.config({ quiet: true });
 
@@ -395,15 +395,30 @@ CMD sh .container/run.sh
  * database file in the right place, and if not, create it.
  */
 async function setupSqlite() {
-  // Do we need to bootstrap the db? (note that this may include
-  // simply creating a missing table, not rebuilding the full db)
-  execSync(`sqlite3 ${dbPath} ".read ./data/schema.sql"`);
-
   // Make sure all the starters from the content/__starter_projects have
   // database entries, and that the database is up to date with respect
   // to whatever is in each starter's settings.json file.
 
   const db = sqlite3(dbPath);
+  let version = db.prepare(`PRAGMA user_version`).get().user_version;
+
+  // Do we need to bootstrap the db? (note that this may include
+  // simply creating a missing table, not rebuilding the full db)
+  if (version === 0) {
+    execSync(`sqlite3 ${dbPath} ".read ./data/schema.sql"`);
+  }
+
+  // Do we need to run any migrations?
+  const migrations = (await readContentDir(`./data/migrations`)).map((v) =>
+    parseFloat(v.match(/\d+/)[0])
+  );
+  const last = migrations.at(-1);
+  for (; version <= last; version++) {
+    const migration = `${version}`.padStart(4, `0`);
+    execSync(`sqlite3 ${dbPath} ".read ./data/migrations/${migration}.sql"`);
+  }
+  console.log(`Database is at version ${version}`);
+
   const starterDir = `./content/__starter_projects`;
   const starters = readdirSync(starterDir)
     .filter((v) => !v.includes(`.`))

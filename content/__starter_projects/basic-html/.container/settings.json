@@ -1,4 +1,5 @@
 {
   "description": "A basic HTML, CSS, and JS starter project",
-  "run_script": "npx http-server -c-1 -p $PORT --cors"
+  "run_script": "npx http-server -c-1 -p $PORT --cors",
+  "app_type": "static"
 }

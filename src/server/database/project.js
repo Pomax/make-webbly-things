@@ -185,7 +185,7 @@ export function getProject(projectNameOrId) {
   } else {
     p = Project.find({ name: projectNameOrId });
   }
-  if (!p) throw new Error(`Project not found`);
+  if (!p) throw new Error(`Project ${projectNameOrId} not found`);
   return p;
 }
 

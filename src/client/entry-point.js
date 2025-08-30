@@ -5,7 +5,7 @@ import { updatePreview } from "./preview/preview.js";
 
 const { projectId, projectName } = document.body.dataset;
 
-new class Editor {
+new (class Editor {
   constructor() {
     Object.assign(this, { projectId, projectName });
     this.init();
@@ -17,5 +17,6 @@ new class Editor {
     // As such, we also need custom handling for editor panes and tabs
     addEventHandling(this.projectName);
     updatePreview();
+    // FIXME: TODO: just move this stuff here.
   }
-}
+})();

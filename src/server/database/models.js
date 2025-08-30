@@ -1,6 +1,7 @@
 import sqlite3 from "better-sqlite3";
+import { join, dirname } from "node:path";
 import { composeWhere } from "./utils.js";
-import { scrubDateTime } from "../../helpers.js";
+import { scrubDateTime, readContentDir } from "../../helpers.js";
 
 const DEBUG_SQL = false;
 
@@ -15,6 +16,17 @@ export const MEMBER = 10; // edit access, cannot edit project settings
 const dbPath = `${import.meta.dirname}/../../../data/data.sqlite3`;
 const db = sqlite3(dbPath);
 db.pragma(`foreign_keys = ON`);
+
+/**
+ * Are we on the right version of the database?
+ */
+export async function getMigrationStatus() {
+  let version = db.prepare(`PRAGMA user_version`).get().user_version;
+  const migrations = (
+    await readContentDir(join(dirname(dbPath), `migrations`))
+  ).map((v) => parseFloat(v.match(/\d+/)[0]));
+  return migrations.at(-1) - version;
+}
 
 /**
  * Generic "run me this SQL" function, because sometimes you need complex queries.
@@ -45,7 +57,7 @@ class Model {
     }
     return db.prepare(sql).all();
   }
-  
+
   /**
    * Create a new record in this table. Does a find() first, to
    * make sure you're not trying to create a record that already

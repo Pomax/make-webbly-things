@@ -2,5 +2,6 @@
   "description": "A basic web graphics example, using <graphics-element>",
   "run_script": "npx http-server -c-1 -p $PORT --cors",
   "default_file": "sketches/sketch.js",
-  "default_collapse": "graphics-element"
+  "default_collapse": "graphics-element",
+  "app_type": "static"
 }

@@ -120,3 +120,7 @@ INSERT OR IGNORE INTO project_access_levels (access_level, name) VALUES (30, 'ow
 INSERT OR IGNORE INTO project_access_levels (access_level, name) VALUES (25, 'editor');
 INSERT OR IGNORE INTO project_access_levels (access_level, name) VALUES (20, 'member');
 INSERT OR IGNORE INTO project_access_levels (access_level, name) VALUES (10, 'viewer');
+
+-- Schema v1
+
+PRAGMA user_version = 1;
