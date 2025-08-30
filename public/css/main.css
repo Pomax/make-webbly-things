@@ -47,6 +47,8 @@ html {
     footer {
       margin-top: 2em;
       margin-bottom: calc(-0.5em + 1px);
+      left: -1.5em;
+      width: calc(100% + 1.5em - 1px);
       text-align: center;
       font-size: 1em;
     }
