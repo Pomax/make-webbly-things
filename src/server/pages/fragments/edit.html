@@ -17,27 +17,57 @@
           <label>Project description:</label>
           <textarea rows="4" name="description"></textarea>
         </div>
+        <div>
+          {% set type = project.app_type %}
+          <label>Project type {{ type }}:</label>
+          <input type="radio" name="app_type" value="static" id="static" />
+          <label for="static">static content</label>
+          <input type="radio" name="app_type" value="docker" id="docker" />
+          <label for="docker">persistent process</label>
+        </div>
+        <div>
+          <label>Static content root dir:</label>
+          <input
+            type="text"
+            value=""
+            name="root_dir"
+            placeholder="leave blank for project root dir"
+          />
+        </div>
       </fieldset>
 
       <fieldset class="container">
         <div>
-          <label>Default file:</label>
-          <input type="text" value="" name="default_file" />
+          <label>Default selected file:</label>
+          <input
+            type="text"
+            value=""
+            name="default_file"
+            placeholder="i.e. the file that gets opened when you load the editor"
+          />
         </div>
 
         <div>
-          <label>Default collapse:</label>
-          <textarea rows="4" name="default_collapse"></textarea>
+          <label>Default folders to show collapsed:</label>
+          <textarea
+            rows="4"
+            name="default_collapse"
+            placeholder="Each folder name should be on its own line, and if it's a nested folder: remember to specify the full path."
+          ></textarea>
         </div>
 
-        <div>
+        <div class="docker-only">
           <label>Run script:</label>
           <textarea rows="4" name="run_script"></textarea>
         </div>
 
-        <div>
+        <div class="docker-only">
           <label>Environment variables:</label>
-          <textarea rows="4" name="env_vars"></textarea>
+          <textarea
+            rows="4"
+            name="env_vars"
+            placeholder="One per line, as varname=value"
+          ></textarea>
         </div>
       </fieldset>
 
@@ -55,7 +85,18 @@
 
     const project = await fetch(url, { method: `GET` }).then((r) => r.json());
     const template = (name) => {
-      d.querySelector(`[name="${name}"]`).value = project[name];
+      const e = d.querySelectorAll(`[name="${name}"]`);
+      if (e.length) {
+        if (e.length === 1) {
+          e[0].value = project[name];
+        } else {
+          e.forEach((e) => {
+            if (e.value === project[name]) {
+              e.checked = true;
+            }
+          });
+        }
+      }
     };
 
     d.querySelector(`.projectname`).textContent = project.name;

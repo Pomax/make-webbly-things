@@ -1,11 +1,13 @@
 // Load our server dependencies...
 import express from "express";
+import { join } from "node:path";
 import { setDefaultAspects, execPromise } from "../helpers.js";
 import { setupRoutes } from "./routing/index.js";
 import { watchForRebuild } from "./watcher.js";
 import { setupCaddy, startCaddy } from "./caddy/caddy.js";
 import { setupTemplating } from "./pages/templating.js";
 import { getMigrationStatus } from "./database/models.js";
+import { scheduleContainerCheck } from "./docker/sleep-check.js";
 
 // And our environment. Note that this kicks in AFTER
 // the import tree ahs been built, so we can't actually
@@ -13,7 +15,8 @@ import { getMigrationStatus } from "./database/models.js";
 // top level of any module that doesn't also run the
 // dotenv.config function as part of its own code...
 import dotenv from "@dotenvx/dotenvx";
-dotenv.config({ quiet: true });
+const envPath = join(import.meta.dirname, `../../.env`);
+dotenv.config({ path: envPath, quiet: true });
 
 // Reset our caddy file
 setupCaddy();
@@ -61,4 +64,5 @@ Please rerun "node setup" to ensure your database schema is up to date.
   console.log([``, line, mid, msg, mid, line, ``].join(`\n`));
   watchForRebuild();
   startCaddy();
+  scheduleContainerCheck();
 });

@@ -214,12 +214,16 @@ export async function loadProject(req, res, next) {
 
   // Then get a container running
   if (!suspended) {
-    // Is this a static project, or does it need a container?
-    const settings = loadSettingsForProject(projectId);
-    if (settings.app_type === `static`) {
-      runStaticSite(projectName);
-    } else {
+    const { app_type } = loadSettingsForProject(projectId)?.settings ?? {};
+    const staticType = app_type === null || app_type === `static`;
+    const inEditor = req.originalUrl.startsWith(`/v1/projects/edit/`);
+    const mayEdit = getAccessFor(user?.name, project.name) >= MEMBER;
+    const noStatic = inEditor && user && mayEdit;
+    if (!staticType || noStatic) {
+      stopStaticServer(projectName);
       await runContainer(projectName);
+    } else {
+      runStaticSite(projectName);
     }
   }
 
@@ -376,6 +380,7 @@ export async function updateProjectSettings(req, res, next) {
   const newName = newSettings.name;
   const newDir = join(CONTENT_DIR, newName);
   const containerDir = join(newDir, `.container`);
+  const app_type = newSettings.app_type ?? settings.app_type;
 
   if (projectName !== newName) {
     if (pathExists(newDir)) {
@@ -404,18 +409,22 @@ export async function updateProjectSettings(req, res, next) {
 
     res.locals.projectName = newName;
 
-    // Do we need to update our container files?
-    let containerChange = false;
-    if (run_script !== newSettings.run_script) {
-      containerChange = true;
-      writeFileSync(join(containerDir, `run.sh`), newSettings.run_script);
-    } else if (env_vars !== newSettings.env_vars) {
-      containerChange = true;
-      writeFileSync(join(containerDir, `.env`), newSettings.env_vars);
-    }
+    // Do we need to update our container files? (there's nothing
+    // to update wrt a static server, it's static content).
+    if (app_type === `docker`) {
+      let containerChange = false;
 
-    if (containerChange) {
-      await restartDockerContainer(projectName, true);
+      if (run_script !== newSettings.run_script) {
+        containerChange = true;
+        writeFileSync(join(containerDir, `run.sh`), newSettings.run_script);
+      } else if (env_vars !== newSettings.env_vars) {
+        containerChange = true;
+        writeFileSync(join(containerDir, `.env`), newSettings.env_vars);
+      }
+
+      if (containerChange) {
+        await restartDockerContainer(projectName, true);
+      }
     }
 
     next();

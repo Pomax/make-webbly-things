@@ -17,7 +17,8 @@ import { touch } from "./server/database/project.js";
 // Explicit env loading as we rely on process.env
 // at the module's top level scope...
 import dotenv from "@dotenvx/dotenvx";
-dotenv.config({ quiet: true });
+const envPath = join(import.meta.dirname, `../.env`);
+dotenv.config({ path: envPath, quiet: true });
 
 export const isWindows = process.platform === `win32`;
 export const npm = isWindows ? `npm. cmd` : `npm`;

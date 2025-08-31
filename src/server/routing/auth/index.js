@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { join } from "node:path";
 import { passport } from "./middleware.js";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as MagicLoginStrategy } from "passport-magic-link";
@@ -8,7 +9,8 @@ import { processUserLogin } from "../../database/index.js";
 // Explicit env loading as we rely on process.env
 // at the module's top level scope...
 import dotenv from "@dotenvx/dotenvx";
-dotenv.config({ quiet: true });
+const envPath = join(import.meta.dirname, `../../../../.env`);
+dotenv.config({ path: envPath, quiet: true });
 
 const githubSettings = {
   clientID: process.env.GITHUB_CLIENT_ID,

@@ -14,6 +14,18 @@ dialog {
         margin: 1em;
         width: calc(100% - 2em);
       }
+      input[type="radio"] {
+        display: inline-block;
+        width: 1em;
+        &:first-of-type {
+          margin-left: 1em;
+        }
+        & + label {
+          display: inline-block;
+          font-weight: normal;
+          margin-left: -0.5em;
+        }
+      }
     }
   }
 }
