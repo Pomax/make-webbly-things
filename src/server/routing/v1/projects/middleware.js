@@ -58,7 +58,7 @@ export async function checkProjectHealth(req, res, next) {
   const settings = loadSettingsForProject(project.id);
   if (settings.app_type === `static`) {
     try {
-      const port = portBindings[project.name];
+      const { port } = portBindings[project.name];
       await fetch(`http://localhost:${port}`);
       res.locals.healthStatus = `ready`;
     } catch (e) {

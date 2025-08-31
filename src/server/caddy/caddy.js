@@ -100,7 +100,9 @@ ${host} {
 `;
 
     writeFileSync(caddyFile, data + entry);
-    portBindings[name] = port;
+
+    portBindings[name] ??= {};
+    portBindings[name].port = port;
   }
 
   spawn(`caddy`, [`reload`, `--config`, caddyFile], {
