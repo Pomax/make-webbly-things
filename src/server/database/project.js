@@ -1,4 +1,4 @@
-import { stopContainer } from "../docker/docker-helpers.js";
+import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 
 import {
   runQuery,
@@ -295,8 +295,13 @@ export function recordProjectRemix(originalId, projectId) {
 export function suspendProject(projectNameOrId, reason, notes = ``) {
   if (!reason) throw new Error(`Cannot suspend project without a reason`);
   const p = getProject(projectNameOrId);
+  const s = ProjectSettings.find({ project_id: p.id });
   try {
-    stopContainer(p.name);
+    if (s.app_type === `static`) {
+      stopStaticServer(p.name);
+    } else {
+      stopContainer(p.name);
+    }
     ProjectSuspension.create({ project_id: p.id, reason, notes });
   } catch (e) {
     console.error(e);

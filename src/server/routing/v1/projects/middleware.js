@@ -30,6 +30,7 @@ import {
   restartContainer as restartDockerContainer,
   runContainer,
   runStaticSite,
+  stopStaticServer,
 } from "../../../docker/docker-helpers.js";
 
 import {
@@ -321,8 +322,13 @@ export async function remixProject(req, res, next) {
  * ...docs go here...
  */
 export function restartContainer(req, res, next) {
-  const projectName = res.locals.lookups.project.name;
-  restartDockerContainer(projectName);
+  const { project } = res.locals.lookups;
+  const settings = loadSettingsForProject(project.id);
+  if (settings.app_type === `static`) {
+    // do nothing. Static servers don't need restarting.
+  } else {
+    restartDockerContainer(project.name);
+  }
   next();
 }
 

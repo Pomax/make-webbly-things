@@ -109,6 +109,8 @@ ${host} {
     shell: true,
     stdio: `ignore`,
   });
+
+  return portBindings[name];
 }
 
 /**

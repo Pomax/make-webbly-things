@@ -56,7 +56,7 @@
 
       <div id="preview" style="position: relative">
         <span id="preview-buttons">
-          {% if user %}
+          {% if user and app_type != "static" %}
           <button class="restart" title="Restart your host container">
             restart
           </button>

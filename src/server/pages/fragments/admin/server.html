@@ -1,0 +1,9 @@
+<tr>
+  <td><a href="https://{{ server.name }}.{{ WEB_EDITOR_APPS_HOSTNAME }}" target="_blank">{{ server.name }}</a></td>
+  <td>{{ server.port }}</td>
+  <td>
+    <form action="/v1/admin/server/stop/{{ server.name }}" method="post">
+      <button>stop</button>
+    </form>
+  </td>
+</tr>

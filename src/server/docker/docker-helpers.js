@@ -1,7 +1,11 @@
 import { sep } from "node:path";
 import { getFreePort } from "../../helpers.js";
 import { exec, execSync } from "child_process";
-import { removeCaddyEntry, updateCaddyFile } from "../caddy/caddy.js";
+import {
+  portBindings,
+  removeCaddyEntry,
+  updateCaddyFile,
+} from "../caddy/caddy.js";
 import { getProjectEnvironmentVariables } from "../database/index.js";
 
 /**
@@ -74,6 +78,19 @@ export function getAllRunningContainers() {
 /**
  * ...docs go here...
  */
+export function getAllRunningStaticServers() {
+  return Object.entries(portBindings)
+    .map(([name, props]) => {
+      const { port, process } = props;
+      if (!process) return false;
+      return { name, port };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * ...docs go here...
+ */
 export function renameContainer(oldName, newName) {
   stopContainer(oldName);
   try {
@@ -107,8 +124,8 @@ export async function restartContainer(name, rebuild = false) {
  * Run a static server for a static project, since we don't
  * need a docker container for that, just an isolated server
  * running on its own port, with content security.
- * 
-* FIXME: this function doesn't feel like it should live here...
+ *
+ * FIXME: this function doesn't feel like it should live here...
  */
 export async function runStaticSite(projectName) {
   const port = await getFreePort();
@@ -117,8 +134,9 @@ export async function runStaticSite(projectName) {
   );
   const runCommand = `node src/server/static.js --project ${projectName} --port ${port}`;
   console.log(runCommand);
-  exec(runCommand, { shell: true, stdio: `inherit` });
-  updateCaddyFile(projectName, port);
+  const child = exec(runCommand, { shell: true, stdio: `inherit` });
+  const binding = updateCaddyFile(projectName, port);
+  binding.process = child;
 }
 
 /**
@@ -198,5 +216,13 @@ export function stopContainer(name) {
   } catch (e) {
     // failure just means it's already no longer running.
   }
+  removeCaddyEntry(name);
+}
+
+/**
+ * ...docs go here...
+ */
+export function stopStaticServer(name) {
+  portBindings[name].process?.kill();
   removeCaddyEntry(name);
 }

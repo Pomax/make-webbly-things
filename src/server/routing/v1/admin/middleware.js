@@ -13,7 +13,15 @@ export function loadAdminData(req, res, next) {
     userList: Database.getAllUsers(),
     projectList: Database.getAllProjects(),
     containerList: Docker.getAllRunningContainers(),
+    serverList: Docker.getAllRunningStaticServers(),
   };
+  next();
+}
+
+// Server related routes
+
+export function stopServer(req, res, next) {
+  Docker.stopStaticServer(req.params.name);
   next();
 }
 

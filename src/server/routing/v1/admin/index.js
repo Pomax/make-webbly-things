@@ -1,22 +1,23 @@
 import {
   bindCommonValues,
-  verifyLogin,
   verifyAdmin,
+  verifyLogin,
 } from "../../middleware.js";
 
 import {
   back,
-  loadAdminData,
   deleteContainer,
-  stopContainer,
+  deleteProject,
   deleteUser,
   disableUser,
   enableUser,
-  suspendUser,
-  unsuspendUser,
-  deleteProject,
+  loadAdminData,
+  stopContainer,
+  stopServer,
   suspendProject,
+  suspendUser,
   unsuspendProject,
+  unsuspendUser,
 } from "./middleware.js";
 
 import { Router } from "express";
@@ -27,6 +28,8 @@ const prechecks = [verifyLogin, bindCommonValues, verifyAdmin];
 admin.get(`/`, ...prechecks, loadAdminData, (req, res) =>
   res.render(`admin.html`, { ...res.locals, ...req.session, ...process.env })
 );
+
+admin.post(`/server/stop/:name`, ...prechecks, stopServer, back);
 
 admin.post(`/container/remove/:id`, ...prechecks, deleteContainer, back);
 admin.post(`/container/stop/:image`, ...prechecks, stopContainer, back);

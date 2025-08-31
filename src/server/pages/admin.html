@@ -73,6 +73,20 @@
       </table>
     </section>
 
+    <section>
+      <h2>Static Servers</h2>
+      <table id="servers">
+        <tr>
+          <th>project</th>
+          <th>port</th>
+          <th></th> 
+        </tr>
+        {% for server in admin.serverList %}
+        {% include "./fragments/admin/server.html" %}
+        {% endfor %}
+      </table>
+    </section>
+
     <footer>
       <a href="https://github.com/Pomax/make-webbly-things/issues">File issues here</a>
     </footer>

@@ -13,6 +13,7 @@ import {
   getUserSuspensions,
   hasAccessToUserRecords,
   getStarterProjects,
+  loadSettingsForProject,
 } from "../database/index.js";
 
 import { CONTENT_DIR, makeSafeProjectName } from "../../helpers.js";
@@ -171,6 +172,12 @@ export function bindCommonValues(req, res, next) {
       console.error(e);
       return next(e);
     }
+  }
+
+  if (res.locals.lookups.project) {
+    const { id } = res.locals.lookups.project;
+    const settings = loadSettingsForProject(id);
+    res.locals.app_type = settings.app_type;
   }
 
   if (starter) {

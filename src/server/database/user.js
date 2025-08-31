@@ -1,9 +1,10 @@
 import { unlinkSync, rmSync } from "node:fs";
-import { stopContainer } from "../docker/docker-helpers.js";
+import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 import { CONTENT_DIR, pathExists } from "../../helpers.js";
 import { Models } from "./models.js";
 
-const { User, Project, Access, Admin, UserSuspension, Login } = Models;
+const { User, Project, ProjectSettings, Access, Admin, UserSuspension, Login } =
+  Models;
 
 /**
  * ...docs go here...
@@ -222,7 +223,14 @@ export function suspendUser(userNameOrId, reason, notes = ``) {
   try {
     UserSuspension.create({ user_id: u.id, reason, notes });
     const projects = getOwnedProjectsForUser(u.id);
-    projects.forEach((p) => stopContainer(p.name));
+    projects.forEach((p) => {
+      const s = ProjectSettings.find({ project_id: p.id });
+      if (s.app_type === `static`) {
+        stopStaticServer(p.name);
+      } else {
+        stopContainer(p.name);
+      }
+    });
   } catch (e) {
     console.error(e);
     console.log(u, reason, notes);
