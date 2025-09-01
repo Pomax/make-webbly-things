@@ -11,7 +11,7 @@ import {
 
 import { lstatSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { getAccessFor, MEMBER } from "../../../database/index.js";
+import { getAccessFor, MEMBER, touch } from "../../../database/index.js";
 import {
   CONTENT_DIR,
   createRewindPoint,
@@ -29,6 +29,7 @@ import { applyPatch } from "../../../../../public/vendor/diff.js";
 export function createFile(req, res, next) {
   const { lookups, fileName } = res.locals;
   const projectName = lookups.project.name;
+  touch(projectName);
   const slug = fileName.substring(fileName.lastIndexOf(`/`) + 1);
   const dirs = fileName.replace(`/${slug}`, ``);
   mkdirSync(dirs, { recursive: true });
@@ -49,6 +50,7 @@ export function createFile(req, res, next) {
 export async function deleteFile(req, res, next) {
   const { lookups, fileName } = res.locals;
   const projectName = lookups.project.name;
+  touch(projectName);
   const fullPath = resolve(fileName);
   const isDir = lstatSync(fullPath).isDirectory();
   try {
@@ -71,6 +73,7 @@ export async function deleteFile(req, res, next) {
 export async function formatFile(req, res, next) {
   const { lookups, fileName } = res.locals;
   const projectName = lookups.project.name;
+  touch(projectName);
   const ext = fileName.substring(fileName.lastIndexOf(`.`), fileName.length);
 
   let formatted = false;
@@ -156,6 +159,7 @@ export function getMimeType(req, res, next) {
 export function handleUpload(req, res, next) {
   const { lookups, fileName } = res.locals;
   const projectName = lookups.project.name;
+  touch(projectName);
   const slug = fileName.substring(fileName.lastIndexOf(`/`) + 1);
   const dirs = fileName.replace(`/${slug}`, ``);
   const fileData = req.body.content.value;
@@ -175,6 +179,7 @@ export function handleUpload(req, res, next) {
 export function patchFile(req, res, next) {
   const { lookups, fileName } = res.locals;
   const projectName = lookups.project.name;
+  touch(projectName);
   let data = readFileSync(fileName).toString(`utf8`);
   const patch = req.body;
   const patched = applyPatch(data, patch);
@@ -190,6 +195,7 @@ export function patchFile(req, res, next) {
 export async function moveFile(req, res, next) {
   const { lookups } = res.locals;
   const projectName = lookups.project.name;
+  touch(projectName);
   const slug = req.params.slug + req.params[0];
   const parts = slug.split(`:`);
   const oldPath = join(CONTENT_DIR, projectName, parts[0]);

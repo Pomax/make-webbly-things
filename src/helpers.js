@@ -45,9 +45,6 @@ const COMMIT_TIMEOUTS = {};
 export function createRewindPoint(projectName, reason) {
   console.log(`scheduling rewind point`);
 
-  // An edit happened, clearly, so touch the project.
-  touch(projectName);
-
   const now = scrubDateTime(new Date().toISOString());
   reason = reason || `Autosave (${now})`;
 
