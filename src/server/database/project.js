@@ -1,4 +1,11 @@
-import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
+import { join } from "node:path";
+
+import {
+  runContainer,
+  runStaticSite,
+  stopContainer,
+  stopStaticServer,
+} from "../docker/docker-helpers.js";
 
 import {
   runQuery,
@@ -12,6 +19,10 @@ import {
 
 import { slugify } from "../../helpers.js";
 
+import dotenv from "@dotenvx/dotenvx";
+const envPath = join(import.meta.dirname, `../../../.env`);
+dotenv.config({ path: envPath, quiet: true });
+
 export { UNKNOWN_USER, NOT_ACTIVATED, OWNER, EDITOR, MEMBER };
 
 const {
@@ -24,7 +35,14 @@ const {
   User,
 } = Models;
 
+const { WEB_EDITOR_APPS_HOSTNAME } = process.env;
+
 import { getUser, getUserSuspensions } from "./user.js";
+import { portBindings } from "../caddy/caddy.js";
+import {
+  dockerDueToEdit,
+  getTimingDiffInMinutes,
+} from "../docker/sleep-check.js";
 
 export function getMostRecentProjects(projectCount) {
   return runQuery(`
@@ -290,6 +308,27 @@ export function recordProjectRemix(originalId, projectId) {
 }
 
 /**
+ * Is this a static project, or does it need a container?
+ * Or, even if it's a static project, was there a project
+ * edit that warrants us firing up a docker container
+ * for now anyway?
+ *
+ * TODO: move this to where it belongs.
+ */
+export function runProject(project) {
+  const settings = loadSettingsForProject(project.id);
+  const lastUpdate = Date.parse(project.updated_at + ` +0000`);
+  const diff = getTimingDiffInMinutes(lastUpdate);
+  const noStatic = diff < dockerDueToEdit;
+
+  if (settings.app_type === `docker` || noStatic) {
+    runContainer(project.name);
+  } else {
+    runStaticSite(project.name);
+  }
+}
+
+/**
  * ...docs go here...
  */
 export function suspendProject(projectNameOrId, reason, notes = ``) {
@@ -315,6 +354,7 @@ export function suspendProject(projectNameOrId, reason, notes = ``) {
 export function touch(projectNameOrId) {
   const p = getProject(projectNameOrId);
   if (p) Project.save(p);
+  if (!portBindings[p.name]) runProject(p);
 }
 
 /**

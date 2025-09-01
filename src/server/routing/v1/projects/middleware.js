@@ -54,6 +54,7 @@ import {
   dockerDueToEdit,
   getTimingDiffInMinutes,
 } from "../../../docker/sleep-check.js";
+import { runProject } from "../../../database/project.js";
 
 /**
  * ...docs go here...
@@ -356,20 +357,7 @@ export function startProject(req, res, next) {
     return next(new Error(`suspended`));
   }
 
-  // Is this a static project, or does it need a container?
-  // Or, even if it's a static project, was there a project
-  // edit that warrants us firing up a docker container
-  // for now anyway?
-  const settings = loadSettingsForProject(project.id);
-  const lastUpdate = Date.parse(project.updated_at + ` +0000`);
-  const diff = getTimingDiffInMinutes(lastUpdate);
-  const noStatic = diff < dockerDueToEdit;
-
-  if (settings.app_type === `docker` || noStatic) {
-    runContainer(project.name);
-  } else {
-    runStaticSite(project.name);
-  }
+  runProject(project);
 
   next();
 }
