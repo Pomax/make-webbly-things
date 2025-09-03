@@ -52,8 +52,10 @@ var API = {
 };
 
 // src/client/utils/utils.js
-function create(tag) {
-  return document.createElement(tag);
+function create(tag, attributes = {}) {
+  const e2 = document.createElement(tag);
+  Object.entries(attributes).forEach(([k, v]) => e2.setAttribute(k, v));
+  return e2;
 }
 async function fetchFileContents(projectName5, fileName, type = `text/plain`) {
   const response = await API.files.get(projectName5, fileName);
@@ -29245,6 +29247,30 @@ function addTabScrollHandling() {
   }
 }
 
+// src/client/utils/notifications.js
+var Notice = class {
+  constructor(message, ttl = 5e3, type = `info`) {
+    const notice = this.notice = create(`div`, {
+      class: `${type} notice`
+    });
+    notice.textContent = message;
+    const close = create(`button`, {
+      class: "close"
+    });
+    close.textContent = `x`;
+    notice.addEventListener(`transitionend`, () => notice.remove());
+    close.addEventListener(`click`, () => {
+      close.disabled = true;
+      notice.style.opacity = 0;
+    });
+    notice.appendChild(close);
+    document.body.appendChild(notice);
+    if (ttl !== Infinity) {
+      setTimeout(() => close.click(), ttl);
+    }
+  }
+};
+
 // src/client/entry-point.js
 var { projectId: projectId3, projectName: projectName4 } = document.body.dataset;
 new class Editor {
@@ -29256,5 +29282,6 @@ new class Editor {
     await setupFileTree(this);
     addEventHandling(this.projectName);
     updatePreview();
+    new Notice(`Something has gone very wrong...`);
   }
 }();

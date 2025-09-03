@@ -2,6 +2,7 @@ import "/vendor/file-tree.esm.min.js";
 import { setupFileTree } from "./files/file-tree-utils.js";
 import { addEventHandling } from "./editor/event-handling.js";
 import { updatePreview } from "./preview/preview.js";
+import { Notice, Warning, ErrorNotice } from "./utils/notifications.js";
 
 const { projectId, projectName } = document.body.dataset;
 
@@ -17,6 +18,8 @@ new (class Editor {
     // As such, we also need custom handling for editor panes and tabs
     addEventHandling(this.projectName);
     updatePreview();
-    // FIXME: TODO: just move this stuff here.
+    new Notice(`Something has gone very wrong...`)
   }
 })();
+
+// TODO: move the event handling into the class itself?
