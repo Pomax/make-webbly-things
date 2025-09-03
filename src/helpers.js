@@ -44,7 +44,7 @@ const COMMIT_TIMEOUTS = {};
  */
 export function createRewindPoint(
   project,
-  reason = `Autosave (${new Date().toISOString()})`
+  reason = `Autosave (${scrubDateTime(new Date().toISOString())})`
 ) {
   console.log(`scheduling rewind point`);
 
