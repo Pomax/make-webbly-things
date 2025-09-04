@@ -1,9 +1,9 @@
 // Set up the render engine:
 import nunjucks from "nunjucks";
-import { safify, scrubDateTime } from "../../helpers.js";
+import { safify, scrubDateTime } from "../helpers.js";
 
 export function setupTemplating(app) {
-  const nenv = nunjucks.configure("src/server/pages", {
+  const nenv = nunjucks.configure("public/themes/default/pages", {
     autoescape: true,
     noCache: true,
     express: app,

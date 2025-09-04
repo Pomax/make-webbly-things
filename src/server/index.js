@@ -5,7 +5,7 @@ import { setDefaultAspects, execPromise } from "../helpers.js";
 import { setupRoutes } from "./routing/index.js";
 import { watchForRebuild } from "./watcher.js";
 import { setupCaddy, startCaddy } from "./caddy/caddy.js";
-import { setupTemplating } from "./pages/templating.js";
+import { setupTemplating } from "./templating.js";
 import { getMigrationStatus } from "./database/models.js";
 import { scheduleContainerCheck } from "./docker/sleep-check.js";
 

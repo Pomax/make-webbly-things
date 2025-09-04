@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% if user %}{{ user.name }}'s{% else %}A{% endif%} browser based web editor</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="./css/layout.css" />
-    <link rel="stylesheet" href="./css/editor.css" />
-    <link rel="stylesheet" href="./css/main.css" />
+    <link rel="stylesheet" href="/themes/default/css/layout.css" />
+    <link rel="stylesheet" href="/themes/default/css/editor.css" />
+    <link rel="stylesheet" href="/themes/default/css/main.css" />
   </head>
   <body>
     <h1>Welcome{% if user %} back {{ user.name }}{% endif %}!</h1>
@@ -18,6 +18,6 @@
       {% include "main/anonymous.html" %}
     {% endif %}
     
-    <script src="js/main.js" async defer></script>
+    <script src="/themes/default/js/main.js" async defer></script>
   </body>
 </html>
