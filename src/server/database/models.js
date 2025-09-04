@@ -26,7 +26,8 @@ export async function getMigrationStatus() {
   const migrations = (await readContentDir(join(dirname(dbPath), `migrations`)))
     .map((v) => parseFloat(v.match(/\d+/)?.[0]))
     .filter(Boolean);
-  return migrations.at(-1) - version;
+  const last = (migrations.at(-1) ?? 0) + 1;
+  return last - version;
 }
 
 /**

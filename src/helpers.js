@@ -7,13 +7,6 @@ import nocache from "nocache";
 import helmet from "helmet";
 import ubase from "ubase.js";
 
-// It's a bit silly that we need this import here, and a
-// strong signal that the `createRewindPoint` does not
-// belong in this helpers file, but should probably
-// go in the v1/files middleware file, as it's related
-// to creating git commits based on file edits.
-import { touch } from "./server/database/project.js";
-
 // Explicit env loading as we rely on process.env
 // at the module's top level scope...
 import dotenv from "@dotenvx/dotenvx";
@@ -21,7 +14,7 @@ const envPath = join(import.meta.dirname, `../.env`);
 dotenv.config({ path: envPath, quiet: true });
 
 export const isWindows = process.platform === `win32`;
-export const npm = isWindows ? `npm. cmd` : `npm`;
+export const npm = isWindows ? `npm.cmd` : `npm`;
 
 // Set up the vars we need for pointing to the right dirs
 export const CONTENT_BASE = process.env.CONTENT_BASE ?? `content`;

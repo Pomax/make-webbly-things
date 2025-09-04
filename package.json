@@ -7,7 +7,8 @@
   "scripts": {
     "build": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
     "prettier": "npx prettier --write --no-config --ignore-path '' ",
-    "start": "node src/server/index.js"
+    "start": "node src/server/index.js",
+    "test": "node --experimental-test-coverage --test ./src/tests/**/*.test.js"
   },
   "author": "",
   "license": "ISC",
