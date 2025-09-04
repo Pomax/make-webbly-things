@@ -120,15 +120,7 @@ export async function readContentDir(dir) {
   let dirListing;
   let listCommand = isWindows ? `dir /b/o/s "${dir}"` : `find ${dir}`;
 
-  try {
-    dirListing = await execPromise(listCommand);
-  } catch (e) {
-    // This can happen if the server reboots but the client didn't
-    // reload, leading to a session name mismatch.
-    console.warn(e);
-    return false;
-  }
-
+  dirListing = await execPromise(listCommand);
   let filtered = dirListing.split(/\r?\n/);
 
   if (isWindows) {
