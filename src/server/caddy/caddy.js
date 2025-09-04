@@ -8,6 +8,22 @@ const defaultCaddyFile = join(import.meta.dirname, `Caddyfile.default`);
 export const portBindings = {};
 
 /**
+ * Remove an entry from the Caddyfile
+ */
+export function removeCaddyEntry(project, env = process.env) {
+  const { slug } = project;
+  const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
+  const re = new RegExp(`\\n${host}\\s*\\{[\\w\\W]+?\\n\\}\\n`, `gm`);
+  const data = readFileSync(caddyFile).toString().replace(re, ``);
+  writeFileSync(caddyFile, data);
+  spawn(`caddy`, [`reload`, `--config`, caddyFile], {
+    shell: true,
+    // stdio: `inherit`,
+  });
+  delete portBindings[slug];
+}
+
+/**
  * Create (or reset) our Caddyfile
  */
 export function setupCaddy(env = process.env) {
@@ -68,9 +84,10 @@ process.on("SIGINT", () => {
  * @param {*} name
  * @param {*} port
  */
-export function updateCaddyFile(name, port, env = process.env) {
+export function updateCaddyFile(project, port, env = process.env) {
+  const { slug } = project;
   const data = readFileSync(caddyFile).toString();
-  const host = `${name}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
+  const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const index = data.indexOf(host);
   if (index >= 0) {
     // Update the binding
@@ -101,8 +118,8 @@ ${host} {
 
     writeFileSync(caddyFile, data + entry);
 
-    portBindings[name] ??= {};
-    portBindings[name].port = port;
+    portBindings[slug] ??= {};
+    portBindings[slug].port = port;
   }
 
   spawn(`caddy`, [`reload`, `--config`, caddyFile], {
@@ -110,22 +127,5 @@ ${host} {
     stdio: `ignore`,
   });
 
-  return portBindings[name];
-}
-
-/**
- * Remove an entry from the Caddyfile
- * @param {*} name
- */
-export function removeCaddyEntry(project, env = process.env) {
-  const { slug } = project;
-  const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
-  const re = new RegExp(`\\n${host}\\s*\\{[\\w\\W]+?\\n\\}\\n`, `gm`);
-  const data = readFileSync(caddyFile).toString().replace(re, ``);
-  writeFileSync(caddyFile, data);
-  spawn(`caddy`, [`reload`, `--config`, caddyFile], {
-    shell: true,
-    // stdio: `inherit`,
-  });
-  delete portBindings[slug];
+  return portBindings[slug];
 }

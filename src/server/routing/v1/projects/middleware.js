@@ -161,7 +161,7 @@ export async function createProjectDownload(req, res, next) {
 export async function deleteProject(req, res, next) {
   const { user, lookups, adminCall } = res.locals;
   const { project } = lookups;
-  const { slug } = project.slug;
+  const { slug } = project;
 
   deleteProjectForUser(user, project, adminCall);
 
@@ -257,14 +257,15 @@ export async function loadProject(req, res, next) {
   }
 
   res.locals.projectSettings = settings;
-  res.locals.viewFile = req.query.view;
+  res.locals.viewFile = req.query.view ?? project.settings.default_file;
 
   next();
 }
 
 /**
- * ...docs go here...
- * FIXME: this function is now superfluous, projects always have settings.
+ * get project settings for use in the website's "edit" fragment.
+ * Note that this is the project's properties + the project
+ * settings, flattened as one object.
  */
 export function getProjectSettings(req, res, next) {
   const { project } = res.locals.lookups;
@@ -317,7 +318,7 @@ export async function remixProject(req, res, next) {
 
   const { project } = lookups;
   const isStarter = isStarterProject(project);
-  const newProjectName = req.params.newname ?? `${user.name}-${project.name}`;
+  const newProjectName = req.params.newname ?? `${user.name}-${project.slug}`;
 
   try {
     const { project: newProject } = createProjectForUser(user, newProjectName);

@@ -41,21 +41,22 @@ const {
 // the insert and save functions. Everything else
 // falls through to those (including create):
 
-const ogInsert = Project.insert.bind(Project);
-Project.insert = (fields) => {
-  if (fields.name) {
-    fields.slug = slugify(fields.name);
-  }
-  ogInsert(fields);
-};
+function runOp(operation, fields) {
+  // ensure the slug is always correct
+  if (fields.name) fields.slug = slugify(fields.name);
+  // and if this is a project-with-settings,
+  // temporarily strip that so we only insert
+  // data that belongs in the project table.
+  let s = fields.settings;
+  delete fields.settings;
+  operation(fields);
+  fields.settings = s;
+}
 
-const ogSave = Project.save.bind(Project);
-Project.save = (fields) => {
-  if (fields.name) {
-    fields.slug = slugify(fields.name);
-  }
-  ogSave(fields);
-};
+[`insert`, `save`, `delete`].forEach((fn) => {
+  const original = Project[fn].bind(Project);
+  Project[fn] = (fields) => runOp(original, fields);
+});
 
 import { getUser, getUserAdminFlag, getUserSuspensions } from "./user.js";
 import { portBindings } from "../caddy/caddy.js";
@@ -148,7 +149,7 @@ export function getAccessFor(user, project) {
   if (!user.enabled_at) return NOT_ACTIVATED;
   const admin = getUserAdminFlag(user.name);
   if (admin) return ADMIN;
-  const a = Access.find({ project_id: project.id, user_id: u.id });
+  const a = Access.find({ project_id: project.id, user_id: user.id });
   return a ? a.access_level : UNKNOWN_USER;
 }
 
@@ -330,7 +331,7 @@ export function suspendProject(project, reason, notes = ``) {
 export function touch(project) {
   const p = getProject(project.id, false); // don't include settings here!
   if (p) Project.save(p);
-  if (!portBindings[p.name]) runProject(p);
+  if (!portBindings[p.slug]) runProject(p);
 }
 
 /**

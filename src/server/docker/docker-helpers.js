@@ -6,10 +6,7 @@ import {
   removeCaddyEntry,
   updateCaddyFile,
 } from "../caddy/caddy.js";
-import {
-  getProject,
-  getProjectEnvironmentVariables,
-} from "../database/index.js";
+import { getProjectEnvironmentVariables } from "../database/index.js";
 
 /**
  * ...docs go here...
@@ -140,7 +137,7 @@ export async function runStaticSite(project) {
   const runCommand = `node src/server/static.js --project ${slug} --port ${port} --root "${root}"`;
   console.log(runCommand);
   const child = exec(runCommand, { shell: true, stdio: `inherit` });
-  const binding = updateCaddyFile(slug, port);
+  const binding = updateCaddyFile(project, port);
   binding.serverProcess = child;
 }
 
@@ -209,7 +206,7 @@ export async function runContainer(project) {
     console.log(`could not get the port from docker...`);
   }
 
-  updateCaddyFile(slug, port);
+  updateCaddyFile(project, port);
 
   return `success`;
 }

@@ -82,7 +82,7 @@ export function deleteUser(userId) {
     const p = Project.find({ id: project_id });
     if (p && Access.findAll({ project_id }).length === 0) {
       Project.delete(p);
-      const projectDir = join(CONTENT_DIR, p.name);
+      const projectDir = join(CONTENT_DIR, p.slug);
       rmSync(projectDir, { recursive: true, force: true });
     }
   });
@@ -227,9 +227,9 @@ export function suspendUser(userNameOrId, reason, notes = ``) {
     projects.forEach((p) => {
       const s = ProjectSettings.find({ project_id: p.id });
       if (s.app_type === `static`) {
-        stopStaticServer(p.name);
+        stopStaticServer(p);
       } else {
-        stopContainer(p.name);
+        stopContainer(p);
       }
     });
   } catch (e) {
