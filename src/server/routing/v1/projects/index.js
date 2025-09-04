@@ -105,7 +105,7 @@ projects.get(
   verifyLogin,
   bindCommonValues,
   remixProject,
-  (req, res) => res.redirect(`/v1/projects/edit/${res.locals.newProjectName}`)
+  (req, res) => res.redirect(`/v1/projects/edit/${res.locals.newProjectSlug}`)
 );
 
 /**
@@ -142,7 +142,7 @@ projects.post(
   multer().none(),
   getProjectSettings,
   updateProjectSettings,
-  (_req, res) => res.send(`/v1/projects/edit/${res.locals.projectName}`)
+  (_req, res) => res.send(`/v1/projects/edit/${res.locals.projectSlug}`)
 );
 
 /**
@@ -158,7 +158,7 @@ projects.get(
   (req, res) => {
     const { project } = res.locals.lookups;
     setTimeout(() => {
-      res.redirect(`https://${project.name}.${WEB_EDITOR_APPS_HOSTNAME}`);
+      res.redirect(`https://${project.slug}.${WEB_EDITOR_APPS_HOSTNAME}`);
     }, 1000);
   },
   // Custom 404 for app domains

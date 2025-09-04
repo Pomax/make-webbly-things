@@ -18,7 +18,7 @@
     {% if projectMember %}data-project-member="true"{% endif %}
     data-project-id="{{ projectId }}"
     data-project-name="{{ projectName }}"
-    data-default-file="{{ viewFile if viewFile else projectSettings.default_file }}"
+    data-default-file="{{ viewFile }}"
     data-default-collapse="{{ projectSettings.default_collapse}}"
   >
     <main>
@@ -95,7 +95,7 @@
       </div>
     </main>
 
-    {% include "fragments/edit.html" %}
+    {% include "fragments/settings.html" %}
 
     <script src="/js/editor.bundle.js" type="module" async></script>
   </body>

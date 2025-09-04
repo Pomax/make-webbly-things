@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS project_access_levels (
 
 CREATE TABLE IF NOT EXISTS project_access (
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-  user_id INTEGER REFERENCES users(id) ON DELETE NO ACTION,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   access_level INTEGER NOT NULL DEFAULT 30 REFERENCES project_access_levels(access_level) ON DELETE NO ACTION,
   notes TEXT
 );

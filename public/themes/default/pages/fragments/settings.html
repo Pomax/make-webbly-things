@@ -12,6 +12,7 @@
         <div>
           <label>Project name:</label>
           <input type="text" value="" name="name" />
+          <span>{{ project.slug }}</span>
         </div>
         <div>
           <label>Project description:</label>
@@ -82,16 +83,15 @@
     const t = document.getElementById(`project-edit-template`);
     const d = t.content.cloneNode(true).querySelector(`dialog`);
     const url = `/v1/projects/settings/${projectId}`;
-
-    const project = await fetch(url, { method: `GET` }).then((r) => r.json());
+    const settings = await fetch(url, { method: `GET` }).then((r) => r.json());
     const template = (name) => {
       const e = d.querySelectorAll(`[name="${name}"]`);
       if (e.length) {
         if (e.length === 1) {
-          e[0].value = project[name];
+          e[0].value = settings[name];
         } else {
           e.forEach((e) => {
-            if (e.value === project[name]) {
+            if (e.value === settings[name]) {
               e.checked = true;
             }
           });
@@ -99,8 +99,8 @@
       }
     };
 
-    d.querySelector(`.projectname`).textContent = project.name;
-    Object.keys(project).forEach(template);
+    d.querySelector(`.projectname`).textContent = settings.name;
+    Object.keys(settings).forEach(template);
 
     d.querySelector(`[type="reset"]`).addEventListener(`click`, () => {
       d.close();

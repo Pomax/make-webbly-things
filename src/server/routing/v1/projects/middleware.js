@@ -5,6 +5,7 @@ import {
   cpSync,
   createReadStream,
   createWriteStream,
+  existsSync,
   lstatSync,
   mkdirSync,
   readFileSync,
@@ -20,17 +21,18 @@ import {
   CONTENT_DIR,
   execPromise,
   pathExists,
-  makeSafeProjectName,
   setupGit,
+  slugify,
 } from "../../../../helpers.js";
 
 import {
-  checkContainerHealth as dockerHealthCheck,
+  checkContainerHealth,
   deleteContainerAndImage,
   renameContainer,
   restartContainer as restartDockerContainer,
   runContainer,
   runStaticSite,
+  stopContainer,
   stopStaticServer,
 } from "../../../docker/docker-helpers.js";
 
@@ -44,17 +46,12 @@ import {
   getProjectSuspensions,
   isProjectSuspended,
   isStarterProject,
-  loadSettingsForProject,
   projectSuspendedThroughOwner,
   recordProjectRemix,
   updateSettingsForProject,
 } from "../../../database/index.js";
 
 import { portBindings, removeCaddyEntry } from "../../../caddy/caddy.js";
-import {
-  dockerDueToEdit,
-  getTimingDiffInMinutes,
-} from "../../../docker/sleep-check.js";
 import { runProject } from "../../../database/project.js";
 
 /**
@@ -62,29 +59,27 @@ import { runProject } from "../../../database/project.js";
  */
 export async function checkProjectHealth(req, res, next) {
   const { project } = res.locals.lookups;
-  const settings = loadSettingsForProject(project.id);
-  if (settings.app_type === `static`) {
+  if (project.settings.app_type === `static`) {
     try {
-      const { port } = portBindings[project.name];
+      const { port } = portBindings[project.slug];
       await fetch(`http://localhost:${port}`);
       res.locals.healthStatus = `ready`;
     } catch (e) {
       res.locals.healthStatus = `failed`;
     }
   } else {
-    res.locals.healthStatus = dockerHealthCheck(project.name);
+    res.locals.healthStatus = checkContainerHealth(project);
   }
   next();
 }
 
 /**
  * ...docs go here...
- * @param {*} source
- * @param {*} projectName
  */
-function cloneProject(source, projectName, isStarter) {
-  const dir = join(CONTENT_DIR, projectName);
-  const tempDir = join(CONTENT_DIR, `__${projectName}`);
+function cloneProject(project, slug, isStarter) {
+  const source = project.slug;
+  const dir = join(CONTENT_DIR, slug);
+  const tempDir = join(CONTENT_DIR, `__${slug}`);
 
   if (isStarter) {
     source = `__starter_projects/${source || `empty`}`;
@@ -93,27 +88,29 @@ function cloneProject(source, projectName, isStarter) {
   if (!pathExists(dir) && !pathExists(tempDir)) {
     mkdirSync(tempDir);
     mkdirSync(dir);
-    cpSync(dir.replace(projectName, source), tempDir, { recursive: true });
+    cpSync(dir.replace(slug, source), tempDir, { recursive: true });
 
     try {
       rmdirSync(join(tempDir, `.git`), { recursive: true });
     } catch (e) {
       // this can't fail.
     }
-    // Is this is a starter, we don't want the settings.json file
+
+    // If this is a starter, we don't want the settings.json file
     if (isStarter) {
       try {
         unlinkSync(join(tempDir, `.container`, `settings.json`));
       } catch (e) {
-        // we don't care if .env didn't exist =)
+        // this should never happen, but *shrug*
       }
     }
+
     // If it's *not* a starter, strip the .data dir!
     else {
       try {
         unlinkSync(join(tempDir, `.data`), { recursive: true });
       } catch (e) {
-        // we also don't care if there was no .data dir
+        // we don't care if there was no .data dir
       }
     }
 
@@ -127,10 +124,12 @@ function cloneProject(source, projectName, isStarter) {
  */
 export async function createProjectDownload(req, res, next) {
   const { dir, lookups } = res.locals;
-  const projectName = lookups.project.name;
+  const { slug } = lookups.project;
+
   const zipDir = resolve(join(CONTENT_DIR, `__archives`));
   if (!pathExists(zipDir)) mkdirSync(zipDir);
-  const dest = resolve(zipDir, projectName) + `.zip`;
+
+  const dest = resolve(zipDir, slug) + `.zip`;
   res.locals.zipFile = dest;
 
   const output = createWriteStream(dest);
@@ -145,14 +144,14 @@ export async function createProjectDownload(req, res, next) {
 
   dir.forEach((file) => {
     if (prefixes.some((p) => file.startsWith(p))) return;
-    const path = resolve(CONTENT_DIR, projectName, file);
+    const path = resolve(CONTENT_DIR, slug, file);
     if (lstatSync(path).isDirectory()) return;
     // console.log(file);
     const stream = createReadStream(path);
-    archive.append(stream, { name: `${projectName}/${file}` });
+    archive.append(stream, { name: `${slug}/${file}` });
   });
 
-  // console.log(`finalizing ${projectName}.zip`)
+  // console.log(`finalizing ${slug}.zip`)
   archive.finalize();
 }
 
@@ -161,19 +160,19 @@ export async function createProjectDownload(req, res, next) {
  */
 export async function deleteProject(req, res, next) {
   const { user, lookups, adminCall } = res.locals;
-  const userName = user.name;
-  const projectName = lookups.project.name;
+  const { project } = lookups;
+  const { slug } = project.slug;
 
-  deleteProjectForUser(userName, projectName, adminCall);
+  deleteProjectForUser(user, project, adminCall);
 
   console.log(`Cleaning up Caddyfile`);
-  removeCaddyEntry(projectName);
+  removeCaddyEntry(project);
 
-  console.log(`Cleaning up ${projectName} container and image`);
-  deleteContainerAndImage(projectName);
+  console.log(`Cleaning up ${slug} container and image`);
+  deleteContainerAndImage(project);
 
-  console.log(`Removing ${projectName} from the filesystem`);
-  rmSync(join(CONTENT_DIR, projectName), {
+  console.log(`Removing ${slug} from the filesystem`);
+  rmSync(join(CONTENT_DIR, slug), {
     recursive: true,
     force: true,
   });
@@ -187,8 +186,8 @@ export async function deleteProject(req, res, next) {
 export async function loadProject(req, res, next) {
   const { user, lookups } = res.locals;
   const { project } = lookups;
-  const { id: projectId, name: projectName } = project;
-  const dir = join(CONTENT_DIR, projectName);
+  const { slug, settings } = project;
+  const dir = join(CONTENT_DIR, slug);
 
   if (!pathExists(dir)) {
     // not sure this is possible, but...
@@ -203,7 +202,7 @@ export async function loadProject(req, res, next) {
 
   let suspended = false;
 
-  const suspensions = getProjectSuspensions(projectName);
+  const suspensions = getProjectSuspensions(project);
   if (suspensions.length) {
     suspended = true;
     if (!user?.admin)
@@ -214,7 +213,7 @@ export async function loadProject(req, res, next) {
       );
   }
 
-  if (projectSuspendedThroughOwner(projectName)) {
+  if (projectSuspendedThroughOwner(project)) {
     suspended = true;
     if (!user?.admin) {
       return next(
@@ -228,36 +227,35 @@ export async function loadProject(req, res, next) {
   }
 
   // ensure git knows who we are.
-  setupGit(dir, projectName);
+  setupGit(dir, slug);
 
   // Then get a container running
   if (!suspended) {
-    const { app_type } = loadSettingsForProject(projectId)?.settings ?? {};
+    const { app_type } = settings;
     const staticType = app_type === null || app_type === `static`;
     const inEditor = req.originalUrl.startsWith(`/v1/projects/edit/`);
-    const mayEdit = getAccessFor(user?.name, project.name) >= MEMBER;
+    const mayEdit = getAccessFor(user, project) >= MEMBER;
     const noStatic = inEditor && user && mayEdit;
     if (!staticType || noStatic) {
-      stopStaticServer(projectName);
-      await runContainer(projectName);
+      stopStaticServer(project);
+      await runContainer(project);
     } else {
-      runStaticSite(projectName);
+      runStaticSite(project);
     }
   }
 
   // is this a logged in user?
-  if (res.locals.user) {
+  if (user) {
     // if this their project?
-    const a = getAccessFor(res.locals.user.name, projectName);
+    const a = getAccessFor(user, project);
     if (a >= MEMBER) {
       res.locals.projectMember = true;
-      if (a === OWNER) {
+      if (a >= OWNER) {
         res.locals.projectOwner = true;
       }
     }
   }
 
-  const settings = loadSettingsForProject(projectId);
   res.locals.projectSettings = settings;
   res.locals.viewFile = req.query.view;
 
@@ -266,10 +264,14 @@ export async function loadProject(req, res, next) {
 
 /**
  * ...docs go here...
+ * FIXME: this function is now superfluous, projects always have settings.
  */
 export function getProjectSettings(req, res, next) {
-  const projectId = res.locals.lookups.project.id;
-  res.locals.settings = loadSettingsForProject(projectId);
+  const { project } = res.locals.lookups;
+  res.locals.settings = {
+    ...project,
+    ...project.settings,
+  };
   next();
 }
 
@@ -277,12 +279,12 @@ export function getProjectSettings(req, res, next) {
  * ...docs go here...
  */
 export async function loadProjectHistory(req, res, next) {
-  const projectName = res.locals.lookups.project.name;
+  const { slug } = res.locals.lookups.project;
   const { commit } = req.params;
   if (commit) {
     const cmd = `git show ${commit}`;
     const output = await execPromise(cmd, {
-      cwd: join(CONTENT_DIR, projectName),
+      cwd: join(CONTENT_DIR, slug),
     });
     res.locals.history = {
       commit: output,
@@ -290,7 +292,7 @@ export async function loadProjectHistory(req, res, next) {
   } else {
     const cmd = `git log --no-abbrev-commit --pretty=format:"%H%x09%ad%x09%s"`;
     const output = await execPromise(cmd, {
-      cwd: join(CONTENT_DIR, projectName),
+      cwd: join(CONTENT_DIR, slug),
     });
     const parsed = output.split(`\n`).map((line) => {
       let [hash, timestamp, reason] = line.split(`\t`).map((e) => e.trim());
@@ -314,23 +316,20 @@ export async function remixProject(req, res, next) {
   }
 
   const { project } = lookups;
-  const newName = makeSafeProjectName(
-    req.params.newname ?? `${user.name}-${project.name}`
-  );
-  const newProjectName = (res.locals.newProjectName = newName);
-  const isStarter = isStarterProject(project.id);
-
-  cloneProject(project.name, newProjectName, isStarter);
+  const isStarter = isStarterProject(project);
+  const newProjectName = req.params.newname ?? `${user.name}-${project.name}`;
 
   try {
-    const { project: newProject } = createProjectForUser(
-      user.name,
-      newProjectName
-    );
-    recordProjectRemix(project.id, newProject.id);
-    const s = copyProjectSettings(project.id, newProject.id);
-    const containerDir = join(CONTENT_DIR, newProjectName, `.container`);
+    const { project: newProject } = createProjectForUser(user, newProjectName);
+    const newProjectSlug = (res.locals.newProjectSlug = newProject.slug);
+
+    cloneProject(project, newProjectSlug, isStarter);
+    recordProjectRemix(project, newProject);
+
+    const s = copyProjectSettings(project, newProject);
+    const containerDir = join(CONTENT_DIR, newProjectSlug, `.container`);
     const runScript = join(containerDir, `run.sh`);
+
     // shell scripts *must* use unix line endings.
     writeFileSync(runScript, s.run_script.replace(/\r\n/g, `\n`));
     next();
@@ -345,11 +344,10 @@ export async function remixProject(req, res, next) {
  */
 export function restartContainer(req, res, next) {
   const { project } = res.locals.lookups;
-  const settings = loadSettingsForProject(project.id);
-  if (settings.app_type === `static`) {
+  if (project.settings.app_type === `static`) {
     // do nothing. Static servers don't need restarting.
   } else {
-    restartDockerContainer(project.name);
+    restartDockerContainer(project);
   }
   next();
 }
@@ -366,7 +364,7 @@ export function startProject(req, res, next) {
 
   // Is this project allowed to start?
   const { project } = res.locals.lookups;
-  if (isProjectSuspended(project.id)) {
+  if (isProjectSuspended(project)) {
     return next(new Error(`suspended`));
   }
 
@@ -382,7 +380,7 @@ export function startProject(req, res, next) {
 export async function updateProjectSettings(req, res, next) {
   const { lookups, settings } = res.locals;
   const { project } = lookups;
-  const { id: projectId, name: projectName } = project;
+  const { slug: projectSlug } = project;
   const { run_script, env_vars } = settings;
 
   const newSettings = Object.fromEntries(
@@ -390,42 +388,47 @@ export async function updateProjectSettings(req, res, next) {
   );
 
   const newName = newSettings.name;
-  const newDir = join(CONTENT_DIR, newName);
+  const newSlug = slugify(newName);
+  const newDir = join(CONTENT_DIR, newSlug);
   const containerDir = join(newDir, `.container`);
   const app_type = newSettings.app_type ?? settings.app_type;
 
-  if (projectName !== newName) {
+  if (projectSlug !== newSlug) {
     if (pathExists(newDir)) {
-      return next(new Error("Cannot rename project"));
+      return next(
+        new Error(
+          "Cannot rename project (someone else already owns this project name!)"
+        )
+      );
     }
   }
 
   // no run script? See if there's a run.sh and copy that.
   if (newSettings.run_script.trim() === ``) {
-    try {
-      const data = readFileSync(join(containerDir, `run.sh`)).toString();
-      newSettings.run_script = data;
-    } catch (e) {
-      // console.error(e);
+    const runScriptPath = join(containerDir, `run.sh`);
+    if (existsSync(runScriptPath)) {
+      const data = readFileSync(runScriptPath).toString();
+      newSettings.run_script = data.replace(/\r\n/g, `\n`);
     }
   }
 
   try {
-    updateSettingsForProject(projectId, newSettings);
+    updateSettingsForProject(project, newSettings);
 
-    if (projectName !== newName) {
-      renameSync(join(CONTENT_DIR, projectName), newDir);
-      renameContainer(projectName, newName);
-      console.log(`rebinding res.locals.projectName to ${newName}`);
+    let containerChange = false;
+
+    if (projectSlug !== newSlug) {
+      containerChange = true;
+      renameSync(join(CONTENT_DIR, projectSlug), newDir);
+      renameContainer(projectSlug, newSlug);
+      console.log(`rebinding res.locals.projectSlug to ${newSlug}`);
     }
 
-    res.locals.projectName = newName;
+    res.locals.projectSlug = newSlug;
 
     // Do we need to update our container files? (there's nothing
     // to update wrt a static server, it's static content).
     if (app_type === `docker`) {
-      let containerChange = false;
-
       if (run_script !== newSettings.run_script) {
         containerChange = true;
         writeFileSync(
@@ -437,10 +440,11 @@ export async function updateProjectSettings(req, res, next) {
         containerChange = true;
         writeFileSync(join(containerDir, `.env`), newSettings.env_vars);
       }
+    }
 
-      if (containerChange) {
-        await restartDockerContainer(projectName, true);
-      }
+    if (containerChange) {
+      stopContainer(projectSlug);
+      await runContainer(project);
     }
 
     next();

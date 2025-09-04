@@ -117,8 +117,9 @@ ${host} {
  * Remove an entry from the Caddyfile
  * @param {*} name
  */
-export function removeCaddyEntry(name, env = process.env) {
-  const host = `${name}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
+export function removeCaddyEntry(project, env = process.env) {
+  const { slug } = project;
+  const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const re = new RegExp(`\\n${host}\\s*\\{[\\w\\W]+?\\n\\}\\n`, `gm`);
   const data = readFileSync(caddyFile).toString().replace(re, ``);
   writeFileSync(caddyFile, data);
@@ -126,5 +127,5 @@ export function removeCaddyEntry(name, env = process.env) {
     shell: true,
     // stdio: `inherit`,
   });
-  delete portBindings[name];
+  delete portBindings[slug];
 }

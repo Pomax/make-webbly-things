@@ -9,14 +9,13 @@ import {
 import {
   getProject,
   getProjectEnvironmentVariables,
-  loadSettingsForProject,
 } from "../database/index.js";
 
 /**
  * ...docs go here...
  */
-export function checkContainerHealth(projectName) {
-  const check = `docker ps --no-trunc -f name=^/${projectName}$`;
+export function checkContainerHealth(project, slug = project.slug) {
+  const check = `docker ps --no-trunc -f name=^/${slug}$`;
   const result = execSync(check).toString().trim();
   if (result.includes(`Exited`)) {
     return `failed`;
@@ -35,14 +34,14 @@ export function checkContainerHealth(projectName) {
 /**
  * ...docs go here...
  */
-export function deleteContainer(name) {
+export function deleteContainer(project, slug = project.slug) {
   try {
-    execSync(`docker container rm ${name}`);
+    execSync(`docker container rm ${slug}`);
   } catch (e) {
     // failure just means it's already been removed.
   }
   try {
-    execSync(`docker image rm ${name}`);
+    execSync(`docker image rm ${slug}`);
   } catch (e) {
     // idem dito
   }
@@ -51,10 +50,10 @@ export function deleteContainer(name) {
 /**
  * ...docs go here...
  */
-export function deleteContainerAndImage(name) {
+export function deleteContainerAndImage(project) {
   console.log(`removing container and image...`);
-  stopContainer(name);
-  deleteContainer(name);
+  stopContainer(project);
+  deleteContainer(project);
 }
 
 /**
@@ -95,30 +94,30 @@ export function getAllRunningStaticServers() {
 /**
  * ...docs go here...
  */
-export function renameContainer(oldName, newName) {
-  stopContainer(oldName);
+export function renameContainer(oldSlug, newSlug) {
+  stopContainer(oldSlug);
   try {
-    execSync(`docker tag ${oldName} ${newName}`);
-    execSync(`docker rmi ${oldName}`);
+    execSync(`docker tag ${oldSlug} ${newSlug}`);
+    execSync(`docker rmi ${oldSlug}`);
   } catch (e) {}
-  runContainer(newName);
 }
 
 /**
  * ...docs go here...
  */
-export async function restartContainer(name, rebuild = false) {
+export async function restartContainer(project, rebuild = false) {
+  const { slug } = project;
   if (rebuild) {
-    console.log(`rebuiling container for ${name}...`);
-    deleteContainerAndImage(name);
-    await runContainer(name);
+    console.log(`rebuilding container for ${slug}...`);
+    deleteContainerAndImage(project);
+    await runContainer(project);
   } else {
-    console.log(`restarting container for ${name}...`);
+    console.log(`restarting container for ${slug}...`);
     try {
-      execSync(`docker container restart -t 0 ${name}`);
+      execSync(`docker container restart -t 0 ${slug}`);
     } catch (e) {
       // if an admin force-stops this container, we can't "restart".
-      runContainer(name);
+      runContainer(project);
     }
   }
   console.log(`...done!`);
@@ -131,40 +130,40 @@ export async function restartContainer(name, rebuild = false) {
  *
  * FIXME: this function doesn't feel like it should live here...
  */
-export async function runStaticSite(projectName) {
-  if (portBindings[projectName]) return;
+export async function runStaticSite(project) {
+  const { slug } = project;
+  if (portBindings[slug]) return;
   const port = await getFreePort();
-  console.log(
-    `attempting to run static server for ${projectName} on port ${port}`
-  );
-  const p = getProject(projectName);
-  const s = loadSettingsForProject(p.id);
+  console.log(`attempting to run static server for ${slug} on port ${port}`);
+  const s = project.settings;
   const root = s.root_dir === null ? `` : s.root_dir;
-  const runCommand = `node src/server/static.js --project ${projectName} --port ${port} --root "${root}"`;
+  const runCommand = `node src/server/static.js --project ${slug} --port ${port} --root "${root}"`;
   console.log(runCommand);
   const child = exec(runCommand, { shell: true, stdio: `inherit` });
-  const binding = updateCaddyFile(projectName, port);
+  const binding = updateCaddyFile(slug, port);
   binding.serverProcess = child;
 }
 
 /**
  * ...docs go here...
  */
-export async function runContainer(projectName) {
+export async function runContainer(project) {
+  const { slug } = project;
+
   // note: we assume the caller already checked for project
   // suspension, so we don't try to use the database here.
 
-  console.log(`attempting to run container ${projectName}`);
+  console.log(`attempting to run container ${slug}`);
   let port = await getFreePort();
 
   // Do we have a container? If not, build one.
   console.log(`- Checking for image`);
   let result = execSync(`docker image list`).toString().trim();
 
-  if (!result.match(new RegExp(`\\b${projectName}\\b`, `gm`))) {
+  if (!result.match(new RegExp(`\\b${slug}\\b`, `gm`))) {
     console.log(`- Building image`);
     try {
-      execSync(`docker build --tag ${projectName} --no-cache .`, {
+      execSync(`docker build --tag ${slug} --no-cache .`, {
         shell: true,
         stdio: `inherit`,
       });
@@ -176,18 +175,18 @@ export async function runContainer(projectName) {
   // FIXME: TODO: check if `docker ps -a` has a dead container that we need to cleanup
 
   console.log(`- Checking for running container`);
-  const check = `docker ps --no-trunc -f name=^/${projectName}$`;
+  const check = `docker ps --no-trunc -f name=^/${slug}$`;
   result = execSync(check).toString().trim();
 
-  if (!result.match(new RegExp(`\\b${projectName}\\b`, `gm`))) {
+  if (!result.match(new RegExp(`\\b${slug}\\b`, `gm`))) {
     console.log(`- Starting container on port ${port}`);
-    const runFlags = `--rm --stop-timeout 0 --name ${projectName}`;
-    const bindMount = `--mount type=bind,src=.${sep}content${sep}${projectName},dst=/app`;
-    const envVars = Object.entries(getProjectEnvironmentVariables(projectName))
+    const runFlags = `--rm --stop-timeout 0 --name ${slug}`;
+    const bindMount = `--mount type=bind,src=.${sep}content${sep}${slug},dst=/app`;
+    const envVars = Object.entries(getProjectEnvironmentVariables(project))
       .map(([k, v]) => `-e ${k}="${v}"`)
       .join(` `);
     const entry = `/bin/sh .container/run.sh`;
-    const runCommand = `docker run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${projectName} ${entry}`;
+    const runCommand = `docker run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${slug} ${entry}`;
     console.log(runCommand);
     exec(runCommand);
   }
@@ -210,7 +209,7 @@ export async function runContainer(projectName) {
     console.log(`could not get the port from docker...`);
   }
 
-  updateCaddyFile(projectName, port);
+  updateCaddyFile(slug, port);
 
   return `success`;
 }
@@ -218,23 +217,23 @@ export async function runContainer(projectName) {
 /**
  * ...docs go here...
  */
-export function stopContainer(name) {
+export function stopContainer(project, slug = project.slug) {
   try {
-    execSync(`docker container stop ${name}`);
+    execSync(`docker container stop ${slug}`);
   } catch (e) {
     // failure just means it's already no longer running.
   }
-  removeCaddyEntry(name);
+  removeCaddyEntry(project);
 }
 
 /**
  * ...docs go here...
  */
-export function stopStaticServer(name) {
-  const { serverProcess } = portBindings[name] ?? {};
+export function stopStaticServer(project, slug = project.slug) {
+  const { serverProcess } = portBindings[slug] ?? {};
   if (serverProcess) {
-    console.log(`Killing static server for ${name}`)
+    console.log(`Killing static server for ${slug}`);
     serverProcess.kill();
-    removeCaddyEntry(name);
+    removeCaddyEntry(project);
   }
 }

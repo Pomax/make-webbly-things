@@ -36,7 +36,26 @@ const {
   User,
 } = Models;
 
-const { WEB_EDITOR_APPS_HOSTNAME } = process.env;
+// Ensure that the project slug is always up to date
+// based on the project name, which means updating
+// the insert and save functions. Everything else
+// falls through to those (including create):
+
+const ogInsert = Project.insert.bind(Project);
+Project.insert = (fields) => {
+  if (fields.name) {
+    fields.slug = slugify(fields.name);
+  }
+  ogInsert(fields);
+};
+
+const ogSave = Project.save.bind(Project);
+Project.save = (fields) => {
+  if (fields.name) {
+    fields.slug = slugify(fields.name);
+  }
+  ogSave(fields);
+};
 
 import { getUser, getUserAdminFlag, getUserSuspensions } from "./user.js";
 import { portBindings } from "../caddy/caddy.js";
@@ -47,46 +66,55 @@ import {
 
 export function getMostRecentProjects(projectCount) {
   return runQuery(`
-    select *
-    from projects 
-    left join starter_projects as strt on strt.project_id=projects.id
-    left join suspended_projects as sus on sus.project_id=projects.id
-    where strt.project_id is null AND sus.project_id is null
-    order by updated_at DESC, created_at DESC
+    select
+      *
+    from
+      projects 
+    left join
+      starter_projects as strt
+      on
+        strt.project_id=projects.id
+    left join
+      suspended_projects as sus
+      on
+        sus.project_id=projects.id
+    where
+      strt.project_id is null
+    and
+      sus.project_id is null
+    order by
+      updated_at DESC,
+      created_at DESC
     limit ${projectCount}
   `);
 }
 
 /**
- * ...docs go here...
+ * Copy project settings from one project to another,
+ * making sure NOT to copy the project id or environment
+ * variables.
  */
-export function copyProjectSettings(originalId, projectId) {
+export function copyProjectSettings(source, target) {
   // Copy over the project description
-  let source = getProject(originalId);
-  let target = getProject(projectId);
-  target.slug = slugify(target.name);
   target.description = source.description;
   Project.save(target);
   // And create a new project settings entry
-  source = ProjectSettings.find({ project_id: originalId });
-  target = ProjectSettings.find({ project_id: projectId });
-  target.run_script = source.run_script;
-  target.default_file = source.default_file;
-  target.default_collapse = source.default_collapse;
-  ProjectSettings.save(target, `project_id`);
+  const { project_id, env_vars, ...settings } = source.settings;
+  target = target.settings;
+  Object.assign(target, settings);
+  ProjectSettings.save(target);
   return target;
 }
 
 /**
- * ...docs go here...
+ * Create a new project record, tied to a user account,
+ * based on "we only know the intended project name"
+ * (and then subsequent code might assign content to
+ * this new project. That's not this function's concern)
  */
-export function createProjectForUser(userName, projectName) {
-  const u = User.find({ name: userName });
-  const p = Project.create({
-    name: projectName,
-    slug: slugify(projectName),
-  });
-  Access.create({ project_id: p.id, user_id: u.id });
+export function createProjectForUser(user, projectName) {
+  const p = Project.create({ name: projectName });
+  Access.create({ project_id: p.id, user_id: user.id });
   ProjectSettings.create({ project_id: p.id });
   return { user: u, project: p };
 }
@@ -94,33 +122,19 @@ export function createProjectForUser(userName, projectName) {
 /**
  * ...docs go here...
  */
-export function deleteProject(projectId) {
-  const p = getProject(projectId);
-  console.log(`deleting project ${p.name} with id ${p.id}`);
-  Access.delete({ project_id: p.id });
-  Project.delete(p);
-  // ON DELETE CASCADE should have taken care of everything else...
-}
-
-/**
- * ...docs go here...
- */
-export function deleteProjectForUser(userName, projectName, adminCall) {
-  const u = getUser(userName);
-  const p = getProject(projectName);
-  const a = Access.find({ project_id: p.id, user_id: u.id });
+export function deleteProjectForUser(user, project, adminCall) {
+  const a = Access.find({ project_id: project.id, user_id: user.id });
 
   // secondary layer of protection:
   if (a.access_level < OWNER && !adminCall) throw new Error(`Not yours, mate`);
 
-  const { name } = p;
-
+  const { name } = project;
   console.log(`Deleting access rules for project ${name}...`);
-  const rules = Access.findAll({ project_id: p.id });
+  const rules = Access.findAll({ project_id: project.id });
   for (const r of rules) Access.delete(r);
 
   console.log(`Deleting project ${name}...`);
-  Project.delete(p);
+  Project.delete(project);
 
   console.log(`Deletion complete.`);
   return name;
@@ -129,14 +143,12 @@ export function deleteProjectForUser(userName, projectName, adminCall) {
 /**
  * ...docs go here...
  */
-export function getAccessFor(userName, projectName) {
-  if (!userName) return UNKNOWN_USER;
-  const u = User.find({ name: userName });
-  if (!u.enabled_at) return NOT_ACTIVATED;
-  const p = Project.find({ name: projectName });
-  const admin = getUserAdminFlag(userName);
+export function getAccessFor(user, project) {
+  if (!user) return UNKNOWN_USER;
+  if (!user.enabled_at) return NOT_ACTIVATED;
+  const admin = getUserAdminFlag(user.name);
   if (admin) return ADMIN;
-  const a = Access.find({ project_id: p.id, user_id: u.id });
+  const a = Access.find({ project_id: project.id, user_id: u.id });
   return a ? a.access_level : UNKNOWN_USER;
 }
 
@@ -149,7 +161,7 @@ export function getAllProjects(omitStarters = true) {
   const projects = Project.all(`name`);
   projects.forEach((p) => {
     if (!p) return;
-    if (omitStarters && isStarterProject(p.id)) return;
+    if (omitStarters && isStarterProject(p)) return;
     p.settings = ProjectSettings.find({ project_id: p.id });
     p.suspensions = [];
     projectList[p.id] = p;
@@ -170,52 +182,37 @@ export function getAllProjects(omitStarters = true) {
 /**
  * ...docs go here...
  */
-export function getIdForProjectName(projectName) {
-  const p = Project.find({ name: projectName });
-  if (!p) throw new Error("Project not found");
-  return p.id;
-}
-
-/**
- * ...docs go here...
- */
-export function getNameForProjectId(projectId) {
-  const p = Project.find({ id: projectId });
-  if (!p) throw new Error("Project not found");
-  return p.name;
-}
-
-/**
- * ...docs go here...
- */
 export function getOwnedProjectsForUser(userNameOrId) {
   const u = getUser(userNameOrId);
   const access = Access.findAll({ user_id: u.id });
   return access
-    .filter((a) => a.access_level === OWNER)
+    .filter((a) => a.access_level >= OWNER)
     .map((a) => getProject(a.project_id));
 }
 
 /**
  * ...docs go here...
  */
-export function getProject(projectNameOrId) {
+export function getProject(slugOrId, withSettings = true) {
   let p;
-  if (typeof projectNameOrId === `number`) {
-    p = Project.find({ id: projectNameOrId });
+  if (typeof slugOrId === `number`) {
+    p = Project.find({ id: slugOrId });
   } else {
-    p = Project.find({ name: projectNameOrId });
+    p = Project.find({ slug: slugOrId });
   }
-  if (!p) throw new Error(`Project ${projectNameOrId} not found`);
+  if (!p) throw new Error(`Project ${slugOrId} not found`);
+  if (withSettings) {
+    const s = ProjectSettings.find({ project_id: p.id });
+    p.settings = s;
+  }
   return p;
 }
 
 /**
  * ...docs go here...
  */
-export function getProjectEnvironmentVariables(projectNameOrId) {
-  const p = getProject(projectNameOrId);
-  const { env_vars } = ProjectSettings.find({ project_id: p.id });
+export function getProjectEnvironmentVariables(project) {
+  const { env_vars } = project.settings;
   if (!env_vars) return [];
   return Object.fromEntries(
     env_vars
@@ -229,13 +226,8 @@ export function getProjectEnvironmentVariables(projectNameOrId) {
 /**
  * ...docs go here...
  */
-export function getProjectSuspensions(projectNameOrId, includeOld = false) {
-  let project_id = projectNameOrId;
-  if (typeof projectNameOrId !== `number`) {
-    const p = Project.find({ name: projectNameOrId });
-    project_id = p.id;
-  }
-  const s = ProjectSuspension.findAll({ project_id });
+export function getProjectSuspensions(project, includeOld = false) {
+  const s = ProjectSuspension.findAll({ project_id: project.id });
   if (includeOld) return s;
   return s.filter((s) => !s.invalidated_at);
 }
@@ -261,40 +253,22 @@ export function getStarterProjects() {
 /**
  * ...docs go here...
  */
-export function isProjectSuspended(projectNameOrId) {
-  const p = getProject(projectNameOrId);
-  return !!ProjectSuspension.find({ project_id: p.id });
+export function isProjectSuspended(project) {
+  return !!ProjectSuspension.find({ project_id: project.id });
 }
 
 /**
  * ...docs go here...
  */
-export function isStarterProject(id) {
-  return !!StarterProject.find({ project_id: id });
+export function isStarterProject(project) {
+  return !!StarterProject.find({ project_id: project.id });
 }
 
 /**
  * ...docs go here...
  */
-export function loadSettingsForProject(projectId) {
-  const p = Project.find({ id: projectId });
-  const s = ProjectSettings.find({ project_id: p.id });
-  if (!s) return false;
-  const { name, description } = p;
-  const { project_id, ...settings } = s;
-  return {
-    name,
-    description,
-    ...settings,
-  };
-}
-
-/**
- * ...docs go here...
- */
-export function projectSuspendedThroughOwner(projectNameOrId) {
-  const p = getProject(projectNameOrId);
-  const access = Access.findAll({ project_id: p.id });
+export function projectSuspendedThroughOwner(project) {
+  const access = Access.findAll({ project_id: project.id });
   return access.some((a) => {
     if (a.access_level < OWNER) return false;
     const u = getUser(a.user_id);
@@ -307,8 +281,8 @@ export function projectSuspendedThroughOwner(projectNameOrId) {
 /**
  * ...docs go here...
  */
-export function recordProjectRemix(originalId, projectId) {
-  Remix.create({ original_id: originalId, project_id: projectId });
+export function recordProjectRemix(original, newProject) {
+  Remix.create({ original_id: original.id, project_id: newProject.id });
 }
 
 /**
@@ -320,32 +294,30 @@ export function recordProjectRemix(originalId, projectId) {
  * TODO: move this to where it belongs.
  */
 export function runProject(project) {
-  const settings = loadSettingsForProject(project.id);
+  const { settings } = project;
   const lastUpdate = Date.parse(project.updated_at + ` +0000`);
   const diff = getTimingDiffInMinutes(lastUpdate);
   const noStatic = diff < dockerDueToEdit;
 
   if (settings.app_type === `docker` || noStatic) {
-    runContainer(project.name);
+    runContainer(project);
   } else {
-    runStaticSite(project.name);
+    runStaticSite(project);
   }
 }
 
 /**
  * ...docs go here...
  */
-export function suspendProject(projectNameOrId, reason, notes = ``) {
+export function suspendProject(project, reason, notes = ``) {
   if (!reason) throw new Error(`Cannot suspend project without a reason`);
-  const p = getProject(projectNameOrId);
-  const s = ProjectSettings.find({ project_id: p.id });
   try {
-    if (s.app_type === `static`) {
-      stopStaticServer(p.name);
+    if (project.settings.app_type === `static`) {
+      stopStaticServer(project);
     } else {
-      stopContainer(p.name);
+      stopContainer(project);
     }
-    ProjectSuspension.create({ project_id: p.id, reason, notes });
+    ProjectSuspension.create({ project_id: project.id, reason, notes });
   } catch (e) {
     console.error(e);
     console.log(u, reason, notes);
@@ -355,8 +327,8 @@ export function suspendProject(projectNameOrId, reason, notes = ``) {
 /**
  * ...docs go here...
  */
-export function touch(projectNameOrId) {
-  const p = getProject(projectNameOrId);
+export function touch(project) {
+  const p = getProject(project.id, false); // don't include settings here!
   if (p) Project.save(p);
   if (!portBindings[p.name]) runProject(p);
 }
@@ -374,21 +346,15 @@ export function unsuspendProject(suspensionId) {
 /**
  * ...docs go here...
  */
-export function updateSettingsForProject(projectId, settings) {
+export function updateSettingsForProject(project, settings) {
   const { name, description, ...containerSettings } = settings;
 
-  const p = Project.find({ id: projectId });
-  if (p.name !== name) {
-    if (!name.trim()) throw new Error(`Invalid project name`);
-    p.name = name;
-    p.slug = slugify(name);
-  }
-  p.description = description;
-  Project.save(p);
+  project.name = name;
+  project.slug = slugify(name);
+  project.description = description;
+  Project.save(project);
 
-  const s = ProjectSettings.find({ project_id: projectId });
-  Object.entries(containerSettings).forEach(([key, value]) => {
-    s[key] = value;
-  });
-  ProjectSettings.save(s, `project_id`);
+  const s = project.settings;
+  Object.assign(s, containerSettings);
+  ProjectSettings.save(s);
 }

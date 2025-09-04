@@ -1,4 +1,4 @@
-import { getProject, loadSettingsForProject } from "../database/project.js";
+import { getProject } from "../database/project.js";
 import { getAllRunningContainers, stopContainer } from "./docker-helpers.js";
 const { max } = Math;
 
@@ -28,13 +28,12 @@ function log(msg) {
 }
 
 // helper function for getting a project
-function project(name) {
+function project(slug) {
   try {
-    const p = getProject(name);
-    const s = loadSettingsForProject(p.id);
+    const p = getProject(slug);
     return {
       updated_at: p.updated_at,
-      app_type: s.app_type,
+      app_type: p.settings.app_type,
     };
   } catch (e) {
     // orphaned image? O_o

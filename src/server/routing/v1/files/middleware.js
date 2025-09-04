@@ -28,8 +28,8 @@ import { applyPatch } from "../../../../../public/vendor/diff.js";
  */
 export function createFile(req, res, next) {
   const { lookups, fileName } = res.locals;
-  const projectName = lookups.project.name;
-  touch(projectName);
+  const { project } = lookups;
+  touch(project);
   const slug = fileName.substring(fileName.lastIndexOf(`/`) + 1);
   const dirs = fileName.replace(`/${slug}`, ``);
   mkdirSync(dirs, { recursive: true });
@@ -40,7 +40,7 @@ export function createFile(req, res, next) {
       mkdirSync(join(dirs, slug));
     }
   }
-  createRewindPoint(projectName);
+  createRewindPoint(project);
   next();
 }
 
@@ -49,8 +49,8 @@ export function createFile(req, res, next) {
  */
 export async function deleteFile(req, res, next) {
   const { lookups, fileName } = res.locals;
-  const projectName = lookups.project.name;
-  touch(projectName);
+  const { project } = lookups;
+  touch(project);
   const fullPath = resolve(fileName);
   const isDir = lstatSync(fullPath).isDirectory();
   try {
@@ -59,7 +59,7 @@ export async function deleteFile(req, res, next) {
     } else {
       unlinkSync(fullPath);
     }
-    createRewindPoint(projectName);
+    createRewindPoint(project);
     next();
   } catch (e) {
     console.error(e);
@@ -72,8 +72,8 @@ export async function deleteFile(req, res, next) {
  */
 export async function formatFile(req, res, next) {
   const { lookups, fileName } = res.locals;
-  const projectName = lookups.project.name;
-  touch(projectName);
+  const { project } = lookups;
+  touch(project);
   const ext = fileName.substring(fileName.lastIndexOf(`.`), fileName.length);
 
   let formatted = false;
@@ -99,7 +99,7 @@ export async function formatFile(req, res, next) {
   }
 
   res.locals.formatted = formatted;
-  createRewindPoint(projectName);
+  createRewindPoint(project);
   next();
 }
 
@@ -110,10 +110,11 @@ export async function formatFile(req, res, next) {
 export async function getDirListing(req, res, next) {
   const { user, lookups } = res.locals;
   const userName = user?.name;
-  const projectName = lookups.project.name;
+  const { project } = lookups;
+  const projectSlug = project.slug;
 
-  if (projectName) {
-    const dirName = join(CONTENT_DIR, projectName);
+  if (projectSlug) {
+    const dirName = join(CONTENT_DIR, projectSlug);
 
     let dir = await readContentDir(dirName);
     if (dir === false) {
@@ -122,7 +123,7 @@ export async function getDirListing(req, res, next) {
 
     // Remove any "private" data from the dir listing if
     // the user has no access rights to them.
-    const accessLevel = userName ? getAccessFor(userName, projectName) : -1;
+    const accessLevel = userName ? getAccessFor(user, project) : -1;
 
     // Users do not directly interact with the .container
     // folder. Instead its content is regulated via the
@@ -158,8 +159,8 @@ export function getMimeType(req, res, next) {
  */
 export function handleUpload(req, res, next) {
   const { lookups, fileName } = res.locals;
-  const projectName = lookups.project.name;
-  touch(projectName);
+  const { project } = lookups;
+  touch(project);
   const slug = fileName.substring(fileName.lastIndexOf(`/`) + 1);
   const dirs = fileName.replace(`/${slug}`, ``);
   const fileData = req.body.content.value;
@@ -169,7 +170,7 @@ export function handleUpload(req, res, next) {
   }
   mkdirSync(dirs, { recursive: true });
   writeFileSync(fileName, fileData, `ascii`);
-  createRewindPoint(projectName);
+  createRewindPoint(project);
   next();
 }
 
@@ -178,14 +179,14 @@ export function handleUpload(req, res, next) {
  */
 export function patchFile(req, res, next) {
   const { lookups, fileName } = res.locals;
-  const projectName = lookups.project.name;
-  touch(projectName);
+  const { project } = lookups;
+  touch(project);
   let data = readFileSync(fileName).toString(`utf8`);
   const patch = req.body;
   const patched = applyPatch(data, patch);
   if (patched) writeFileSync(fileName, patched);
-  res.locals.fileHash = `${getFileSum(projectName, fileName, true)}`;
-  createRewindPoint(projectName);
+  res.locals.fileHash = `${getFileSum(project.slug, fileName, true)}`;
+  createRewindPoint(project);
   next();
 }
 
@@ -194,18 +195,19 @@ export function patchFile(req, res, next) {
  */
 export async function moveFile(req, res, next) {
   const { lookups } = res.locals;
-  const projectName = lookups.project.name;
-  touch(projectName);
-  const slug = req.params.slug + req.params[0];
-  const parts = slug.split(`:`);
-  const oldPath = join(CONTENT_DIR, projectName, parts[0]);
+  const { project } = lookups;
+  touch(project);
+  const { slug } = project;
+  const fileSlug = req.params.slug + req.params[0];
+  const parts = fileSlug.split(`:`);
+  const oldPath = join(CONTENT_DIR, slug, parts[0]);
   if (oldPath === `.`) {
     return next(new Error(`Illegal rename`));
   }
-  const newPath = join(CONTENT_DIR, projectName, parts[1]);
+  const newPath = join(CONTENT_DIR, slug, parts[1]);
   try {
     renameSync(oldPath, newPath);
-    createRewindPoint(projectName);
+    createRewindPoint(project);
     next();
   } catch (e) {
     next(new Error(`Rename failed`));

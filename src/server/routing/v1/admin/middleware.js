@@ -74,8 +74,7 @@ export function deleteProject(req, res, next) {
 }
 
 export function suspendProject(req, res, next) {
-  const projectId = res.locals.lookups.project.id;
-  Database.suspendProject(projectId, req.body.reason);
+  Database.suspendProject(res.locals.lookups.project, req.body.reason);
   next();
 }
 

@@ -13,10 +13,9 @@ import {
   getUserSuspensions,
   hasAccessToUserRecords,
   getStarterProjects,
-  loadSettingsForProject,
 } from "../database/index.js";
 
-import { CONTENT_DIR, makeSafeProjectName } from "../../helpers.js";
+import { CONTENT_DIR, slugify } from "../../helpers.js";
 
 /**
  * For when you really don't want response caching.
@@ -112,7 +111,7 @@ export function verifyAccesToUser(req, res, next) {
 export function verifyEditRights(req, res, next) {
   const { user, lookups } = res.locals;
   const { project } = lookups;
-  const accessLevel = getAccessFor(user.name, project.name);
+  const accessLevel = getAccessFor(user, project);
   if (accessLevel === NOT_ACTIVATED)
     return next(new Error(`Your account has not been activated yet`));
   if (accessLevel < MEMBER) return next(new Error(`Incorrect access level`));
@@ -126,7 +125,7 @@ export function verifyEditRights(req, res, next) {
 export function verifyOwner(req, res, next) {
   const { user, lookups } = res.locals;
   const { project } = lookups;
-  const accessLevel = getAccessFor(user.name, project.name);
+  const accessLevel = getAccessFor(user, project);
   if (accessLevel === NOT_ACTIVATED)
     return next(new Error(`Your account has not been activated yet`));
   if (accessLevel < OWNER) return next(new Error(`Incorrect access level`));
@@ -165,9 +164,9 @@ export function bindCommonValues(req, res, next) {
   }
 
   if (project) {
-    const projectName = makeSafeProjectName(project);
+    const slug = slugify(project);
     try {
-      res.locals.lookups.project = getProject(projectName);
+      res.locals.lookups.project = getProject(slug);
     } catch (e) {
       console.error(e);
       return next(e);
@@ -175,14 +174,14 @@ export function bindCommonValues(req, res, next) {
   }
 
   if (res.locals.lookups.project) {
-    const { id } = res.locals.lookups.project;
-    const settings = loadSettingsForProject(id);
+    const { settings } = res.locals.lookups.project;
     res.locals.app_type = settings.app_type;
   }
 
   if (starter) {
     try {
-      res.locals.starter = getProject(starter);
+      // we "know" starters are safe, but URLs are user controlled.
+      res.locals.starter = getProject(slugify(starter));
     } catch (e) {
       console.error(e);
       return next(e);
@@ -192,15 +191,15 @@ export function bindCommonValues(req, res, next) {
   // File operations may need to work with a "file
   // name" (which is really just a file path).
   if (filename) {
-    const projectName =
-      res.locals.lookups.project?.name ?? res.locals.projectName;
+    const projectSlug =
+      res.locals.lookups.project?.slug ?? res.locals.projectSlug;
     const suffix = req.params[0] || ``;
     const fileName = (res.locals.fileName = join(
       CONTENT_DIR,
-      projectName,
+      projectSlug,
       filename + suffix
     ));
-    const apath = resolve(join(CONTENT_DIR, projectName));
+    const apath = resolve(join(CONTENT_DIR, projectSlug));
     const bpath = resolve(fileName);
     if (!bpath.startsWith(apath)) {
       return next(new Error(`Illegal file path`));

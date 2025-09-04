@@ -42,18 +42,19 @@ const COMMIT_TIMEOUTS = {};
  * @param {*} projectName
  * @param {*} reason
  */
-export function createRewindPoint(projectName, reason) {
+export function createRewindPoint(
+  project,
+  reason = `Autosave (${new Date().toISOString()})`
+) {
   console.log(`scheduling rewind point`);
 
-  const now = scrubDateTime(new Date().toISOString());
-  reason = reason || `Autosave (${now})`;
-
-  const dir = join(CONTENT_DIR, projectName);
-  const debounce = COMMIT_TIMEOUTS[projectName];
+  const { slug } = project;
+  const dir = join(CONTENT_DIR, slug);
+  const debounce = COMMIT_TIMEOUTS[slug];
 
   if (debounce) clearTimeout(debounce);
 
-  COMMIT_TIMEOUTS[projectName] = setTimeout(async () => {
+  COMMIT_TIMEOUTS[slug] = setTimeout(async () => {
     console.log(`creating rewind point`);
     const cmd = `cd ${dir} && git add . && git commit --allow-empty -m "${reason}"`;
     console.log(`running:`, cmd);
@@ -62,7 +63,7 @@ export function createRewindPoint(projectName, reason) {
     } catch (e) {
       console.error(e);
     }
-    COMMIT_TIMEOUTS[projectName] = undefined;
+    COMMIT_TIMEOUTS[slug] = undefined;
   }, COMMIT_TIMEOUT_MS);
 }
 
@@ -101,13 +102,6 @@ export function getFreePort() {
       server.close((err) => (err ? reject(err) : resolve(port)));
     });
   });
-}
-
-/**
- * ...docs go here...
- */
-export function makeSafeProjectName(name) {
-  return name.toLowerCase().replace(/\s+/g, `-`);
 }
 
 /**
@@ -219,7 +213,7 @@ export async function setupGit(dir, projectName) {
 
 export function slugify(text) {
   return ubase
-    .basify(text)
+    .basify(text.replaceAll(`..`, `LOL_YEAH_NO`))
     .toLowerCase()
     .replace(/\s+/g, `-`)
     .replace(

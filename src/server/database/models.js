@@ -41,8 +41,9 @@ export function runQuery(sql, values = []) {
  * Let's define a generic model class, because we're just making things work right now.
  */
 class Model {
-  constructor(table) {
+  constructor(table, primaryKey = `id`) {
     this.table = table;
+    this.primaryKey = primaryKey;
   }
 
   /**
@@ -131,7 +132,8 @@ class Model {
    * Save a record - if the primary key is not "id", you
    * will need to explicitly specify it as second argument.
    */
-  save(record, primaryKey = `id`) {
+  save(record) {
+    const { primaryKey } = this;
     const pval = record[primaryKey];
     delete record[primaryKey];
     if (record.updated_at)
@@ -149,14 +151,14 @@ class Model {
 
 // And then let's create some models!
 export const Models = {
-  Access: new Model(`project_access`),
-  Admin: new Model(`admin_table`),
-  Login: new Model(`user_logins`),
-  Project: new Model(`projects`),
-  ProjectSettings: new Model(`project_settings`),
-  ProjectSuspension: new Model(`suspended_projects`),
-  Remix: new Model(`remix`),
-  StarterProject: new Model(`starter_projects`),
-  User: new Model(`users`),
-  UserSuspension: new Model(`suspended_users`),
+  Access: new Model(`project_access`), // TODO: how do we do compound keys?
+  Admin: new Model(`admin_table`, `user_id`),
+  Login: new Model(`user_logins`), // <- same here
+  Project: new Model(`projects`, `id`),
+  ProjectSettings: new Model(`project_settings`, `project_id`),
+  ProjectSuspension: new Model(`suspended_projects`, `id`),
+  Remix: new Model(`remix`, `project_id`),
+  StarterProject: new Model(`starter_projects`, `project_id`),
+  User: new Model(`users`, `id`),
+  UserSuspension: new Model(`suspended_users`, `id`),
 };
