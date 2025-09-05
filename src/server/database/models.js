@@ -189,7 +189,15 @@ export async function initTestDatabase() {
   user.enabled_at = now;
   Models.User.save(user);
 
-  // Then create a project for our regular user
+  // Create a "starter" project
+  const starter = Models.Project.findOrCreate({
+    name: `test starter`,
+    description: `a starter project`,
+  });
+  Models.StarterProject.findOrCreate({ project_id: starter.id });
+
+  // Then create a project for our regular user and pretend
+  // that it was a remix of our "starter" project.
   const project = Models.Project.findOrCreate({
     name: `test project`,
     description: `a test project`,
@@ -200,6 +208,7 @@ export async function initTestDatabase() {
     run_script: `npx http-server`,
   });
   Models.Access.findOrCreate({ project_id, user_id });
+  Models.Remix.findOrCreate({ original_id: starter.id, project_id });
 }
 
 export function concludeTesting() {

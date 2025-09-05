@@ -5,6 +5,7 @@ import {
   initTestDatabase,
   concludeTesting,
 } from "../../../server/database/models.js";
+import * as User from "../../../server/database/user.js";
 import * as Project from "../../../server/database/project.js";
 
 import dotenv from "@dotenvx/dotenvx";
@@ -18,14 +19,6 @@ describe(`project testing`, async () => {
   after(() => concludeTesting());
 
   /*
-  export function copyProjectSettings(source, target) {
-  export function createProjectForUser(user, projectName) {
-  export function deleteProjectForUser(user, project, adminCall) {
-  export function getAccessFor(user, project) {
-  export function getAllProjects(omitStarters = true) {
-  export function getOwnedProjectsForUser(userNameOrId) {
-  export function getProject(slugOrId, withSettings = true) {
-  export function getProjectEnvironmentVariables(project) {
   export function getProjectSuspensions(project, includeOld = false) {
   export function getProjectListForUser(userNameOrId) {
   export function getStarterProjects() {
@@ -43,5 +36,73 @@ describe(`project testing`, async () => {
   test(`getMostRecentProjects`, () => {
     const projects = Project.getMostRecentProjects(5);
     assert.equal(projects.length, 1);
+  });
+
+  test(`copyProjectSettings`, () => {
+    const user = User.getUser(`test user`);
+    const project1 = Project.getProject(`test-project`);
+    Project.createProjectForUser(user, `new test project`);
+    const project2 = Project.getProject(`new-test-project`);
+    Project.copyProjectSettings(project1, project2);
+    assert.equal(project1.settings.run_script, project2.settings.run_script);
+    Project.deleteProjectForUser(null, project2, true);
+  });
+
+  test(`createProjectForUser`, () => {
+    const user = User.getUser(`test user`);
+    const project = Project.createProjectForUser(user, `new test project`);
+    assert.equal(project.name, `new test project`);
+    assert.equal(Project.getAllProjects().length, 2);
+  });
+
+  test(`deleteProjectForUser`, () => {
+    const user = User.getUser(`test user`);
+    const project = Project.getProject(`new-test-project`);
+    Project.deleteProjectForUser(user, project);
+    assert.equal(Project.getAllProjects().length, 1);
+  });
+
+  test(`deleteProjectForUser as admin call`, () => {
+    const user = User.getUser(`test user`);
+    const project = Project.createProjectForUser(user, `new test project`);
+    assert.equal(project.name, `new test project`);
+    assert.equal(Project.getAllProjects().length, 2);
+    Project.deleteProjectForUser(null, project, true);
+    assert.equal(Project.getAllProjects().length, 1);
+  });
+
+  test(`getAccessFor`, () => {
+    const user = User.getUser(`test user`);
+    const project = Project.getProject(`test-project`);
+    const accessLevel = Project.getAccessFor(user, project);
+    assert.equal(accessLevel, Project.OWNER);
+  });
+
+  test(`getAllProjects`, () => {
+    const projects = Project.getAllProjects();
+    assert.equal(projects.length, 1);
+    const withStarters = Project.getAllProjects(false);
+    assert.equal(withStarters.length, 2);
+  });
+
+  test(`getOwnedProjectsForUser`, () => {
+    const user = User.getUser(`test user`);
+    const projects = Project.getOwnedProjectsForUser(user);
+    assert.equal(projects.length, 1);
+  });
+
+  test(`getProject`, () => {
+    // we already test this all over the place, but not this:
+    const project = Project.getProject(`test-project`, false);
+    assert.equal(project.settings, undefined);
+  });
+
+  test(`getProjectEnvironmentVariables`, () => {
+    const project = Project.getProject(`test-project`);
+    Project.updateSettingsForProject(project, {
+      env_vars: `FIRST=first\nSECOND=second`,
+    });
+    const vars = Project.getProjectEnvironmentVariables(project);
+    assert.deepEqual(vars, { FIRST: `first`, SECOND: `second` });
   });
 });

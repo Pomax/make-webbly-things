@@ -119,27 +119,29 @@ export function createProjectForUser(user, projectName) {
   const p = Project.create({ name: projectName });
   Access.create({ project_id: p.id, user_id: user.id });
   ProjectSettings.create({ project_id: p.id });
-  return { user: u, project: p };
+  return p;
 }
 
 /**
  * ...docs go here...
  */
 export function deleteProjectForUser(user, project, adminCall) {
-  const a = Access.find({ project_id: project.id, user_id: user.id });
-
-  // secondary layer of protection:
-  if (a.access_level < OWNER && !adminCall) throw new Error(`Not yours, mate`);
-
+  if (!adminCall) {
+    if (!user) {
+      throw new Error(`No user given`);
+    }
+    const a = Access.find({ project_id: project.id, user_id: user.id });
+    if (!a || a.access_level < OWNER) {
+      throw new Error(`Not yours, mate`);
+    }
+  }
   const { name } = project;
-  console.log(`Deleting access rules for project ${name}...`);
+  // console.log(`Deleting access rules for project ${name}...`);
   const rules = Access.findAll({ project_id: project.id });
   for (const r of rules) Access.delete(r);
-
-  console.log(`Deleting project ${name}...`);
+  // console.log(`Deleting project ${name}...`);
   Project.delete(project);
-
-  console.log(`Deletion complete.`);
+  // console.log(`Deletion complete.`);
   return name;
 }
 
@@ -185,9 +187,8 @@ export function getAllProjects(omitStarters = true) {
 /**
  * ...docs go here...
  */
-export function getOwnedProjectsForUser(userNameOrId) {
-  const u = getUser(userNameOrId);
-  const access = Access.findAll({ user_id: u.id });
+export function getOwnedProjectsForUser(user) {
+  const access = Access.findAll({ user_id: user.id });
   return access
     .filter((a) => a.access_level >= OWNER)
     .map((a) => getProject(a.project_id));
@@ -350,7 +351,9 @@ export function unsuspendProject(suspensionId) {
  * ...docs go here...
  */
 export function updateSettingsForProject(project, settings) {
-  const { name, description, ...containerSettings } = settings;
+  let { name, description, ...containerSettings } = settings;
+  name ??= project.name;
+  description ??= project.description;
 
   project.name = name;
   project.slug = slugify(name);

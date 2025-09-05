@@ -223,7 +223,7 @@ export function suspendUser(userNameOrId, reason, notes = ``) {
   const u = getUser(userNameOrId);
   try {
     UserSuspension.create({ user_id: u.id, reason, notes });
-    const projects = getOwnedProjectsForUser(u.id);
+    const projects = getOwnedProjectsForUser(u);
     projects.forEach((p) => {
       const s = ProjectSettings.find({ project_id: p.id });
       if (s.app_type === `static`) {

@@ -321,7 +321,7 @@ export async function remixProject(req, res, next) {
   const newProjectName = req.params.newname ?? `${user.name}-${project.slug}`;
 
   try {
-    const { project: newProject } = createProjectForUser(user, newProjectName);
+    const newProject = createProjectForUser(user, newProjectName);
     const newProjectSlug = (res.locals.newProjectSlug = newProject.slug);
 
     cloneProject(project, newProjectSlug, isStarter);
