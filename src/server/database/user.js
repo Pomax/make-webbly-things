@@ -75,11 +75,10 @@ function __processFirstTimeUserLogin(userObject) {
 /**
  * ...docs go here...
  */
-export function deleteUser(userId) {
-  const u = getUser(userId);
-  console.log(`deleting user ${u.name} with id ${u.id}`);
-  const access = Access.findAll({ user_id: u.id });
-  Access.delete({ user_id: u.id });
+export function deleteUser(user) {
+  console.log(`deleting user ${user.name} with id ${user.id}`);
+  const access = Access.findAll({ user_id: user.id });
+  Access.delete({ user_id: user.id });
   access.forEach(({ project_id }) => {
     const p = Project.find({ id: project_id });
     if (p && Access.findAll({ project_id }).length === 0) {
@@ -88,18 +87,17 @@ export function deleteUser(userId) {
       rmSync(projectDir, { recursive: true, force: true });
     }
   });
-  User.delete(u);
+  User.delete(user);
   // ON DELETE CASCADE should have taken care of everything else...
 }
 
 /**
  * ...docs go here...
  */
-export function disableUser(userNameOrId) {
-  const u = getUser(userNameOrId);
-  u.enabled_at = null;
-  User.save(u);
-  return u;
+export function disableUser(user) {
+  user.enabled_at = null;
+  User.save(user);
+  return user;
 }
 
 /**

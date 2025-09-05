@@ -24,7 +24,7 @@ describe(`user tests`, async () => {
 
   test(`deleteUser`, () => {
     const user = Models.User.create({ name: `disposable` });
-    User.deleteUser(user.id);
+    User.deleteUser(user);
   });
 
   test(`enable/disable`, () => {
@@ -34,7 +34,7 @@ describe(`user tests`, async () => {
     user = User.getUser(`test user`);
     assert.notEqual(user.enabled_at, null);
 
-    User.disableUser(user.id);
+    User.disableUser(user);
     user = User.getUser(`test user`);
     assert.equal(user.enabled_at, null);
   });
@@ -61,7 +61,7 @@ describe(`user tests`, async () => {
 
     const user = User.getUser(`test user`);
     const s = User.suspendUser(user.id, `why not`);
-    User.disableUser(user.id);
+    User.disableUser(user);
     settings = User.getUserSettings(user.id);
     assert.deepEqual(settings, {
       name: `test user`,
