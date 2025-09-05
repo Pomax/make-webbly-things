@@ -94,10 +94,8 @@ export function verifyAdmin(req, res, next) {
  */
 export function verifyAccesToUser(req, res, next) {
   const { user, lookups } = res.locals;
-  const { id: sessionUserId } = user;
-  const { id: lookupUserId } = lookups.user ?? {};
-  if (!lookupUserId) return next(new Error(`No such user`));
-  if (hasAccessToUserRecords(sessionUserId, lookupUserId)) {
+  if (!lookups.user) return next(new Error(`No such user`));
+  if (hasAccessToUserRecords(user, lookups.user)) {
     next();
   } else {
     next(new Error(`Access denied`));

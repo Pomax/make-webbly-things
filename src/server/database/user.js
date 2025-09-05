@@ -189,11 +189,9 @@ export function getUserSuspensions(user, includeOld = false) {
 /**
  * ...docs go here...
  */
-export function hasAccessToUserRecords(sessionUserId, lookupUserId) {
-  if (sessionUserId === lookupUserId) return true;
-  const u = User.find({ id: sessionUserId });
-  if (!u) throw new Error(`User not found`);
-  const a = Admin.find({ user_id: u.id });
+export function hasAccessToUserRecords(user, targetUser) {
+  if (user.id === targetUser.id) return true;
+  const a = Admin.find({ user_id: user.id });
   if (!a) return false;
   return true;
 }

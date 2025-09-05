@@ -90,8 +90,8 @@ describe(`user tests`, async () => {
     const user = User.getUser(`test user`);
     const rando = Models.User.create({ name: `rando calrisian` });
 
-    assert.equal(User.hasAccessToUserRecords(user.id, user.id), true);
-    assert.equal(User.hasAccessToUserRecords(admin.id, user.id), true);
-    assert.equal(User.hasAccessToUserRecords(user.id, rando.id), false);
+    assert.equal(User.hasAccessToUserRecords(user, user), true);
+    assert.equal(User.hasAccessToUserRecords(admin, user), true);
+    assert.equal(User.hasAccessToUserRecords(user, rando), false);
   });
 });
