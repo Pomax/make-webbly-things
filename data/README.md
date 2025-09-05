@@ -13,4 +13,6 @@ While the code already does this, if you want to do any sqlite3 debugging, remem
 
 # Testing
 
-the `test.sqlite` database is a prepopulated db for testing purposes. If you write new migrations, apply these to the test database using the sqlite3 CLI and the `.read` instruction.
+the `test.sqlite` database is a preconfigured database for running the unit and integration tests.
+
+If you write new migrations, make sure to apply those to the test database using the sqlite3 CLI and the `.read` instruction. A migration PR should include an updated test.sqlite3!
