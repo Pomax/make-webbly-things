@@ -1,8 +1,8 @@
 {
-  "name": "do-some-browser-editor-testing",
+  "name": "Make webbly things",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "A platform for hosting user generated websites",
   "main": "",
   "scripts": {
     "build": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
@@ -12,7 +12,7 @@
     "test:cleanup": "node ./src/tests/test-cleanup.js"
   },
   "author": "",
-  "license": "ISC",
+  "license": "See LICENSE.md",
   "dependencies": {
     "@codemirror/lang-css": "^6.2.1",
     "@codemirror/lang-html": "^6.4.9",

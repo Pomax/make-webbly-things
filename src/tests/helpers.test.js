@@ -9,8 +9,6 @@ dotenv.config({ quiet: true, path: envPath });
 
 /*
   export function createRewindPoint( project, reason)
-  export async function setupGit(dir, projectName) {
-  export function slugify(text) {
 */
 
 describe(`Helper function tests`, async () => {
