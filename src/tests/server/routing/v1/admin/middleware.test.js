@@ -132,7 +132,7 @@ describe(`admin middlerware tests`, async () => {
 
     test(`unsuspendUser`, () => {
       const user = User.getUser(`test user`);
-      const s = User.suspendUser(user.id, `more testing`);
+      const s = User.suspendUser(user, `more testing`);
       const req = {
         params: {
           sid: `${s.id}`,

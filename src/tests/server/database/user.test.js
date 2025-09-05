@@ -63,7 +63,7 @@ describe(`user tests`, async () => {
     });
 
     const user = User.getUser(`test user`);
-    const s = User.suspendUser(user.id, `why not`);
+    const s = User.suspendUser(user, `why not`);
     User.disableUser(user);
     settings = User.getUserSettings(user);
     assert.deepEqual(settings, {
@@ -76,9 +76,9 @@ describe(`user tests`, async () => {
 
   test(`getUserSuspensions`, () => {
     const user = Models.User.create({ name: `sus user` });
-    const s = User.suspendUser(user.id, `why not`);
+    const s = User.suspendUser(user, `why not`);
     User.unsuspendUser(s.id);
-    const t = User.suspendUser(user.id, `why not, again`);
+    const t = User.suspendUser(user, `why not, again`);
     let list = User.getUserSuspensions(user);
     assert.equal(list.length, 1);
     list = User.getUserSuspensions(user, true);

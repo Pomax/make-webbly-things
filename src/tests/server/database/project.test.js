@@ -136,7 +136,7 @@ describe(`project testing`, async () => {
   test(`projectSuspendedThroughOwner`, () => {
     const user = User.getUser(`test user`);
     const project = Project.getOwnedProjectsForUser(user)[0];
-    const s = User.suspendUser(user.id, `testing`);
+    const s = User.suspendUser(user, `testing`);
     let suspended = Project.projectSuspendedThroughOwner(project);
     assert.equal(suspended, true);
     User.unsuspendUser(s.id);

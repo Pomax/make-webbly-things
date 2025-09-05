@@ -80,7 +80,7 @@ export function enableUser(req, res, next) {
 
 export function suspendUser(req, res, next) {
   try {
-    Database.suspendUser(res.locals.lookups.user.id, req.body.reason);
+    Database.suspendUser(res.locals.lookups.user, req.body.reason);
     next();
   } catch (e) {
     next(e);

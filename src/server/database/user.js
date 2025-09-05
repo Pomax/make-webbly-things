@@ -199,12 +199,15 @@ export function hasAccessToUserRecords(user, targetUser) {
 /**
  * ...docs go here...
  */
-export function suspendUser(userNameOrId, reason, notes = ``) {
+export function suspendUser(user, reason, notes = ``) {
   if (!reason) throw new Error(`Cannot suspend user without a reason`);
-  const u = getUser(userNameOrId);
   try {
-    const suspension = UserSuspension.create({ user_id: u.id, reason, notes });
-    const projects = getOwnedProjectsForUser(u);
+    const suspension = UserSuspension.create({
+      user_id: user.id,
+      reason,
+      notes,
+    });
+    const projects = getOwnedProjectsForUser(user);
     projects.forEach((p) => {
       const s = ProjectSettings.find({ project_id: p.id });
       if (s.app_type === `static`) {
@@ -216,7 +219,7 @@ export function suspendUser(userNameOrId, reason, notes = ``) {
     return suspension;
   } catch (e) {
     console.error(e);
-    console.log(u, reason, notes);
+    console.log(user, reason, notes);
   }
 }
 
