@@ -29,7 +29,7 @@ import {
   checkContainerHealth,
   deleteContainerAndImage,
   renameContainer,
-  restartContainer as restartDockerContainer,
+  restartContainer,
   runContainer,
   runStaticServer,
   stopContainer,
@@ -181,6 +181,20 @@ export async function deleteProject(req, res, next) {
 }
 
 /**
+ * get project settings for use in the website's "edit" fragment.
+ * Note that this is the project's properties + the project
+ * settings, flattened as one object.
+ */
+export function getProjectSettings(req, res, next) {
+  const { project } = res.locals.lookups;
+  res.locals.settings = {
+    ...project,
+    ...project.settings,
+  };
+  next();
+}
+
+/**
  * ...docs go here...
  */
 export async function loadProject(req, res, next) {
@@ -263,20 +277,6 @@ export async function loadProject(req, res, next) {
 }
 
 /**
- * get project settings for use in the website's "edit" fragment.
- * Note that this is the project's properties + the project
- * settings, flattened as one object.
- */
-export function getProjectSettings(req, res, next) {
-  const { project } = res.locals.lookups;
-  res.locals.settings = {
-    ...project,
-    ...project.settings,
-  };
-  next();
-}
-
-/**
  * ...docs go here...
  */
 export async function loadProjectHistory(req, res, next) {
@@ -343,12 +343,12 @@ export async function remixProject(req, res, next) {
 /**
  * ...docs go here...
  */
-export function restartContainer(req, res, next) {
+export function restartProject(req, res, next) {
   const { project } = res.locals.lookups;
   if (project.settings.app_type === `static`) {
     // do nothing. Static servers don't need restarting.
   } else {
-    restartDockerContainer(project);
+    restartContainer(project);
   }
   next();
 }

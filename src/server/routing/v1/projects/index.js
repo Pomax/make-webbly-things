@@ -14,7 +14,7 @@ import {
   loadProject,
   loadProjectHistory,
   remixProject,
-  restartContainer,
+  restartProject,
   startProject,
   updateProjectSettings,
 } from "./middleware.js";
@@ -116,7 +116,7 @@ projects.post(
   verifyLogin,
   bindCommonValues,
   verifyOwner,
-  restartContainer,
+  restartProject,
   (_req, res) => res.send(`ok`)
 );
 
