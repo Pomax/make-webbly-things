@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { describe } from "node:test";
 import assert from "node:assert/strict";
 import { resolve, join } from "node:path";
 import * as Caddy from "../../../server/caddy/caddy.js";
@@ -19,25 +19,27 @@ const project = {
   updated_at: new Date().toISOString(),
 };
 
-test(`setupCaddy`, () => {
-  Caddy.setupCaddy();
-});
+describe(`Caddy test`, async () => {
+  test(`setupCaddy`, () => {
+    Caddy.setupCaddy();
+  });
 
-test(`stopCaddy`, () => {
-  Caddy.stopCaddy();
-});
+  test(`stopCaddy`, () => {
+    Caddy.stopCaddy();
+  });
 
-test(`startCaddy`, () => {
-  Caddy.startCaddy();
-  assert.strictEqual(bindings[project.slug], undefined);
-});
+  test(`startCaddy`, () => {
+    Caddy.startCaddy();
+    assert.strictEqual(bindings[project.slug], undefined);
+  });
 
-test(`updateCaddyFile`, () => {
-  Caddy.updateCaddyFile(project, 0);
-  assert.deepEqual(bindings[project.slug], { port: 0 });
-});
+  test(`updateCaddyFile`, () => {
+    Caddy.updateCaddyFile(project, 0);
+    assert.deepEqual(bindings[project.slug], { port: 0 });
+  });
 
-test(`removeCaddyEntry`, () => {
-  Caddy.removeCaddyEntry(project);
-  assert.strictEqual(bindings[project.slug], undefined);
+  test(`removeCaddyEntry`, () => {
+    Caddy.removeCaddyEntry(project);
+    assert.strictEqual(bindings[project.slug], undefined);
+  });
 });

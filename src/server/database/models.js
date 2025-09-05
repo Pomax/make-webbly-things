@@ -14,7 +14,10 @@ export const EDITOR = 20; // edit access, cannot delete projects, can edit proje
 export const MEMBER = 10; // edit access, cannot edit project settings
 
 // We're in ./src/server/database, and we want ./data
-const dbPath = `${import.meta.dirname}/../../../data/data.sqlite3`;
+const testing = process.env.NODE_ENV === `TESTING`;
+const dbName = testing ? `test.sqlite3` : `data.sqlite3`;
+const dbPath = `${import.meta.dirname}/../../../data/${dbName}`;
+
 const db = sqlite3(dbPath);
 db.pragma(`foreign_keys = ON`);
 
@@ -163,3 +166,44 @@ export const Models = {
   User: new Model(`users`, `id`),
   UserSuspension: new Model(`suspended_users`, `id`),
 };
+
+/**
+ * This should be obvious... =D
+ */
+export async function initTestDatabase() {
+  if (!testing) return;
+
+  await import("./project.js");
+  const now = scrubDateTime(new Date().toISOString());
+
+  // Create an admin user
+  const admin = Models.User.findOrCreate({ name: `test admin` });
+  const admin_id = admin.id;
+  admin.enabled_at = now;
+  Models.User.save(admin);
+  Models.Admin.findOrCreate({ user_id: admin_id });
+
+  // And a regular user
+  const user = Models.User.findOrCreate({ name: `test user` });
+  const user_id = user.id;
+  user.enabled_at = now;
+  Models.User.save(user);
+
+  // Then create a project for our regular user
+  const project = Models.Project.findOrCreate({
+    name: `test project`,
+    description: `a test project`,
+  });
+  const project_id = project.id;
+  Models.ProjectSettings.findOrCreate({
+    project_id,
+    run_script: `npx http-server`,
+  });
+  Models.Access.findOrCreate({ project_id, user_id });
+}
+
+export function concludeTesting() {
+  if (!testing) return;
+  db.exec(`DELETE FROM users`);
+  db.exec(`DELETE FROM projects`);
+}

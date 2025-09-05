@@ -40,23 +40,25 @@ const {
 // based on the project name, which means updating
 // the insert and save functions. Everything else
 // falls through to those (including create):
+(function enhanceProjectModel() {
+  function runOp(operation, fields) {
+    // ensure the slug is always correct
+    if (fields.name) fields.slug = slugify(fields.name);
+    // and if this is a project-with-settings,
+    // temporarily strip that so we only insert
+    // data that belongs in the project table.
+    let s = fields.settings;
+    delete fields.settings;
+    const result = operation(fields);
+    fields.settings = s;
+    return result;
+  }
 
-function runOp(operation, fields) {
-  // ensure the slug is always correct
-  if (fields.name) fields.slug = slugify(fields.name);
-  // and if this is a project-with-settings,
-  // temporarily strip that so we only insert
-  // data that belongs in the project table.
-  let s = fields.settings;
-  delete fields.settings;
-  operation(fields);
-  fields.settings = s;
-}
-
-[`insert`, `save`, `delete`].forEach((fn) => {
-  const original = Project[fn].bind(Project);
-  Project[fn] = (fields) => runOp(original, fields);
-});
+  [`insert`, `save`, `delete`, `findAll`].forEach((fn) => {
+    const original = Project[fn].bind(Project);
+    Project[fn] = (fields) => runOp(original, fields);
+  });
+})();
 
 import { getUser, getUserAdminFlag, getUserSuspensions } from "./user.js";
 import { portBindings } from "../caddy/caddy.js";

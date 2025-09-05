@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { describe } from "node:test";
 import assert from "node:assert/strict";
 import { resolve, join } from "node:path";
 import * as Docker from "../../../server/docker/docker-helpers.js";
@@ -23,6 +23,8 @@ export function stopContainer(project, slug = project.slug) {
 export function stopStaticServer(project, slug = project.slug) {
 */
 
-test(`checkContainerHealth`, () => {
-  // tests pending
+describe(`docker tests`, async () => {
+  test(`checkContainerHealth`, () => {
+    // tests pending
+  });
 });
