@@ -9,7 +9,7 @@
     "prettier": "prettier --write \"./src/**/*.js\"",
     "start": "node src/server/index.js",
     "test": "npm run prettier && npm run build && cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 ./src/tests/**/*.test.js && npm run test:cleanup",
-    "test:cleanup": "rm -rf ./content/docker-*"
+    "test:cleanup": "node ./src/tests/test-cleanup.js"
   },
   "author": "",
   "license": "ISC",
