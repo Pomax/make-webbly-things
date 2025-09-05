@@ -80,7 +80,7 @@ export async function verifyLogin(req, res, next) {
  * ...docs go here...
  */
 export function verifyAdmin(req, res, next) {
-  if (getUserAdminFlag(res.locals.user.name)) {
+  if (getUserAdminFlag(res.locals.user)) {
     res.locals.adminCall = true;
     next();
   } else {

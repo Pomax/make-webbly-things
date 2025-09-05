@@ -45,8 +45,11 @@ describe(`user tests`, async () => {
   });
 
   test(`getUserAdminFlag`, () => {
-    assert.equal(User.getUserAdminFlag(`test admin`), true);
-    assert.equal(User.getUserAdminFlag(`test user`), false);
+    const admin = User.getUser(`test admin`);
+    assert.equal(User.getUserAdminFlag(admin), true);
+
+    const user = User.getUser(`test user`);
+    assert.equal(User.getUserAdminFlag(user), false);
   });
 
   test(`getUserSettings`, () => {

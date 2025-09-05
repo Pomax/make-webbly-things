@@ -157,10 +157,8 @@ export function getUser(userNameOrId) {
 /**
  * ...docs go here...
  */
-export function getUserAdminFlag(userName) {
-  const u = User.find({ name: userName });
-  if (!u) throw new Error(`User not found`);
-  const a = Admin.find({ user_id: u.id });
+export function getUserAdminFlag(user) {
+  const a = Admin.find({ user_id: user.id });
   if (!a) return false;
   return true;
 }
