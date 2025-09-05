@@ -157,7 +157,7 @@ export function getUser(userNameOrId) {
 /**
  * ...docs go here...
  */
-export function getUserAdminFlag(user) {
+export function userIsAdmin(user) {
   const a = Admin.find({ user_id: user.id });
   if (!a) return false;
   return true;
