@@ -166,15 +166,13 @@ export function userIsAdmin(user) {
 /**
  * ...docs go here...
  */
-export function getUserSettings(userId) {
-  const u = User.find({ id: userId });
-  if (!u) throw new Error(`User not found`);
-  const s = UserSuspension.find({ user_id: u.id });
-  const a = Admin.find({ user_id: u.id });
+export function getUserSettings(user) {
+  const s = UserSuspension.find({ user_id: user.id });
+  const a = Admin.find({ user_id: user.id });
   return {
-    name: u.name,
+    name: user.name,
     admin: a ? true : false,
-    enabled: u.enabled_at ? true : false,
+    enabled: user.enabled_at ? true : false,
     suspended: s ? true : false,
   };
 }

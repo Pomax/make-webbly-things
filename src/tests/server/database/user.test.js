@@ -54,7 +54,7 @@ describe(`user tests`, async () => {
 
   test(`getUserSettings`, () => {
     const admin = User.getUser(`test admin`);
-    let settings = User.getUserSettings(admin.id);
+    let settings = User.getUserSettings(admin);
     assert.deepEqual(settings, {
       name: `test admin`,
       admin: true,
@@ -65,7 +65,7 @@ describe(`user tests`, async () => {
     const user = User.getUser(`test user`);
     const s = User.suspendUser(user.id, `why not`);
     User.disableUser(user);
-    settings = User.getUserSettings(user.id);
+    settings = User.getUserSettings(user);
     assert.deepEqual(settings, {
       name: `test user`,
       admin: false,
