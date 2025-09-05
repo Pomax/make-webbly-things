@@ -296,7 +296,7 @@ export function projectSuspendedThroughOwner(project) {
   return access.some((a) => {
     if (a.access_level < OWNER) return false;
     const u = getUser(a.user_id);
-    const s = getUserSuspensions(u.id);
+    const s = getUserSuspensions(u);
     if (s.length) return true;
     return false;
   });

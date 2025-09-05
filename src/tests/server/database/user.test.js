@@ -79,9 +79,9 @@ describe(`user tests`, async () => {
     const s = User.suspendUser(user.id, `why not`);
     User.unsuspendUser(s.id);
     const t = User.suspendUser(user.id, `why not, again`);
-    let list = User.getUserSuspensions(user.id);
+    let list = User.getUserSuspensions(user);
     assert.equal(list.length, 1);
-    list = User.getUserSuspensions(user.id, true);
+    list = User.getUserSuspensions(user, true);
     assert.equal(list.length, 2);
   });
 

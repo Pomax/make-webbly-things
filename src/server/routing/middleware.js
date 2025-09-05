@@ -65,7 +65,7 @@ export async function verifyLogin(req, res, next) {
   if (!u.enabled_at) {
     return next(new Error(`This user account has not been actived yet`));
   }
-  const suspensions = getUserSuspensions(u.id);
+  const suspensions = getUserSuspensions(u);
   if (suspensions.length) {
     return next(
       new Error(

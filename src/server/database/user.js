@@ -34,7 +34,7 @@ function processUserLoginNormally(userObject) {
       // This shouldn't be possible, so...
       throw new Error(`User not found`);
     }
-    const s = getUserSuspensions(u.id);
+    const s = getUserSuspensions(u);
     if (s.length) {
       throw new Error(
         `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
@@ -180,13 +180,8 @@ export function getUserSettings(user) {
 /**
  * ...docs go here...
  */
-export function getUserSuspensions(userNameOrId, includeOld = false) {
-  let user_id = userNameOrId;
-  if (typeof userNameOrId !== `number`) {
-    const u = User.find({ name: userNameOrId });
-    user_id = u.id;
-  }
-  const s = UserSuspension.findAll({ user_id });
+export function getUserSuspensions(user, includeOld = false) {
+  const s = UserSuspension.findAll({ user_id: user.id });
   if (includeOld) return s;
   return s.filter((s) => !s.invalidated_at);
 }
