@@ -5,6 +5,7 @@ const newtab = document.querySelector(`#preview-buttons .newtab`);
 const preview = document.getElementById(`preview`);
 const { projectName } = document.body.dataset;
 
+let failures = 0;
 let first_time_load = 0;
 
 /**
@@ -18,6 +19,11 @@ export async function updatePreview() {
     console.log(`checking container for ready`);
     const status = await API.projects.health(projectName);
     if (status === `failed`) {
+      // There's only so many times we'll try a failure reload.
+      if (failures < 3) {
+        failures++;
+        return setTimeout(updatePreview, 1000);
+      }
       return console.error(`Project failed to start. That's bad`);
     } else if (status === `not running` || status === `wait`) {
       if (first_time_load < 10) {

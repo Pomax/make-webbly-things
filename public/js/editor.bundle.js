@@ -162,6 +162,7 @@ var restart = document.querySelector(`#preview-buttons .restart`);
 var newtab = document.querySelector(`#preview-buttons .newtab`);
 var preview = document.getElementById(`preview`);
 var { projectName } = document.body.dataset;
+var failures = 0;
 var first_time_load = 0;
 async function updatePreview() {
   const iframe = preview.querySelector(`iframe`);
@@ -170,6 +171,10 @@ async function updatePreview() {
     console.log(`checking container for ready`);
     const status = await API.projects.health(projectName);
     if (status === `failed`) {
+      if (failures < 3) {
+        failures++;
+        return setTimeout(updatePreview, 1e3);
+      }
       return console.error(`Project failed to start. That's bad`);
     } else if (status === `not running` || status === `wait`) {
       if (first_time_load < 10) {
