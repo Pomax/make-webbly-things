@@ -103,11 +103,10 @@ export function disableUser(user) {
 /**
  * ...docs go here...
  */
-export function enableUser(userNameOrId) {
-  const u = getUser(userNameOrId);
-  u.enabled_at = new Date().toISOString();
-  User.save(u);
-  return u;
+export function enableUser(user) {
+  user.enabled_at = new Date().toISOString();
+  User.save(user);
+  return user;
 }
 
 /**

@@ -71,7 +71,7 @@ export function disableUser(req, res, next) {
 
 export function enableUser(req, res, next) {
   try {
-    Database.enableUser(res.locals.lookups.user.id);
+    Database.enableUser(res.locals.lookups.user);
     next();
   } catch (e) {
     next(e);
