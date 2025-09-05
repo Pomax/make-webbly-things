@@ -13,7 +13,7 @@ import { API } from "../utils/api.js";
 export async function syncContent(
   projectName,
   entry,
-  filename = entry.filename
+  filename = entry.filename,
 ) {
   if (entry.noSync) return;
 

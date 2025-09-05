@@ -15,7 +15,7 @@ export function create(tag) {
 export async function fetchFileContents(
   projectName,
   fileName,
-  type = `text/plain`
+  type = `text/plain`,
 ) {
   const response = await API.files.get(projectName, fileName);
   if (type.startsWith(`text`) || type.startsWith(`application`))

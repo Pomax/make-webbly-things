@@ -26,7 +26,7 @@ export const admin = Router();
 const prechecks = [verifyLogin, bindCommonValues, verifyAdmin];
 
 admin.get(`/`, ...prechecks, loadAdminData, (req, res) =>
-  res.render(`admin.html`, { ...res.locals, ...req.session, ...process.env })
+  res.render(`admin.html`, { ...res.locals, ...req.session, ...process.env }),
 );
 
 admin.post(`/server/stop/:name`, ...prechecks, stopServer, back);

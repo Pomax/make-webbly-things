@@ -31,7 +31,7 @@ const prechecks = [verifyLogin, bindCommonValues, verifyEditRights];
  *  don't show the .env file to collaborators, don't filter for owners)
  */
 files.get(`/dir/:project`, bindCommonValues, getDirListing, (_req, res) =>
-  res.json(res.locals.dir)
+  res.json(res.locals.dir),
 );
 
 /**
@@ -46,7 +46,7 @@ files.get(
     //        private files and they don't have the right permissions.
     res.set(`Content-Type`, res.locals.mimeType);
     res.send(res.locals.data);
-  }
+  },
 );
 
 /**
@@ -56,7 +56,7 @@ files.post(
   `/create/:project/:filename*`,
   ...prechecks,
   createFile,
-  (req, res) => res.send(`ok`)
+  (req, res) => res.send(`ok`),
 );
 
 /**
@@ -66,7 +66,7 @@ files.delete(
   `/delete/:project/:filename*`,
   ...prechecks,
   deleteFile,
-  (req, res) => res.send(`ok`)
+  (req, res) => res.send(`ok`),
 );
 
 /**
@@ -79,7 +79,7 @@ files.post(
   (req, res) =>
     res.json({
       formatted: res.locals.formatted,
-    })
+    }),
 );
 
 /**
@@ -91,14 +91,14 @@ files.post(
   ...prechecks,
   parseBodyText,
   patchFile,
-  (_req, res) => res.send(res.locals.fileHash)
+  (_req, res) => res.send(res.locals.fileHash),
 );
 
 /**
  * Rename/move a file
  */
 files.post(`/rename/:project/:slug*`, ...prechecks, moveFile, (req, res) =>
-  res.send(`ok`)
+  res.send(`ok`),
 );
 
 /**
@@ -109,5 +109,5 @@ files.post(
   ...prechecks,
   parseMultiPartBody,
   handleUpload,
-  (req, res) => res.send(`ok`)
+  (req, res) => res.send(`ok`),
 );

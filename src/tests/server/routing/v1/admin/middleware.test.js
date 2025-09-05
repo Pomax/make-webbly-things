@@ -12,7 +12,7 @@ import * as Middleware from "../../../../../server/routing/v1/admin/middleware.j
 
 import dotenv from "@dotenvx/dotenvx";
 const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `..`, `..`, `.env`)
+  join(import.meta.dirname, `..`, `..`, `..`, `..`, `..`, `..`, `.env`),
 );
 dotenv.config({ quiet: true, path: envPath });
 
@@ -26,7 +26,7 @@ describe(`admin middlerware tests`, async () => {
       {},
       {
         redirect: (p) => (path = p),
-      }
+      },
     );
     assert.equal(path, `/v1/admin`);
   });

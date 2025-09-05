@@ -224,7 +224,7 @@ export function getProjectEnvironmentVariables(project) {
       .split(`\n`)
       .filter((v) => v.includes(`=`))
       .map((v) => v.trim().split(`=`))
-      .map(([k, v]) => [k.trim(), v.trim()])
+      .map(([k, v]) => [k.trim(), v.trim()]),
   );
 }
 
@@ -276,7 +276,7 @@ export function getStarterProjects() {
 export function isProjectSuspended(project) {
   return (
     ProjectSuspension.findAll({ project_id: project.id }).filter(
-      (s) => !s.invalidated_at
+      (s) => !s.invalidated_at,
     ).length > 0
   );
 }
@@ -336,10 +336,12 @@ export async function runProject(project) {
 export async function stopProject(project) {
   const { slug } = project;
   const binding = portBindings[slug];
-  if (binding.serverProcess) {
-    return stopStaticServer(project);
-  } else {
-    return stopContainer(project);
+  if (binding) {
+    if (binding.serverProcess) {
+      return stopStaticServer(project);
+    } else {
+      return stopContainer(project);
+    }
   }
 }
 
@@ -393,7 +395,12 @@ export function updateSettingsForProject(project, settings) {
   project.description = description;
   Project.save(project);
 
-  const s = project.settings;
+  let s = project.settings;
+  if (!s) {
+    s = ProjectSettings.find({ project_id: project.id });
+    project.settings = s;
+  }
   Object.assign(s, containerSettings);
   ProjectSettings.save(s);
+  return s;
 }

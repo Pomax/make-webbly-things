@@ -67,7 +67,7 @@ export function getAllRunningContainers() {
     obj = Object.fromEntries(
       Object.entries(obj).map(([k, v]) => {
         return [k[0].toLowerCase() + k.substring(1), v];
-      })
+      }),
     );
     const { image, command, state, iD: id, status, size, createdAt } = obj;
     containerData.push({ image, id, command, state, status, size, createdAt });
@@ -112,6 +112,8 @@ export async function restartContainer(project, rebuild = false) {
     console.log(`restarting container for ${slug}...`);
     try {
       execSync(`docker container restart -t 0 ${slug}`);
+      portBindings[slug].restarts ??= 0;
+      portBindings[slug].restarts++;
     } catch (e) {
       // if an admin force-stops this container, we can't "restart".
       runContainer(project);

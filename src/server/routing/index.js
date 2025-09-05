@@ -53,7 +53,7 @@ function addSessionManagement(app) {
           intervalMs: FIFTEEN_MINUTES_IN_MS,
         },
       }),
-    })
+    }),
   );
 }
 
@@ -85,7 +85,7 @@ export function setupRoutes(app) {
         ...process.env,
         ...res.locals,
         ...req.session,
-      })
+      }),
   );
 
   // static routes for the website itself

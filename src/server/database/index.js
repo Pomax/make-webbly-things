@@ -87,7 +87,7 @@ export {
   isProjectSuspended,
   isStarterProject,
   projectSuspendedThroughOwner,
-  recordProjectRemix,  
+  recordProjectRemix,
   suspendProject,
   touch,
   unsuspendProject,

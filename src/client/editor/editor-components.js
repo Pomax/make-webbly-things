@@ -78,7 +78,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     // update our visible URL too, so folks can link to files.
     const currentURL = location.toString().replace(location.search, ``);
     const viewURL = `${currentURL}?view=${fileEntry.path}`;
-    history.replaceState(null, null, viewURL);    
+    history.replaceState(null, null, viewURL);
   });
 
   close.addEventListener(`pointerdown`, () => {

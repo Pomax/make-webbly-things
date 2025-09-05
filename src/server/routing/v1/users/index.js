@@ -15,5 +15,5 @@ users.get(
   bindCommonValues,
   verifyAccesToUser,
   getUserSettings,
-  (_req, res) => res.json(res.locals.settings)
+  (_req, res) => res.json(res.locals.settings),
 );

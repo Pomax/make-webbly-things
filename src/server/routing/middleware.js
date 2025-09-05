@@ -24,7 +24,7 @@ export function nocache(req, res, next) {
   res.setHeader("Surrogate-Control", "no-store");
   res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
   );
   res.setHeader("Expires", "0");
   next();
@@ -69,8 +69,8 @@ export async function verifyLogin(req, res, next) {
   if (suspensions.length) {
     return next(
       new Error(
-        `This user account has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`
-      )
+        `This user account has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
+      ),
     );
   }
   bindUser(req, res, next);
@@ -197,7 +197,7 @@ export function bindCommonValues(req, res, next) {
     const fileName = (res.locals.fileName = join(
       CONTENT_DIR,
       projectSlug,
-      filename + suffix
+      filename + suffix,
     ));
     const apath = resolve(join(CONTENT_DIR, projectSlug));
     const bpath = resolve(fileName);

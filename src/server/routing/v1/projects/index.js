@@ -36,7 +36,7 @@ projects.post(
   bindCommonValues,
   verifyOwner,
   deleteProject,
-  (_req, res) => res.send(`ok`)
+  (_req, res) => res.send(`ok`),
 );
 
 /**
@@ -51,7 +51,7 @@ projects.get(
   (req, res) =>
     res.sendFile(res.locals.zipFile, () => {
       unlinkSync(res.locals.zipFile);
-    })
+    }),
 );
 
 /**
@@ -70,7 +70,7 @@ projects.get(
       ...res.locals,
       ...req.session,
       ...process.env,
-    })
+    }),
 );
 
 /**
@@ -82,7 +82,7 @@ projects.get(
   checkProjectHealth,
   (_req, res) => {
     res.send(res.locals.healthStatus);
-  }
+  },
 );
 
 /**
@@ -94,7 +94,7 @@ projects.get(
   bindCommonValues,
   verifyEditRights,
   loadProjectHistory,
-  (_req, res) => res.json(res.locals.history)
+  (_req, res) => res.json(res.locals.history),
 );
 
 /**
@@ -105,7 +105,7 @@ projects.get(
   verifyLogin,
   bindCommonValues,
   remixProject,
-  (req, res) => res.redirect(`/v1/projects/edit/${res.locals.newProjectSlug}`)
+  (req, res) => res.redirect(`/v1/projects/edit/${res.locals.newProjectSlug}`),
 );
 
 /**
@@ -117,7 +117,7 @@ projects.post(
   bindCommonValues,
   verifyOwner,
   restartProject,
-  (_req, res) => res.send(`ok`)
+  (_req, res) => res.send(`ok`),
 );
 
 /**
@@ -128,7 +128,7 @@ projects.get(
   verifyLogin,
   bindCommonValues,
   getProjectSettings,
-  (_req, res) => res.json(res.locals.settings)
+  (_req, res) => res.json(res.locals.settings),
 );
 
 /**
@@ -142,7 +142,7 @@ projects.post(
   multer().none(),
   getProjectSettings,
   updateProjectSettings,
-  (_req, res) => res.send(`/v1/projects/edit/${res.locals.projectSlug}`)
+  (_req, res) => res.send(`/v1/projects/edit/${res.locals.projectSlug}`),
 );
 
 /**
@@ -164,5 +164,5 @@ projects.get(
   // Custom 404 for app domains
   (err, req, res, next) => {
     res.render(`not-found.html`);
-  }
+  },
 );

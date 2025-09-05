@@ -222,8 +222,8 @@ export async function loadProject(req, res, next) {
     if (!user?.admin)
       return next(
         new Error(
-          `This project has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`
-        )
+          `This project has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
+        ),
       );
   }
 
@@ -232,8 +232,8 @@ export async function loadProject(req, res, next) {
     if (!user?.admin) {
       return next(
         new Error(
-          `This project has been suspended because its project owner is suspended`
-        )
+          `This project has been suspended because its project owner is suspended`,
+        ),
       );
     } else {
       console.log(`Suspended project load by admin`);
@@ -247,7 +247,7 @@ export async function loadProject(req, res, next) {
   if (!suspended) {
     const { app_type } = settings;
     const staticType = app_type === null || app_type === `static`;
-    const inEditor = req.originalUrl.startsWith(`/v1/projects/edit/`);
+    const inEditor = req.originalUrl?.startsWith(`/v1/projects/edit/`);
     const mayEdit = getAccessFor(user, project) >= MEMBER;
     const noStatic = inEditor && user && mayEdit;
     if (!staticType || noStatic) {
@@ -271,7 +271,7 @@ export async function loadProject(req, res, next) {
   }
 
   res.locals.projectSettings = settings;
-  res.locals.viewFile = req.query.view ?? project.settings.default_file;
+  res.locals.viewFile = req.query?.view ?? project.settings.default_file;
 
   next();
 }
@@ -321,7 +321,10 @@ export async function remixProject(req, res, next) {
   const newProjectName = req.params.newname ?? `${user.name}-${project.slug}`;
 
   try {
-    const newProject = createProjectForUser(user, newProjectName);
+    const newProject = (res.locals.newProject = createProjectForUser(
+      user,
+      newProjectName,
+    ));
     const newProjectSlug = (res.locals.newProjectSlug = newProject.slug);
 
     cloneProject(project, newProjectSlug, isStarter);
@@ -343,12 +346,12 @@ export async function remixProject(req, res, next) {
 /**
  * ...docs go here...
  */
-export function restartProject(req, res, next) {
+export async function restartProject(req, res, next) {
   const { project } = res.locals.lookups;
   if (project.settings.app_type === `static`) {
     // do nothing. Static servers don't need restarting.
   } else {
-    restartContainer(project);
+    await restartContainer(project);
   }
   next();
 }
@@ -379,16 +382,20 @@ export function startProject(req, res, next) {
  * @returns
  */
 export async function updateProjectSettings(req, res, next) {
-  const { lookups, settings } = res.locals;
+  const { lookups } = res.locals;
   const { project } = lookups;
-  const { slug: projectSlug } = project;
+  const { slug: projectSlug, settings } = project;
   const { run_script, env_vars } = settings;
 
-  const newSettings = Object.fromEntries(
-    Object.entries(req.body).map(([k, v]) => [k, v.trim()])
+  // Set up the new settings object, using the
+  // original project settings as fallback values:
+  const newSettings = Object.assign(
+    {},
+    settings,
+    Object.fromEntries(Object.entries(req.body).map(([k, v]) => [k, v.trim()])),
   );
 
-  const newName = newSettings.name;
+  const newName = newSettings.name ?? project.name;
   const newSlug = slugify(newName);
   const newDir = join(CONTENT_DIR, newSlug);
   const containerDir = join(newDir, `.container`);
@@ -398,8 +405,8 @@ export async function updateProjectSettings(req, res, next) {
     if (pathExists(newDir)) {
       return next(
         new Error(
-          "Cannot rename project (someone else already owns this project name!)"
-        )
+          "Cannot rename project (someone else already owns this project name!)",
+        ),
       );
     }
   }
@@ -435,7 +442,7 @@ export async function updateProjectSettings(req, res, next) {
         writeFileSync(
           join(containerDir, `run.sh`),
           // shell scripts *must* use unix line endings.
-          newSettings.run_script.replace(/\r\n/g, `\n`)
+          newSettings.run_script.replace(/\r\n/g, `\n`),
         );
       } else if (env_vars !== newSettings.env_vars) {
         containerChange = true;

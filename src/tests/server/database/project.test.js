@@ -1,7 +1,6 @@
 import test, { after, before, describe } from "node:test";
 import assert from "node:assert/strict";
 import { resolve, join } from "node:path";
-import { rmSync } from "node:fs";
 import {
   initTestDatabase,
   concludeTesting,
@@ -9,12 +8,13 @@ import {
 import * as User from "../../../server/database/user.js";
 import * as Project from "../../../server/database/project.js";
 
-import dotenv from "@dotenvx/dotenvx";
 import { portBindings } from "../../../server/caddy/caddy.js";
-import { CONTENT_DIR, scrubDateTime } from "../../../helpers.js";
-import { mkdirSync, rmdirSync, writeFileSync } from "node:fs";
+import { createDockerProject } from "../../test-helpers.js";
+import { scrubDateTime } from "../../../helpers.js";
+
+import dotenv from "@dotenvx/dotenvx";
 const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`)
+  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`),
 );
 dotenv.config({ quiet: true, path: envPath });
 
@@ -176,23 +176,8 @@ describe(`project testing`, async () => {
   });
 
   test(`runProject (docker)`, async () => {
-    const user = User.getUser(`test user`);
-    const slug = `run-docker-test-project`;
-    const project = Project.createProjectForUser(user, slug);
-    project.updated_at = scrubDateTime(new Date(0).toISOString());
-    Project.updateSettingsForProject(project, { app_type: `docker` });
-
-    // Before we can run this test we need to make sure there's
-    // a directory with content...
-    mkdirSync(join(CONTENT_DIR, slug));
-    mkdirSync(join(CONTENT_DIR, slug, `.container`));
-    writeFileSync(
-      join(CONTENT_DIR, slug, `.container`, `run.sh`),
-      `npx http-server`
-    );
-
-    await Project.runProject(project);
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    const { res, cleanup } = await createDockerProject();
+    const { project } = res.locals.lookups;
     let found = false;
     try {
       const { port } = portBindings[project.slug];
@@ -201,13 +186,7 @@ describe(`project testing`, async () => {
     } catch (e) {
       found = e;
     }
-
-    Project.stopProject(project);
-    rmSync(join(CONTENT_DIR, slug), {
-      recursive: true,
-      force: true,
-    });
-
+    await cleanup();
     assert.equal(found, true);
   });
 

@@ -4,9 +4,7 @@ import { resolve, join } from "node:path";
 import * as Helpers from "../helpers.js";
 
 import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `.env`)
-);
+const envPath = resolve(join(import.meta.dirname, `..`, `..`, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 /*

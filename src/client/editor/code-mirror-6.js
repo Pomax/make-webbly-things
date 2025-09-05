@@ -47,7 +47,7 @@ export function getInitialState(fileEntry, filename, data) {
         }
         entry.contentReset = false;
       }
-    })
+    }),
   );
 
   return EditorState.create({ doc, extensions });

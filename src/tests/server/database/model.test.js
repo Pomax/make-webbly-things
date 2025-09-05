@@ -5,7 +5,7 @@ import * as Models from "../../../server/database/models.js";
 
 import dotenv from "@dotenvx/dotenvx";
 const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`)
+  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`),
 );
 dotenv.config({ quiet: true, path: envPath });
 
@@ -28,13 +28,13 @@ describe(`Model tests`, async () => {
   test(`runQuery`, () => {
     const result = Models.runQuery(
       `select * from sqlite_master where type = ? and name = ?`,
-      ["table", "users"]
+      ["table", "users"],
     );
     assert.equal(result.length > 0, true);
     const { sql } = result[0];
     assert.equal(
       sql.includes(`created_at TEXT DEFAULT CURRENT_TIMESTAMP`),
-      true
+      true,
     );
   });
 

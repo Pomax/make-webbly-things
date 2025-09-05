@@ -84,7 +84,7 @@ export async function formatFile(req, res, next) {
       formatted = true;
     } catch (e) {
       return next(
-        new Error(`Prettier could not format file:\n` + e.toString())
+        new Error(`Prettier could not format file:\n` + e.toString()),
       );
     }
   }

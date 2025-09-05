@@ -10,7 +10,7 @@ import {
 
 import dotenv from "@dotenvx/dotenvx";
 const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`)
+  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`),
 );
 dotenv.config({ quiet: true, path: envPath });
 

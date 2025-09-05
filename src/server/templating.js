@@ -14,7 +14,7 @@ export function setupTemplating(app) {
   nenv.addFilter(`date`, (str, count) => scrubDateTime(str));
 
   nenv.addFilter(`dockerimg`, (str, count) =>
-    str.startsWith(`sha256`) ? `(hash only)` : str
+    str.startsWith(`sha256`) ? `(hash only)` : str,
   );
 
   nenv.addFilter(`para`, (str, count) =>
@@ -22,7 +22,7 @@ export function setupTemplating(app) {
       ?.split(`\n`)
       .filter(Boolean)
       .map((p) => `<p>${safify(p)}</p>`)
-      .join(`\n`)
+      .join(`\n`),
   );
 
   nenv.addFilter(`shorthash`, (str, count) => str.substring(0, 16));

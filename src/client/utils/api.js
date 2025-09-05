@@ -19,7 +19,7 @@ export const API = {
     },
     health: async (projectName) =>
       fetch(`projects/health/${projectName}?v=${Date.now()}`).then((r) =>
-        r.text()
+        r.text(),
       ),
     restart: async (projectName) =>
       fetch(`projects/restart/${projectName}`, {

@@ -37,7 +37,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(u.id);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
       );
     }
     // Is this user an admin? If so, ammend the session record.

@@ -10,5 +10,5 @@ setDefaultAspects(app);
 let staticDir = join(`content`, projectName, root.replaceAll(`"`, ``));
 app.use(`/`, express.static(staticDir, { etag: false }));
 app.listen(port, () =>
-  console.log(`Static server for ${projectName} listening on port ${port}`)
+  console.log(`Static server for ${projectName} listening on port ${port}`),
 );

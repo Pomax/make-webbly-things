@@ -37,7 +37,7 @@ const COMMIT_TIMEOUTS = {};
  */
 export function createRewindPoint(
   project,
-  reason = `Autosave (${scrubDateTime(new Date().toISOString())})`
+  reason = `Autosave (${scrubDateTime(new Date().toISOString())})`,
 ) {
   console.log(`scheduling rewind point`);
 
@@ -68,7 +68,7 @@ export async function execPromise(command, options = {}) {
     exec(command, options, (err, stdout, stderr) => {
       if (err) return reject(stderr);
       resolve(stdout.trim());
-    })
+    }),
   );
 }
 
@@ -126,7 +126,7 @@ export async function readContentDir(dir) {
   if (isWindows) {
     const prefix = resolve(dir) + `\\`;
     filtered = filtered.map((v) =>
-      v.replace(prefix, ``).split(sep).join(posix.sep)
+      v.replace(prefix, ``).split(sep).join(posix.sep),
     );
   } else {
     const prefix = new RegExp(`.*${dir}\\/`);
@@ -175,7 +175,7 @@ export function setDefaultAspects(app) {
         scriptSrcElem: `* data: blob: 'unsafe-inline'`,
         styleSrc: `* data: blob: 'unsafe-inline'`,
       },
-    })
+    }),
   );
 }
 
@@ -203,7 +203,7 @@ export function slugify(text) {
     .replace(/\s+/g, `-`)
     .replace(
       /[\u0021-\u002C\u002E-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u00BF]+/g,
-      ``
+      ``,
     )
     .replace(/×/g, `x`)
     .replace(/÷/g, ``)
