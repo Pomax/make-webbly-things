@@ -1,7 +1,9 @@
 import { unlinkSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 import { CONTENT_DIR, pathExists } from "../../helpers.js";
 import { Models } from "./models.js";
+import { getOwnedProjectsForUser } from "./project.js";
 
 const { User, Project, ProjectSettings, Access, Admin, UserSuspension, Login } =
   Models;
@@ -169,23 +171,16 @@ export function getUserAdminFlag(userName) {
 /**
  * ...docs go here...
  */
-export function getUserId(userName) {
-  const u = User.find({ name: userName });
-  if (!u) throw new Error(`User not found`);
-  return u.id;
-}
-
-/**
- * ...docs go here...
- */
 export function getUserSettings(userId) {
   const u = User.find({ id: userId });
   if (!u) throw new Error(`User not found`);
   const s = UserSuspension.find({ user_id: u.id });
+  const a = Admin.find({ user_id: u.id });
   return {
     name: u.name,
-    enabled: u.enabled_at ? true : undefined,
-    suspended: s ? true : undefined,
+    admin: a ? true : false,
+    enabled: u.enabled_at ? true : false,
+    suspended: s ? true : false,
   };
 }
 
@@ -222,7 +217,7 @@ export function suspendUser(userNameOrId, reason, notes = ``) {
   if (!reason) throw new Error(`Cannot suspend user without a reason`);
   const u = getUser(userNameOrId);
   try {
-    UserSuspension.create({ user_id: u.id, reason, notes });
+    const suspension = UserSuspension.create({ user_id: u.id, reason, notes });
     const projects = getOwnedProjectsForUser(u);
     projects.forEach((p) => {
       const s = ProjectSettings.find({ project_id: p.id });
@@ -232,6 +227,7 @@ export function suspendUser(userNameOrId, reason, notes = ``) {
         stopContainer(p);
       }
     });
+    return suspension;
   } catch (e) {
     console.error(e);
     console.log(u, reason, notes);

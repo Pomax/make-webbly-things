@@ -219,7 +219,7 @@ export function loadProjectList(req, res, next) {
   //        list but otherwise we should reuse what's there.
   const { user } = res.locals;
   if (user) {
-    const list = getProjectListForUser(user.name);
+    const list = getProjectListForUser(user);
     if (list) {
       req.session.projectList = list;
       req.session.save();

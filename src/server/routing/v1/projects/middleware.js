@@ -31,7 +31,7 @@ import {
   renameContainer,
   restartContainer as restartDockerContainer,
   runContainer,
-  runStaticSite,
+  runStaticServer,
   stopContainer,
   stopStaticServer,
 } from "../../../docker/docker-helpers.js";
@@ -240,7 +240,7 @@ export async function loadProject(req, res, next) {
       stopStaticServer(project);
       await runContainer(project);
     } else {
-      runStaticSite(project);
+      runStaticServer(project);
     }
   }
 

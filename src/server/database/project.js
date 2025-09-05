@@ -2,7 +2,7 @@ import { join } from "node:path";
 
 import {
   runContainer,
-  runStaticSite,
+  runStaticServer,
   stopContainer,
   stopStaticServer,
 } from "../docker/docker-helpers.js";
@@ -118,7 +118,8 @@ export function copyProjectSettings(source, target) {
 export function createProjectForUser(user, projectName) {
   const p = Project.create({ name: projectName });
   Access.create({ project_id: p.id, user_id: user.id });
-  ProjectSettings.create({ project_id: p.id });
+  const s = ProjectSettings.create({ project_id: p.id });
+  p.settings = s;
   return p;
 }
 
@@ -239,10 +240,25 @@ export function getProjectSuspensions(project, includeOld = false) {
 /**
  * ...docs go here...
  */
-export function getProjectListForUser(userNameOrId) {
-  const u = getUser(userNameOrId);
-  const projects = Access.findAll({ user_id: u.id });
+export function getProjectListForUser(user) {
+  const projects = Access.findAll({ user_id: user.id });
   return projects.map((p) => Project.find({ id: p.project_id }));
+}
+
+/**
+ * ...docs go here...
+ */
+export function getProjectRemixChain(project) {
+  let id = project.id;
+  const chain = [id];
+  while (project) {
+    const r = Remix.find({ project_id: project.id });
+    if (!r) break;
+    id = r.original_id;
+    chain.unshift(id);
+    project = getProject(id);
+  }
+  return chain;
 }
 
 /**
@@ -258,7 +274,11 @@ export function getStarterProjects() {
  * ...docs go here...
  */
 export function isProjectSuspended(project) {
-  return !!ProjectSuspension.find({ project_id: project.id });
+  return (
+    ProjectSuspension.findAll({ project_id: project.id }).filter(
+      (s) => !s.invalidated_at
+    ).length > 0
+  );
 }
 
 /**
@@ -297,16 +317,29 @@ export function recordProjectRemix(original, newProject) {
  *
  * TODO: move this to where it belongs.
  */
-export function runProject(project) {
+export async function runProject(project) {
   const { settings } = project;
   const lastUpdate = Date.parse(project.updated_at + ` +0000`);
   const diff = getTimingDiffInMinutes(lastUpdate);
   const noStatic = diff < dockerDueToEdit;
 
   if (settings.app_type === `docker` || noStatic) {
-    runContainer(project);
+    return runContainer(project);
   } else {
-    runStaticSite(project);
+    return runStaticServer(project);
+  }
+}
+
+/**
+ * ...docs go here...
+ */
+export async function stopProject(project) {
+  const { slug } = project;
+  const binding = portBindings[slug];
+  if (binding.serverProcess) {
+    return stopStaticServer(project);
+  } else {
+    return stopContainer(project);
   }
 }
 
@@ -321,7 +354,7 @@ export function suspendProject(project, reason, notes = ``) {
     } else {
       stopContainer(project);
     }
-    ProjectSuspension.create({ project_id: project.id, reason, notes });
+    return ProjectSuspension.create({ project_id: project.id, reason, notes });
   } catch (e) {
     console.error(e);
     console.log(u, reason, notes);
@@ -331,10 +364,10 @@ export function suspendProject(project, reason, notes = ``) {
 /**
  * ...docs go here...
  */
-export function touch(project) {
-  const p = getProject(project.id, false); // don't include settings here!
-  if (p) Project.save(p);
-  if (!portBindings[p.slug]) runProject(p);
+export async function touch(project) {
+  const { settings, ...p } = project;
+  Project.save(p);
+  if (!portBindings[p.slug]) return runProject(project);
 }
 
 /**

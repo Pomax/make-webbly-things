@@ -21,48 +21,80 @@ export function loadAdminData(req, res, next) {
 // Server related routes
 
 export function stopServer(req, res, next) {
-  Docker.stopStaticServer(req.params.name);
-  next();
+  try {
+    Docker.stopStaticServer(req.params.name);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 // Container related routes
 
 export function deleteContainer(req, res, next) {
-  Docker.deleteContainer(containerreq.params.idId);
-  next();
+  try {
+    Docker.deleteContainer(containerreq.params.idId);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 export function stopContainer(req, res, next) {
-  Docker.stopContainer(req.params.image);
-  next();
+  try {
+    Docker.stopContainer(req.params.image);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 // User related routes
 
 export function deleteUser(req, res, next) {
-  Database.deleteUser(res.locals.lookups.user.id);
-  next();
+  try {
+    Database.deleteUser(res.locals.lookups.user.id);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 export function disableUser(req, res, next) {
-  Database.disableUser(res.locals.lookups.user.id);
-  next();
+  try {
+    Database.disableUser(res.locals.lookups.user.id);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 export function enableUser(req, res, next) {
-  Database.enableUser(res.locals.lookups.user.id);
-  next();
+  try {
+    Database.enableUser(res.locals.lookups.user.id);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 export function suspendUser(req, res, next) {
-  Database.suspendUser(res.locals.lookups.user.id, req.body.reason);
-  next();
+  try {
+    Database.suspendUser(res.locals.lookups.user.id, req.body.reason);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 export function unsuspendUser(req, res, next) {
-  const suspensionId = parseFloat(req.params.sid);
-  Database.unsuspendUser(suspensionId);
-  next();
+  try {
+    const suspensionId = parseFloat(req.params.sid);
+    Database.unsuspendUser(suspensionId);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 // Project related routes
@@ -74,12 +106,20 @@ export function deleteProject(req, res, next) {
 }
 
 export function suspendProject(req, res, next) {
-  Database.suspendProject(res.locals.lookups.project, req.body.reason);
-  next();
+  try {
+    Database.suspendProject(res.locals.lookups.project, req.body.reason);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }
 
 export function unsuspendProject(req, res, next) {
-  const suspensionId = parseFloat(req.params.sid);
-  Database.unsuspendProject(suspensionId);
-  next();
+  try {
+    const suspensionId = parseFloat(req.params.sid);
+    Database.unsuspendProject(suspensionId);
+    next();
+  } catch (e) {
+    next(e);
+  }
 }

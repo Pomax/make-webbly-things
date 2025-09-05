@@ -121,27 +121,6 @@ export async function restartContainer(project, rebuild = false) {
 }
 
 /**
- * Run a static server for a static project, since we don't
- * need a docker container for that, just an isolated server
- * running on its own port, with content security.
- *
- * FIXME: this function doesn't feel like it should live here...
- */
-export async function runStaticSite(project) {
-  const { slug } = project;
-  if (portBindings[slug]) return;
-  const port = await getFreePort();
-  console.log(`attempting to run static server for ${slug} on port ${port}`);
-  const s = project.settings;
-  const root = s.root_dir === null ? `` : s.root_dir;
-  const runCommand = `node src/server/static.js --project ${slug} --port ${port} --root "${root}"`;
-  console.log(runCommand);
-  const child = exec(runCommand, { shell: true, stdio: `inherit` });
-  const binding = updateCaddyFile(project, port);
-  binding.serverProcess = child;
-}
-
-/**
  * ...docs go here...
  */
 export async function runContainer(project) {
@@ -212,6 +191,27 @@ export async function runContainer(project) {
 }
 
 /**
+ * Run a static server for a static project, since we don't
+ * need a docker container for that, just an isolated server
+ * running on its own port, with content security.
+ *
+ * FIXME: this function doesn't feel like it should live here...
+ */
+export async function runStaticServer(project) {
+  const { slug } = project;
+  if (portBindings[slug]) return;
+  const port = await getFreePort();
+  console.log(`attempting to run static server for ${slug} on port ${port}`);
+  const s = project.settings;
+  const root = s.root_dir === null ? `` : s.root_dir;
+  const runCommand = `node src/server/static.js --project ${slug} --port ${port} --root "${root}"`;
+  console.log(runCommand);
+  const child = exec(runCommand, { shell: true, stdio: `inherit` });
+  const binding = updateCaddyFile(project, port);
+  binding.serverProcess = child;
+}
+
+/**
  * ...docs go here...
  */
 export function stopContainer(project, slug = project.slug) {
@@ -229,7 +229,6 @@ export function stopContainer(project, slug = project.slug) {
 export function stopStaticServer(project, slug = project.slug) {
   const { serverProcess } = portBindings[slug] ?? {};
   if (serverProcess) {
-    console.log(`Killing static server for ${slug}`);
     serverProcess.kill();
     removeCaddyEntry(project);
   }
