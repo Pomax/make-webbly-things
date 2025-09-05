@@ -14,7 +14,7 @@ import { scrubDateTime } from "../../../helpers.js";
 
 import dotenv from "@dotenvx/dotenvx";
 const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`),
+  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`)
 );
 dotenv.config({ quiet: true, path: envPath });
 
@@ -168,6 +168,7 @@ describe(`project testing`, async () => {
       await fetch(`http://localhost:${port}`).then((r) => r.text());
       found = true;
     } catch (e) {
+      /* node:coverage disable */
       found = e;
     }
     Project.stopProject(project);

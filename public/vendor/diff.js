@@ -1,3 +1,4 @@
+/* node:coverage disable */
 function Diff() {}
 Diff.prototype = {
   diff: function diff(oldString, newString) {
