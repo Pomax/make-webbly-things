@@ -1,0 +1,31 @@
+---
+layout: base.njk
+templateClass: tmpl-home
+---
+
+{# This is the template for individual blog posts–it builds the front matter properties into the page #}
+
+<div class="post">
+  <div>
+    {# The post front matter includes the title property #}
+    <h2 class='postTitle'>{{title}}</h2>
+    
+    {# Content from the body of the post markdown appears here #}
+    {{ content | safe }}
+    <div class="controls">
+    {# The previous and next post data is added in .eleventy.js #}
+    {% if prevPost.url %}
+      <p>
+        <strong>Previous</strong>: 
+        <a class="previous" href="{{ prevPost.url }}">{{ prevPost.data.title }}</a>
+      </p>
+    {% endif %}
+    {% if nextPost.url %}
+      <p>
+        <strong>Next</strong>: 
+        <a class="next" href="{{ nextPost.url }}">{{ nextPost.data.title }}</a>
+      </p>
+    {% endif %}
+    </div>
+  </div>
+</div>
