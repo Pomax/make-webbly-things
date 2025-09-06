@@ -13,9 +13,9 @@ import {
   randomDockerProjectName,
 } from "../../../../test-helpers.js";
 import { portBindings } from "../../../../../server/caddy/caddy.js";
+import { CONTENT_DIR } from "../../../../../helpers.js";
 
 import dotenv from "@dotenvx/dotenvx";
-import { CONTENT_DIR } from "../../../../../helpers.js";
 const envPath = resolve(
   join(import.meta.dirname, `..`, `..`, `..`, `..`, `..`, `..`, `.env`),
 );
