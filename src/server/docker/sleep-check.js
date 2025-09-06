@@ -73,7 +73,7 @@ export async function scheduleContainerCheck() {
     const limit = d.app_type === `docker` ? dockerThreshold : staticThreshold;
     if (diff > limit) {
       log(`"${image}" was last touched ${diff} min ago, stopping container`);
-      stopContainer(image);
+      stopContainer({ slug: image });
     }
   });
 
