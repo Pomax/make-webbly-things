@@ -7,6 +7,7 @@
   "scripts": {
     "build": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
     "prettier": "prettier --write \"./src/**/*.js\"",
+    "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
     "start": "node src/server/index.js",
     "test": "npm run prettier && npm run build && cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 ./src/tests/**/*.test.js && npm run test:cleanup",
     "test:cleanup": "node ./src/tests/test-cleanup.js"

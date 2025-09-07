@@ -1,7 +1,7 @@
 import net from "node:net";
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { join, resolve, sep, posix } from "node:path";
-import { exec } from "node:child_process";
+import { exec, execSync } from "node:child_process";
 import express from "express";
 import nocache from "nocache";
 import helmet from "helmet";
@@ -15,8 +15,10 @@ dotenv.config({ path: envPath, quiet: true });
 
 export const isWindows = process.platform === `win32`;
 export const npm = isWindows ? `npm.cmd` : `npm`;
+export const npx = isWindows ? `npx.cmd` : `npx`;
 
 // Set up the vars we need for pointing to the right dirs
+export const ROOT_DIR = resolve(join(import.meta.dirname, `..`));
 export const CONTENT_BASE = process.env.CONTENT_BASE ?? `content`;
 process.env.CONTENT_BASE = CONTENT_BASE;
 
@@ -25,7 +27,7 @@ process.env.CONTENT_DIR = CONTENT_DIR;
 
 // Set up the things we need for scheduling git commits when
 // content changes, or the user requests an explicit rewind point:
-const COMMIT_TIMEOUT_MS = 5_000;
+export const COMMIT_TIMEOUT_MS = 5_000;
 
 // We can't save timeouts to req.session so we need a separate tracker
 const COMMIT_TIMEOUTS = {};
@@ -37,12 +39,12 @@ const COMMIT_TIMEOUTS = {};
  */
 export function createRewindPoint(
   project,
-  reason = `Autosave (${scrubDateTime(new Date().toISOString())})`,
+  reason = `Autosave ${scrubDateTime(new Date().toISOString())}`,
 ) {
   console.log(`scheduling rewind point`);
 
   const { slug } = project;
-  const dir = join(CONTENT_DIR, slug);
+  const dir = join(ROOT_DIR, CONTENT_DIR, slug);
   const debounce = COMMIT_TIMEOUTS[slug];
 
   if (debounce) clearTimeout(debounce);
@@ -52,7 +54,7 @@ export function createRewindPoint(
     const cmd = `cd ${dir} && git add . && git commit --allow-empty -m "${reason}"`;
     console.log(`running:`, cmd);
     try {
-      await execPromise(cmd);
+      execSync(cmd, { shell: true, stdio: `inherit` });
     } catch (e) {
       console.error(e);
     }
