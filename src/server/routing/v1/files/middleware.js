@@ -30,19 +30,18 @@ const contentDir = join(ROOT_DIR, CONTENT_DIR);
  * ...docs go gere,,,
  */
 export function createFile(req, res, next) {
-  const { lookups, fileName } = res.locals;
+  const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
-  const fullPath = join(contentDir, project.slug, fileName);
-  const slug = basename(fullPath);
+  const fileName = basename(fullPath);
   const dirs = dirname(fullPath);
   mkdirSync(dirs, { recursive: true });
   if (!pathExists(fullPath)) {
-    if (slug.includes(`.`)) {
+    if (fileName.includes(`.`)) {
       console.log(`writing out ${fullPath}`);
       writeFileSync(fullPath, ``);
     } else {
-      mkdirSync(join(dirs, slug));
+      mkdirSync(join(dirs, fileName));
     }
   }
   createRewindPoint(project);
@@ -53,10 +52,9 @@ export function createFile(req, res, next) {
  * ...docs go here...
  */
 export async function deleteFile(req, res, next) {
-  const { lookups, fileName } = res.locals;
+  const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
-  const fullPath = join(contentDir, project.slug, fileName);
   const isDir = lstatSync(fullPath).isDirectory();
   try {
     if (isDir) {
@@ -76,10 +74,9 @@ export async function deleteFile(req, res, next) {
  * ...docs go here...
  */
 export async function formatFile(req, res, next) {
-  const { lookups, fileName } = res.locals;
+  const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
-  const fullPath = join(contentDir, project.slug, fileName);
   const ext = extname(fullPath);
 
   let formatted = false;
@@ -150,11 +147,11 @@ export async function getDirListing(req, res, next) {
  * ...docs go here...
  */
 export function getMimeType(req, res, next) {
-  const { fileName } = res.locals;
-  const mimeType = mime.getType(fileName);
+  const { fullPath } = res.locals;
+  const mimeType = mime.getType(fullPath);
   res.locals = {
     mimeType,
-    data: readFileSync(fileName),
+    data: readFileSync(fullPath),
   };
   next();
 }
@@ -164,18 +161,16 @@ export function getMimeType(req, res, next) {
  * @returns
  */
 export function handleUpload(req, res, next) {
-  const { lookups, fileName } = res.locals;
+  const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
-  const slug = fileName.substring(fileName.lastIndexOf(`/`) + 1);
-  const dirs = fileName.replace(`/${slug}`, ``);
   const fileData = req.body.content.value;
   const fileSize = fileData.length;
   if (fileSize > 10_000_000) {
     return next(new Error(`Upload size exceeded`));
   }
-  mkdirSync(dirs, { recursive: true });
-  writeFileSync(fileName, fileData, `ascii`);
+  mkdirSync(dirname(fullPath), { recursive: true });
+  writeFileSync(fullPath, fileData, `ascii`);
   createRewindPoint(project);
   next();
 }
@@ -184,14 +179,14 @@ export function handleUpload(req, res, next) {
  * ...docs go here...
  */
 export function patchFile(req, res, next) {
-  const { lookups, fileName } = res.locals;
+  const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
-  let data = readFileSync(fileName).toString(`utf8`);
+  let data = readFileSync(fullPath).toString(`utf8`);
   const patch = req.body;
   const patched = applyPatch(data, patch);
-  if (patched) writeFileSync(fileName, patched);
-  res.locals.fileHash = `${getFileSum(project.slug, fileName, true)}`;
+  if (patched) writeFileSync(fullPath, patched);
+  res.locals.fileHash = `${getFileSum(project.slug, fullPath, true)}`;
   createRewindPoint(project);
   next();
 }
@@ -206,11 +201,11 @@ export async function moveFile(req, res, next) {
   const { slug } = project;
   const fileSlug = req.params.slug + req.params[0];
   const parts = fileSlug.split(`:`);
-  const oldPath = join(CONTENT_DIR, slug, parts[0]);
+  const oldPath = join(ROOT_DIR, CONTENT_DIR, slug, parts[0]);
   if (oldPath === `.`) {
     return next(new Error(`Illegal rename`));
   }
-  const newPath = join(CONTENT_DIR, slug, parts[1]);
+  const newPath = join(ROOT_DIR, CONTENT_DIR, slug, parts[1]);
   try {
     renameSync(oldPath, newPath);
     createRewindPoint(project);

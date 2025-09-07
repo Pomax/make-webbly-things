@@ -15,7 +15,7 @@ import {
   getStarterProjects,
 } from "../database/index.js";
 
-import { CONTENT_DIR, slugify } from "../../helpers.js";
+import { ROOT_DIR, CONTENT_DIR, slugify } from "../../helpers.js";
 
 /**
  * For when you really don't want response caching.
@@ -202,17 +202,21 @@ export function bindCommonValues(req, res, next) {
     const projectSlug =
       res.locals.lookups.project?.slug ?? res.locals.projectSlug;
     const suffix = req.params[0] || ``;
-    const fileName = (res.locals.fileName = join(
-      CONTENT_DIR,
-      projectSlug,
-      filename + suffix,
+    // Let's cut short any "filesystem escapes":
+    if (projectSlug.includes(`..`)) {
+      return next(new Error(`Cannot resolve relative path`));
+    }
+    if ((filename + suffix).includes(`..`)) {
+      return next(new Error(`Cannot resolve relative path`));
+    }
+    const fullPath = (res.locals.fullPath = resolve(
+      join(ROOT_DIR, CONTENT_DIR, projectSlug, filename + suffix),
     ));
     const apath = resolve(join(CONTENT_DIR, projectSlug));
-    const bpath = resolve(fileName);
+    const bpath = resolve(fullPath);
     if (!bpath.startsWith(apath)) {
       return next(new Error(`Illegal file path`));
     }
-    res.locals.fileName = fileName;
   }
 
   next();
