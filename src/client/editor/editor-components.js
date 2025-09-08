@@ -163,7 +163,6 @@ export async function getOrCreateFileEditTab(fileEntry, projectName, filename) {
     content: viewType.editable ? view.state.doc.toString() : data,
     sync: () => {
       if (viewType.editable) {
-        console.log(fileEntry.state);
         syncContent(projectName, fileEntry.state);
       }
     },

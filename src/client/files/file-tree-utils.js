@@ -63,8 +63,6 @@ export async function setupFileTree() {
  */
 function addFileTreeHandling() {
   function updateEditorBindings(fileTreeEntry, entry, key, oldKey) {
-    console.log(`updating editor bindings`, { entry, key, oldKey });
-
     if (oldKey) {
       fileTreeEntry.state = {};
     }
