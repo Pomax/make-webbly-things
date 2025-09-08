@@ -63,8 +63,11 @@ file-tree {
 
   /* The root dir has an icon, but it's "inactive" */
 
-  [path="."] > .icon {
-    cursor: default !important;
+  [path="."] {
+    height: 100%;
+    & > .icon {
+      cursor: default !important;
+    }
   }
 
   /*

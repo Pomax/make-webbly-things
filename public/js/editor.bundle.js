@@ -28935,6 +28935,7 @@ async function getOrCreateFileEditTab(fileEntry, projectName5, filename) {
     content: viewType.editable ? view.state.doc.toString() : data3,
     sync: () => {
       if (viewType.editable) {
+        console.log(fileEntry.state);
         syncContent(projectName5, fileEntry.state);
       }
     },
@@ -28995,10 +28996,10 @@ async function setupFileTree() {
 }
 function addFileTreeHandling() {
   function updateEditorBindings(fileTreeEntry, entry, key, oldKey) {
+    console.log(`updating editor bindings`, { entry, key, oldKey });
     if (oldKey) {
       fileTreeEntry.state = {};
     }
-    fileTreeEntry.setState(entry);
     const { tab, panel } = entry;
     entry.filename = key;
     if (tab) {
@@ -29012,6 +29013,7 @@ function addFileTreeHandling() {
     if (panel) {
       panel.title = panel.id = key;
     }
+    fileTreeEntry.setState(entry);
   }
   fileTree2.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
