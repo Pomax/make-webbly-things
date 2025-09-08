@@ -24,7 +24,7 @@ export function nocache(req, res, next) {
   res.setHeader("Surrogate-Control", "no-store");
   res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
   );
   res.setHeader("Expires", "0");
   next();
@@ -79,8 +79,8 @@ export async function verifyLogin(req, res, next) {
   if (suspensions.length) {
     return next(
       new Error(
-        `This user account has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
-      ),
+        `This user account has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`
+      )
     );
   }
   bindUser(req, res, next);
@@ -145,7 +145,7 @@ export function verifyOwner(req, res, next) {
  * @returns
  */
 export function bindCommonValues(req, res, next) {
-  const { uid, pid, project, filename, starter } = req.params;
+  const { uid, pid, project, filename, starter, username } = req.params;
 
   // Bind the session user as res.locals.user
   bindUser(req, res);
@@ -172,7 +172,7 @@ export function bindCommonValues(req, res, next) {
   }
 
   if (project) {
-    const slug = slugify(project);
+    const slug = slugify(project.trim());
     try {
       res.locals.lookups.project = getProject(slug);
     } catch (e) {
@@ -196,30 +196,40 @@ export function bindCommonValues(req, res, next) {
     }
   }
 
-  // File operations may need to work with a "file
-  // name" (which is really just a file path).
   if (filename) {
-    const projectSlug =
-      res.locals.lookups.project?.slug ?? res.locals.projectSlug;
-    const suffix = req.params[0] || ``;
-    // Let's cut short any "filesystem escapes":
-    if (projectSlug.includes(`..`)) {
-      return next(new Error(`Cannot resolve relative path`));
-    }
-    if ((filename + suffix).includes(`..`)) {
-      return next(new Error(`Cannot resolve relative path`));
-    }
-    const fullPath = (res.locals.fullPath = resolve(
-      join(ROOT_DIR, CONTENT_DIR, projectSlug, filename + suffix),
-    ));
-    const apath = resolve(join(CONTENT_DIR, projectSlug));
-    const bpath = resolve(fullPath);
-    if (!bpath.startsWith(apath)) {
-      return next(new Error(`Illegal file path`));
+    try {
+      parseFileName(req, res, filename);
+    } catch (e) {
+      return next(e);
     }
   }
 
   next();
+}
+
+/**
+ * internal function for turning a filename argument
+ * into a full qualified path in the file system.
+ */
+function parseFileName(req, res, filename) {
+  const projectSlug =
+    res.locals.lookups.project?.slug ?? res.locals.projectSlug;
+  const suffix = req.params[0] || ``;
+  // Let's cut short any "filesystem escapes":
+  if (projectSlug.includes(`..`)) {
+    throw new Error(`Cannot resolve relative path`);
+  }
+  if ((filename + suffix).includes(`..`)) {
+    throw new Error(`Cannot resolve relative path`);
+  }
+  const fullPath = (res.locals.fullPath = resolve(
+    join(ROOT_DIR, CONTENT_DIR, projectSlug, filename + suffix)
+  ));
+  const apath = resolve(join(CONTENT_DIR, projectSlug));
+  const bpath = resolve(fullPath);
+  if (!bpath.startsWith(apath)) {
+    throw new Error(`Illegal file path`);
+  }
 }
 
 /**
@@ -231,13 +241,9 @@ export function loadProjectList(req, res, next) {
   //        list but otherwise we should reuse what's there.
   const { user } = res.locals;
   if (user) {
-    const list = getProjectListForUser(user);
-    if (list) {
-      req.session.projectList = list;
-      req.session.save();
-    }
+    res.locals.projectList = getProjectListForUser(user);
   } else {
-    req.session.projectList = getMostRecentProjects(5);
+    res.locals.projectList = getMostRecentProjects(5);
   }
   next();
 }

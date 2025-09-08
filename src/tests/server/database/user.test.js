@@ -28,14 +28,14 @@ describe(`user tests`, async () => {
   });
 
   test(`enable/disable`, () => {
-    let user = User.getUser(`test user`);
+    let user = User.getUser(`test-user`);
 
     User.enableUser(user);
-    user = User.getUser(`test user`);
+    user = User.getUser(`test-user`);
     assert.notEqual(user.enabled_at, null);
 
     User.disableUser(user);
-    user = User.getUser(`test user`);
+    user = User.getUser(`test-user`);
     assert.equal(user.enabled_at, null);
   });
 
@@ -45,15 +45,15 @@ describe(`user tests`, async () => {
   });
 
   test(`userIsAdmin`, () => {
-    const admin = User.getUser(`test admin`);
+    const admin = User.getUser(`test-admin`);
     assert.equal(User.userIsAdmin(admin), true);
 
-    const user = User.getUser(`test user`);
+    const user = User.getUser(`test-user`);
     assert.equal(User.userIsAdmin(user), false);
   });
 
   test(`getUserSettings`, () => {
-    const admin = User.getUser(`test admin`);
+    const admin = User.getUser(`test-admin`);
     let settings = User.getUserSettings(admin);
     assert.deepEqual(settings, {
       name: `test admin`,
@@ -62,7 +62,7 @@ describe(`user tests`, async () => {
       suspended: false,
     });
 
-    const user = User.getUser(`test user`);
+    const user = User.getUser(`test-user`);
     const s = User.suspendUser(user, `why not`);
     User.disableUser(user);
     settings = User.getUserSettings(user);
@@ -86,8 +86,8 @@ describe(`user tests`, async () => {
   });
 
   test(`hasAccessToUserRecords`, () => {
-    const admin = User.getUser(`test admin`);
-    const user = User.getUser(`test user`);
+    const admin = User.getUser(`test-admin`);
+    const user = User.getUser(`test-user`);
     const rando = Models.User.create({ name: `rando calrisian` });
 
     assert.equal(User.hasAccessToUserRecords(user, user), true);

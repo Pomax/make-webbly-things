@@ -25,7 +25,37 @@ const { User, Project, ProjectSettings, Access, Admin, UserSuspension, Login } =
 })();
 
 /**
- * ...docs go here...
+ * Create a user account and tie it to this auth session
+ * @param {*} username
+ * @param {*} userObject
+ */
+export function processUserSignup(username, userObject) {
+  // Make extra sure we can safely register this user:
+  const slug = slugify(username);
+  console.log(`processing signup for ${username}/${slug}`);
+  try {
+    getUser(slug);
+    throw new Error(`Username already taken.`);
+  } catch (e) {
+    // this is what we want: "error: no user found".
+  }
+  const { service, service_id } = userObject;
+  const existingLogin = Login.find({ service, service_id });
+  if (existingLogin) {
+    // Nice try, but you only get one user account
+    // per remote account at an auth service =)
+    return processUserLogin(userObject);
+  }
+  // Unknown user, and unknown service login: create a new account!
+  const user = User.create({ name: username });
+  Login.create({ user_id: user.id, service, service_id });
+  return user;
+}
+
+/**
+ * Process a login attempt by looking up who is
+ * logging in based on their auth service name
+ * and their id local to that service.
  */
 export function processUserLogin(userObject) {
   return __processUserLogin(userObject);
@@ -42,50 +72,39 @@ let __processUserLogin = pathExists(firstTimeSetup)
 // are added to the database but they are not enabled
 // by default, and an admin will have to approve them.
 function processUserLoginNormally(userObject) {
-  const { userName, service, service_id } = userObject;
-  const l = Login.find({ service, service_id });
-  if (l) {
-    const u = User.find({ id: l.user_id });
-    if (!u) {
-      // This shouldn't be possible, so...
-      throw new Error(`User not found`);
-    }
-    const s = getUserSuspensions(u);
+  const { service, service_id } = userObject;
+  const login = Login.find({ service, service_id });
+  if (!login) {
+    throw new Error(`No user tied to this service`);
+  }
+  const user = getUser(login.user_id);
+  user.admin = userIsAdmin(user);
+  if (!user.admin) {
+    const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
       );
     }
-    // Is this user an admin? If so, ammend the session record.
-    const a = Admin.find({ user_id: u.id });
-    return { ...u, admin: a ? true : undefined };
   }
-
-  // No login binding: new user or username conflict?
-  const u = User.find({ name: userName });
-  if (!u) {
-    const u = User.create({ name: userName });
-    Login.create({ user_id: u.id, service, service_id });
-    return u;
-  }
-
-  throw new Error(`User ${userName} already exists`);
+  return user;
 }
 
 // On the other hand, after first-time setup, we want the first
 // login to automatically become an enabled user account with
 // admin rights, so that you can run setup, log in, and get going.
 function __processFirstTimeUserLogin(userObject) {
-  __processUserLogin = processUserLoginNormally;
-  const { userName, service, service_id } = userObject;
-  console.log(`First time login: marking ${userName} as admin`);
-  const u = User.create({ name: userName });
-  Login.create({ user_id: u.id, service, service_id });
-  Admin.create({ user_id: u.id });
-  u.enabled_at = u.created_at;
-  User.save(u);
   unlinkSync(firstTimeSetup);
-  return { ...u, admin: true };
+  __processUserLogin = processUserLoginNormally;
+  const { profileName, service, service_id } = userObject;
+  console.log(`First time login: marking ${profileName} as admin`);
+  const user = User.create({ name: profileName });
+  Login.create({ user_id: user.id, service, service_id });
+  Admin.create({ user_id: user.id });
+  user.enabled_at = user.created_at;
+  user.admin = true;
+  User.save(user);
+  return user;
 }
 
 /**
@@ -159,12 +178,12 @@ export function getAllUsers() {
 /**
  * ...docs go here...
  */
-export function getUser(userNameOrId) {
+export function getUser(userSlugOrId) {
   let u;
-  if (typeof userNameOrId === `number`) {
-    u = User.find({ id: userNameOrId });
+  if (typeof userSlugOrId === `number`) {
+    u = User.find({ id: userSlugOrId });
   } else {
-    u = User.find({ name: userNameOrId });
+    u = User.find({ slug: userSlugOrId });
   }
   if (!u) throw new Error(`User not found`);
   return u;

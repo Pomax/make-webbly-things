@@ -4,7 +4,7 @@ import { passport } from "./middleware.js";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as MagicLoginStrategy } from "passport-magic-link";
 import { loginWithGithub, handleGithubCallback, logout } from "./middleware.js";
-import { processUserLogin } from "../../database/index.js";
+import { processUserSignup, processUserLogin } from "../../database/index.js";
 
 // Explicit env loading as we rely on process.env
 // at the module's top level scope...
@@ -16,6 +16,10 @@ const githubSettings = {
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
   callbackURL: process.env.GITHUB_CALLBACK_URL,
+  // We need accss to req.session during auth,
+  // because signup vs. signin has different
+  // values stored in the request session.
+  passReqToCallback: true,
 };
 
 const magicSettings = {
@@ -38,15 +42,33 @@ export function addPassportAuth(app) {
 function addGithubAuth(app) {
   const githubStrategy = new GitHubStrategy(
     githubSettings,
-    (accessToken, refreshToken, profile, done) => {
-      const user = {
-        userName: profile.displayName,
+    (req, accessToken, refreshToken, profile, done) => {
+      const { username, slug } = req.session.reservedAccount ?? {};
+
+      const userObject = {
+        slug,
+        profileName: profile.displayName,
         service: profile.provider,
         service_id: profile.id,
       };
-      console.log(`running processUserLogin`);
-      return done(null, processUserLogin(user));
-    },
+
+      let user;
+
+      // If we have a user slug, this is a new account signup
+      if (userObject.slug) {
+        console.log(`running processUserSignup`);
+        user = processUserSignup(username, userObject);
+      }
+
+      // If not, this is a log-in, where we need to find
+      // the user that belongs to this service profile.
+      else {
+        console.log(`running processUserLogin`);
+        user = processUserLogin(userObject);
+      }
+
+      return done(null, user);
+    }
   );
 
   passport.use(githubStrategy);
@@ -54,7 +76,7 @@ function addGithubAuth(app) {
   const github = Router();
   github.get(`/error`, (req, res) => res.send(`Unknown Error`));
   github.get(`/callback`, handleGithubCallback, (req, res) =>
-    res.redirect(`/`),
+    res.redirect(`/`)
   );
   github.get(`/logout`, logout);
   github.get(`/`, loginWithGithub);
@@ -85,7 +107,7 @@ function addEmailAuth(app) {
         service: `magic link`,
         service_id: user.email,
       });
-    },
+    }
   );
 
   passport.use(magicStrategy);
@@ -99,7 +121,7 @@ function addEmailAuth(app) {
     }),
     (req, res) => {
       res.redirect(`/auth/email/check`);
-    },
+    }
   );
 
   magic.get(`/check`, function (req, res) {
@@ -112,7 +134,7 @@ function addEmailAuth(app) {
     passport.authenticate(`magiclink`, {
       successReturnToOrRedirect: `/`,
       failureRedirect: `/`,
-    }),
+    })
   );
 
   app.use(`/auth/email`, magic);

@@ -41,7 +41,22 @@
 
 <h2>Log in</h2>
 
-<p>If the above all sounds reasonable, then you'll probably want to log in:</p>
+<p>If the above all sounds reasonable, then you'll probably want to either:</p>
+
+<ul>
+  <li>
+    <form id="signup" method="POST">
+      <button disabled>Sign up as:</button>
+      <input type="text" placeholder="Write your username here" />
+      <span></span>
+    </form>
+    <p>
+      (You'll be redirected to a GitHub auth flow after picking a user name)
+    </p>
+  </li>
+</ul>
+
+<p>or log in:</p>
 
 <ul>
   <li>using <a href="/auth/github">GitHub</a></li>
@@ -73,33 +88,41 @@
 
 <p>
   <strong>
-    <em>By logging in you are obviously okay with all of that.</em>
+    <em
+      >By signing up/logging in you are obviously okay with all of the
+      above.</em
+    >
   </strong>
 </p>
 
 <p>
   Also also, while this platform offers private files and a way to specify
   secret environment variables, that privacy is only for the general public. If
-  an admin decides to be a bad actor and look at your private files or comb
+  an admin decides to be a bad actor and looks at your private files or combs
   through the database looking for API keys, there is nothing you can do to stop
-  that. So, exercise the same caution as you do everywhere else. Don't put
+  that. So: exercise the same caution as you do everywhere else. Don't put
   information on the internet that you can't afford to have become public,
-  either because you can immediately invalidate things like keys and
-  certificates, or because the data is useless without some additional off-site
-  information. And of course, sites get hacked. This is simply a fact of life,
-  act accordingly.
+  either because you can immediately invalidate things (like keys and
+  certificates) or because the data is useless without some additional off-site
+  information. And of course, sites get hacked. This is simply a fact of life:
+  write your project code accordingly.
 </p>
 
-<h2>I tried to log in but it did nothing?</h2>
+<h2>I signed up but I can't do anything?</h2>
 
 <p>
-  ...yeah so as per literally the text you just read: I'm not just going to let
-  you run wild on my instance if I don't know you. If we know each other, shoot
-  me a message saying you signed up and I'll immediately enable your account.
-  But if I have no idea who you are, trust me to hit the delete button: you want
-  to run your own instance, instead. That's the whole point of this platform,
-  you don't need my approval, just go run your own copy and have fun with it.
-  Let your friends join that one, have a good time on the interwebs.
+  Accounts are created in a "disabled" state, requiring an admin to enable them
+  before they can actually use the editor (beyond what anonymous visitors can
+  do). If we know each other, shoot me a message saying you signed up and I'll
+  immediately enable your account, but if I have no idea who you are, trust me
+  to hit the delete button: you want to run your own instance, instead.
+</p>
+
+<p>
+  In fact, that's the main selling point (except of course, it's free open
+  source software =D) of this platform: you don't need my approval, just go run
+  your own copy and have fun with it. Let your friends join that one, and have a
+  good time on the interwebs.
 </p>
 
 <h2>Starter projects</h2>

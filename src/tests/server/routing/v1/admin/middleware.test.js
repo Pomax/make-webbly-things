@@ -79,7 +79,7 @@ describe(`admin middlerware tests`, async () => {
     });
 
     test(`disableUser`, () => {
-      const user = User.getUser(`test user`);
+      const user = User.getUser(`test-user`);
       const res = {
         locals: {
           lookups: {
@@ -93,7 +93,7 @@ describe(`admin middlerware tests`, async () => {
     });
 
     test(`enableUser`, () => {
-      const user = User.getUser(`test user`);
+      const user = User.getUser(`test-user`);
       const res = {
         locals: {
           lookups: {
@@ -107,7 +107,7 @@ describe(`admin middlerware tests`, async () => {
     });
 
     test(`suspendUser`, () => {
-      const user = User.getUser(`test user`);
+      const user = User.getUser(`test-user`);
       const req = {
         body: {
           reason: undefined,
@@ -131,7 +131,7 @@ describe(`admin middlerware tests`, async () => {
     });
 
     test(`unsuspendUser`, () => {
-      const user = User.getUser(`test user`);
+      const user = User.getUser(`test-user`);
       const s = User.suspendUser(user, `more testing`);
       const req = {
         params: {

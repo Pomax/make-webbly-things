@@ -19,7 +19,7 @@ describe(`user middlerware tests`, async () => {
   after(() => concludeTesting());
 
   test(`getUserSettings`, async () => {
-    const user = User.getUser(`test user`);
+    const user = User.getUser(`test-user`);
     const res = {
       locals: {
         lookups: {
@@ -40,7 +40,7 @@ describe(`user middlerware tests`, async () => {
       });
     });
 
-    res.locals.lookups.user = User.getUser(`test admin`);
+    res.locals.lookups.user = User.getUser(`test-admin`);
     await new Promise((resolve) => {
       Middleware.getUserSettings(null, res, async (err) => {
         assert.equal(!!err, false);

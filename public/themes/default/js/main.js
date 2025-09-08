@@ -51,10 +51,32 @@ if (starter && button) {
   /**
    * Hook up the "edit project" buttons
    */
-  Array.from(document.querySelectorAll(`button.edit-project-settings`)).forEach((e) => {
-    const { projectId } = e.dataset;
-    e.addEventListener(`click`, async () => {
-      showEditDialog(projectId);
-    });
+  Array.from(document.querySelectorAll(`button.edit-project-settings`)).forEach(
+    (e) => {
+      const { projectId } = e.dataset;
+      e.addEventListener(`click`, async () => {
+        showEditDialog(projectId);
+      });
+    }
+  );
+}
+
+const signup = document.getElementById(`signup`);
+if (signup) {
+  const submit = signup.querySelector(`button`);
+  const name = signup.querySelector(`input`);
+  const notice = signup.querySelector(`span`);
+  name.addEventListener(`input`, (evt) => {
+    const username = name.value;
+    const url = `/v1/users/signup/${username}`;
+    fetch(url)
+      .then((r) => r.text())
+      .then((flag) => {
+        const available = flag === `true`;
+        name.classList.toggle(`taken`, !available);
+        submit.disabled = !available;
+        notice.textContent = available ? `` : `That username is already taken.`;
+        signup.setAttribute(`action`, available ? url : ``);
+      });
   });
 }

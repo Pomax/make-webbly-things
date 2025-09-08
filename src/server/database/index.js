@@ -22,6 +22,7 @@ import {
   getUserSuspensions,
   hasAccessToUserRecords,
   processUserLogin,
+  processUserSignup,
   suspendUser,
   unsuspendUser,
 } from "./user.js";
@@ -37,6 +38,7 @@ export {
   getUserSuspensions,
   hasAccessToUserRecords,
   processUserLogin,
+  processUserSignup,
   suspendUser,
   unsuspendUser,
 };
