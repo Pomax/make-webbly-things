@@ -56,14 +56,12 @@ function addGithubAuth(app) {
 
       // If we have a user slug, this is a new account signup
       if (userObject.slug) {
-        console.log(`running processUserSignup`);
         user = processUserSignup(username, userObject);
       }
 
       // If not, this is a log-in, where we need to find
       // the user that belongs to this service profile.
       else {
-        console.log(`running processUserLogin`);
         user = processUserLogin(userObject);
       }
 

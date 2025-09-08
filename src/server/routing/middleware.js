@@ -145,7 +145,7 @@ export function verifyOwner(req, res, next) {
  * @returns
  */
 export function bindCommonValues(req, res, next) {
-  const { uid, pid, project, filename, starter, username } = req.params;
+  const { uid, pid, project, filename, starter } = req.params;
 
   // Bind the session user as res.locals.user
   bindUser(req, res);
