@@ -23,22 +23,19 @@ module.exports = function (eleventyConfig) {
   );
 
   // Build the collection of posts to list in the site
-  eleventyConfig.addCollection("posts", function (collection) {
-
-    const coll = collection
+  eleventyConfig.addCollection("posts", (collection) =>
+    collection
       .getFilteredByTag("posts")
-      .sort((a, b) => b.data.date - a.data.date);
-
-    for (let i = 0; i < coll.length; i++) {
-      const prevPost = coll[i + 1];
-      const nextPost = coll[i - 1];
-
-      coll[i].data["prevPost"] = prevPost;
-      coll[i].data["nextPost"] = nextPost;
-    }
-
-    return coll;
-  });
+      .sort((a, b) => b.data.date - a.data.date)
+      .map((post, i, posts) => {
+        Object.assign(post.data, {
+          // wrap around postage!  
+          prevPost: posts.at(i - 1),
+          nextPost: posts.at((i + 1) % posts.length)
+        });
+        return post;
+      })
+  );
 
   return {
     dir: {
