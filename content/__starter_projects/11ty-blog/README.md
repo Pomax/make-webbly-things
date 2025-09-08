@@ -33,6 +33,8 @@ layout: post.njk
 ---
 ```
 
+The template is in the `_layouts` folder and uses [Nunjucks](https://www.11ty.dev/docs/languages/nunjucks/) to build your blog data into the pages.
+
 * After this add some content and try opening your new post in the preview!
 
 **Share your blog with your friends..!** 📣
