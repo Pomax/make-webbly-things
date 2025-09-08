@@ -32,7 +32,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
     getOrCreateFileEditTab(
       fileEntry,
       projectName,
-      fileEntry.getAttribute(`path`)
+      fileEntry.getAttribute(`path`),
     );
   }
 
@@ -91,7 +91,7 @@ function addFileTreeHandling() {
     getOrCreateFileEditTab(
       fileEntry,
       projectName,
-      fileEntry.getAttribute(`path`)
+      fileEntry.getAttribute(`path`),
     );
     // note: we handle "selection" in the file tree as part of editor
     // reveals, so we do not call the event's own grant() function.
@@ -154,7 +154,7 @@ function addFileTreeHandling() {
       }
     } else {
       console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
+        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`,
       );
     }
     updatePreview();
@@ -171,7 +171,7 @@ function addFileTreeHandling() {
       `content`,
       typeof content === "string"
         ? content
-        : new Blob([content], { type: getMimeType(fileName) })
+        : new Blob([content], { type: getMimeType(fileName) }),
     );
     const response = await API.files.upload(projectName, fileName, form);
     if (response instanceof Error) return;
@@ -196,7 +196,7 @@ function addFileTreeHandling() {
       }
     } else {
       console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
+        `Could not move ${oldPath} to ${newPath} (status:${response.status})`,
       );
     }
     updatePreview();
@@ -242,7 +242,7 @@ function addFileTreeHandling() {
       grant();
     } else {
       console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
+        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`,
       );
     }
     updatePreview();
@@ -256,7 +256,7 @@ function addFileTreeHandling() {
       grant();
     } else {
       console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
+        `Could not move ${oldPath} to ${newPath} (status:${response.status})`,
       );
     }
     updatePreview();
