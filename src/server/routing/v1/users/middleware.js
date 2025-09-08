@@ -1,12 +1,9 @@
 import * as Database from "../../../database/index.js";
 import { slugify } from "../../../../helpers.js";
 
-export function getUserSettings(req, res, next) {
-  const { user } = res.locals.lookups ?? {};
-  res.locals.settings = Database.getUserSettings(user);
-  next();
-}
-
+/**
+ * ...docs go here...
+ */
 export function checkAvailableUserName(req, res, next) {
   let { username } = req.params;
   username = username.trim();
@@ -22,6 +19,18 @@ export function checkAvailableUserName(req, res, next) {
   next();
 }
 
+/**
+ * ...docs go here...
+ */
+export function getUserSettings(req, res, next) {
+  const { user } = res.locals.lookups ?? {};
+  res.locals.settings = Database.getUserSettings(user);
+  next();
+}
+
+/**
+ * ...docs go here...
+ */
 export function reserveUserAccount(req, res, next) {
   let { username } = req.params;
   username = username.trim();

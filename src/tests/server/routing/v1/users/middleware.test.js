@@ -18,6 +18,25 @@ describe(`user middlerware tests`, async () => {
   before(async () => await initTestDatabase());
   after(() => concludeTesting());
 
+  test(`checkAvailableUserName`, async () => {
+    const badRes = { locals: {} };
+    Middleware.checkAvailableUserName(
+      { params: { username: `test-user` } },
+      badRes,
+      () => {
+        assert.equal(badRes.locals.available, false);
+      },
+    );
+    const goodRes = { locals: {} };
+    Middleware.checkAvailableUserName(
+      { params: { username: `test-user-2` } },
+      goodRes,
+      () => {
+        assert.equal(goodRes.locals.available, true);
+      },
+    );
+  });
+
   test(`getUserSettings`, async () => {
     const user = User.getUser(`test-user`);
     const res = {
@@ -53,5 +72,29 @@ describe(`user middlerware tests`, async () => {
         resolve();
       });
     });
+  });
+
+  test(`reserveUserAccount`, async () => {
+    const req = {
+      params: { username: `Princess Bride` },
+      session: {
+        save: () => {},
+      },
+    };
+    Middleware.reserveUserAccount(req, { locals: {} }, () => {
+      const reservedAccount = {
+        username: `Princess Bride`,
+        slug: `princess-bride`,
+      };
+      assert.deepEqual(req.session.reservedAccount, reservedAccount);
+    });
+    Middleware.reserveUserAccount(
+      {
+        params: { username: `Test user` },
+        session: { save: () => {} },
+      },
+      { locals: {} },
+      (err) => assert.equal(!!err, true),
+    );
   });
 });

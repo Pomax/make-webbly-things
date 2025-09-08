@@ -83,7 +83,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
       );
     }
   }
