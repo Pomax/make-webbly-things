@@ -18,11 +18,9 @@ module.exports = function (eleventyConfig) {
   ]);
 
   eleventyConfig.setBrowserSyncConfig({ ghostMode: false });
-  eleventyConfig.addFilter("htmlDateString", (dateObj) => {
-    return DateTime.fromJSDate(dateObj, { zone: "utc" }).toFormat(
-      "dd LLL yyyy"
-    );
-  });
+  eleventyConfig.addFilter("htmlDateString", (dateObj) =>
+    DateTime.fromJSDate(dateObj, { zone: "utc" }).toFormat("dd LLL yyyy")
+  );
 
   // Build the collection of posts to list in the site
   eleventyConfig.addCollection("posts", function (collection) {
