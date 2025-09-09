@@ -1,0 +1,15 @@
+<section>
+  <h2>Containers</h2>
+  <table id="containers">
+    <tr>
+      <th>id</th>
+      <th>image</th>
+      <th>state</th>
+      <th>status</th>
+      <th>size</th>
+      <th></th>
+    </tr>
+    {% for container in admin.containerList %} {% include
+    "./container.html" %} {% endfor %}
+  </table>
+</section>

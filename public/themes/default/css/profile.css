@@ -1,0 +1,14 @@
+html {
+  body {
+    ul.links {
+      display: block;
+      margin: 2em 3em;
+      padding: 0;
+
+      li {
+        display: block;
+        max-width: unset;
+      }
+    }
+  }
+}

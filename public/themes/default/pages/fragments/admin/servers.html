@@ -1,0 +1,12 @@
+<section>
+  <h2>Static Servers</h2>
+  <table id="servers">
+    <tr>
+      <th>project</th>
+      <th>port</th>
+      <th></th>
+    </tr>
+    {% for server in admin.serverList %} {% include
+    "./server.html" %} {% endfor %}
+  </table>
+</section>

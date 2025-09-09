@@ -25,6 +25,7 @@
 
 <ul>
   {% for project in projectList %}
+  {% set ownProject = true %}
   {% include "fragments/project-card.html" %}
   {% endfor %}
 </ul>

@@ -1,3 +1,5 @@
+// -- Schema v3
+ 
 import { slugify } from "../../src/helpers.js";
 
 /**

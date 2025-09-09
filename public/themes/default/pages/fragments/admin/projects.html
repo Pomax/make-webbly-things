@@ -1,0 +1,17 @@
+<section>
+  <h2>Projects</h2>
+  <table id="projects">
+    <tr>
+      <th>id</th>
+      <th>name</th>
+      <th>slug</th>
+      <th>type</th>
+      <th>description</th>
+      <th>created</th>
+      <th></th>
+    </tr>
+    {% for project in admin.projectList %} {% include
+    "./project.html" %} {% endfor %}
+  </table>
+  <p>Should show all users who have access</p>
+</section>

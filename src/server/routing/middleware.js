@@ -24,7 +24,7 @@ export function nocache(req, res, next) {
   res.setHeader("Surrogate-Control", "no-store");
   res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
   );
   res.setHeader("Expires", "0");
   next();
@@ -79,8 +79,8 @@ export async function verifyLogin(req, res, next) {
   if (suspensions.length) {
     return next(
       new Error(
-        `This user account has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
-      ),
+        `This user account has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`
+      )
     );
   }
   bindUser(req, res, next);
@@ -145,7 +145,7 @@ export function verifyOwner(req, res, next) {
  * @returns
  */
 export function bindCommonValues(req, res, next) {
-  const { uid, pid, project, filename, starter } = req.params;
+  const { uid, user, pid, project, filename, starter } = req.params;
 
   // Bind the session user as res.locals.user
   bindUser(req, res);
@@ -156,6 +156,16 @@ export function bindCommonValues(req, res, next) {
   if (uid) {
     try {
       res.locals.lookups.user = getUser(parseFloat(uid));
+    } catch (e) {
+      console.error(e);
+      return next(e);
+    }
+  }
+
+  if (user) {
+    const slug = slugify(user.trim());
+    try {
+      res.locals.lookups.user = getUser(slug);
     } catch (e) {
       console.error(e);
       return next(e);
@@ -223,7 +233,7 @@ function parseFileName(req, res, filename) {
     throw new Error(`Cannot resolve relative path`);
   }
   const fullPath = (res.locals.fullPath = resolve(
-    join(ROOT_DIR, CONTENT_DIR, projectSlug, filename + suffix),
+    join(ROOT_DIR, CONTENT_DIR, projectSlug, filename + suffix)
   ));
   const apath = resolve(join(CONTENT_DIR, projectSlug));
   const bpath = resolve(fullPath);

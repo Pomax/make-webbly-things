@@ -1,13 +1,14 @@
 <tr>
   <td>{{ project.id }}</td>
+  <td>{{ project.name }}</td>
   <td>
     <a
-      href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/edit/{{ project.name }}"
+      href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/edit/{{ project.slug }}"
       target="_blank"
-      >{{ project.name }}</a
+      >{{ project.slug }}</a
     >
   </td>
-  <td> {{ project.settings.app_type }} </td>
+  <td>{{ project.settings.app_type }}</td>
   <td>{{ project.description }}</td>
   <td>{{ project.created_at | year }}</td>
   <td>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile for {{ lookups.user.name }}</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/themes/default/css/layout.css" />
+    <link rel="stylesheet" href="/themes/default/css/editor.css" />
+    <link rel="stylesheet" href="/themes/default/css/main.css" />
+    <link rel="stylesheet" href="/themes/default/css/profile.css" />
+  </head>
+  <body>
+    {% set user = lookups.user %}
+    <h1>Profile page for {{ user.name }}</h1>
+
+    <p>
+      Joined {{ user.created_at | year }} and created {{ profile.projects.length
+      }} projects since then!
+    </p>
+
+    <h2>
+      Bio {% if profile.ownProfile %}
+      <button class="bio-edit">edit</button>
+      {% endif %}
+    </h2>
+
+    <p>{{ user.bio }}</p>
+
+    <h2>
+      Links {% if profile.ownProfile %}
+      <button class="links-edit">edit</button>
+      {% endif %}
+    </h2>
+
+    <ul class="links">
+      {% for link in profile.links %}
+      <li>{{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a></li>
+      {% endfor %}
+    </ul>
+
+    <h2>Projects</h2>
+
+    <ul>
+      {% if profile.ownProfile %} {% set ownProject = true %} {% endif %} {% for
+      project in profile.projects %} {% include "fragments/project-card.html" %}
+      {% endfor %}
+    </ul>
+  </body>
+</html>

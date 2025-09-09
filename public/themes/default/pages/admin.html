@@ -5,91 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Admin Page</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/themes/default/css/admin.css" async>
-    <script type="module" src="/themes/default/js/admin.js" async defer></script>
+    <link rel="stylesheet" href="/themes/default/css/admin.css" async />
+    <script
+      type="module"
+      src="/themes/default/js/admin.js"
+      async
+      defer
+    ></script>
   </head>
   <body>
     <h1>Admin interface</h1>
 
-    <p>
-      Currently logged in as admin {{ user.name }}
-    </p>
-    
+    <p>Currently logged in as admin {{ user.name }}</p>
+
     <p>
       click here to
       <a href="/auth/github/logout">log out</a> or click here to go back to
       <a href="/">the main page</a>.
     </p>
 
-    <section>
-      <h2>Users</h2>
-      <table id="users">
-        <tr>
-          <th>id</th>
-          <th>name</th>
-          <th>registered</th>
-          <th>enabled</th>
-          <th>admin</th>
-          <th></th>
-        </tr>
-        {% for user in admin.userList %}
-        {% include "./fragments/admin/user.html" %}
-        {% endfor %}
-        </table>
-        <p>Should show projects each user has access to</p>
-      </section>
-
-    <section>
-      <h2>Projects</h2>
-      <table id="projects">
-        <tr>
-          <th>id</th>
-          <th>name</th>
-          <th>type</th>
-          <th>description</th>
-          <th>created</th>
-          <th></th>
-        </tr>
-        {% for project in admin.projectList %}
-        {% include "./fragments/admin/project.html" %} 
-        {% endfor %}
-      </table>
-      <p>Should show all users who have access</p>
-    </section>
-
-    <section>
-      <h2>Containers</h2>
-      <table id="containers">
-        <tr>
-          <th>id</th>
-          <th>image</th>
-          <th>state</th>
-          <th>status</th>
-          <th>size</th>         
-          <th></th> 
-        </tr>
-        {% for container in admin.containerList %}
-        {% include "./fragments/admin/container.html" %}
-        {% endfor %}
-      </table>
-    </section>
-
-    <section>
-      <h2>Static Servers</h2>
-      <table id="servers">
-        <tr>
-          <th>project</th>
-          <th>port</th>
-          <th></th> 
-        </tr>
-        {% for server in admin.serverList %}
-        {% include "./fragments/admin/server.html" %}
-        {% endfor %}
-      </table>
-    </section>
+    {% include "./fragments/admin/users.html" %} {% include
+    "./fragments/admin/projects.html" %} {% include
+    "./fragments/admin/containers.html" %} {% include
+    "./fragments/admin/servers.html" %}
 
     <footer>
-      <a href="https://github.com/Pomax/make-webbly-things/issues">File issues here</a>
+      <a href="https://github.com/Pomax/make-webbly-things/issues"
+        >File issues here</a
+      >
     </footer>
   </body>
 </html>

@@ -152,5 +152,6 @@ export const Models = {
   Remix: new Model(`remix`, `project_id`),
   StarterProject: new Model(`starter_projects`, `project_id`),
   User: new Model(`users`, `id`),
+  UserLinks: new Model(`user_links`), // <- same here
   UserSuspension: new Model(`suspended_users`, `id`),
 };

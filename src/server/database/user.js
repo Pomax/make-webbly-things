@@ -5,8 +5,16 @@ import { CONTENT_DIR, pathExists, slugify } from "../../helpers.js";
 import { Models } from "./models.js";
 import { getOwnedProjectsForUser } from "./project.js";
 
-const { User, Project, ProjectSettings, Access, Admin, UserSuspension, Login } =
-  Models;
+const {
+  User,
+  UserLinks,
+  Project,
+  ProjectSettings,
+  Access,
+  Admin,
+  UserSuspension,
+  Login,
+} = Models;
 
 // Ensure that the user slug is always up to date
 // based on the user name, which means updating
@@ -83,7 +91,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
       );
     }
   }
@@ -187,6 +195,18 @@ export function getUser(userSlugOrId) {
   }
   if (!u) throw new Error(`User not found`);
   return u;
+}
+
+/**
+ * ...docs go here...
+ */
+export function getUserProfile(user = {}, lookupUser) {
+  return {
+    user: lookupUser,
+    links: UserLinks.findAll({ user_id: lookupUser.id }),
+    projects: getOwnedProjectsForUser(user),
+    ownProfile: user.id === lookupUser.id,
+  };
 }
 
 /**

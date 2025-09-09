@@ -22,6 +22,19 @@ export function checkAvailableUserName(req, res, next) {
 /**
  * ...docs go here...
  */
+export function getUserProfile(req, res, next) {
+  const { user } = res.locals;
+  const { user: lookupUser } = res.locals.lookups ?? {};
+  if (!lookupUser) {
+    return next(new Error(`Unknown user`));
+  }
+  res.locals.profile = Database.getUserProfile(user, lookupUser);
+  next();
+}
+
+/**
+ * ...docs go here...
+ */
 export function getUserSettings(req, res, next) {
   const { user } = res.locals.lookups ?? {};
   res.locals.settings = Database.getUserSettings(user);
