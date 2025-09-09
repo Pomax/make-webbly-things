@@ -1,9 +1,9 @@
-<!doctype html>{% set projectName = lookups.project.name %}{% set projectId = lookups.project.id %}
+<!doctype html>{% set project = lookups.project %}{% set projectId = lookups.project.id %}
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>A web editor for "{{ projectName }}"</title>
+    <title>A web editor for "{{ project.name }}"</title>
     <script
       src="/vendor/drag-drop-touch.esm.min.js?autoload"
       type="module"
@@ -17,19 +17,19 @@
   <body
     {% if projectMember %}data-project-member="true"{% endif %}
     data-project-id="{{ projectId }}"
-    data-project-name="{{ projectName }}"
+    data-project-slug="{{ project.slug }}"
     data-default-file="{{ viewFile }}"
     data-default-collapse="{{ projectSettings.default_collapse}}"
   >
     <main>
       <span id="buttons">
         <a class="link-back" href="https://{{ WEB_EDITOR_HOSTNAME }}">home</a>
-        <span class="projectname">{{ projectName }}</span>
+        <span class="projectname">{{ project.name }}</span>
         {% if user %}
         <button id="download" title="Download project files">💾</button>
         <a
           title="Remix this project!"
-          href="/v1/projects/remix/{{ projectName }}"
+          href="/v1/projects/remix/{{ project.slug }}"
           >✨</a
         >
         {% endif %}
@@ -68,8 +68,8 @@
         <iframe
           sandbox
           src="https://{{ WEB_EDITOR_HOSTNAME }}/default/index.html"
-          data-src="https://{{ projectName }}.{{ WEB_EDITOR_APPS_HOSTNAME }}"
-          data-project-name="{{ projectName }}"
+          data-src="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}"
+          data-project-name="{{ project.name }}"
         ></iframe>
       </div>
 

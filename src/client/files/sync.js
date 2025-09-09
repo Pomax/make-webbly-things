@@ -11,7 +11,7 @@ import { API } from "../utils/api.js";
  * the same value based on the current editor content.
  */
 export async function syncContent(
-  projectName,
+  projectSlug,
   entry,
   filename = entry.filename,
 ) {
@@ -20,7 +20,7 @@ export async function syncContent(
   const currentContent = entry.content;
   const newContent = entry.view.state.doc.toString();
   const changes = createPatch(filename, currentContent, newContent);
-  const response = await API.files.sync(projectName, filename, changes);
+  const response = await API.files.sync(projectSlug, filename, changes);
   const responseHash = parseFloat(await response.text());
 
   if (responseHash === getFileSum(newContent)) {
@@ -36,7 +36,7 @@ export async function syncContent(
     // Or, much more likely, the user's content has become desynced
     // somehow and we resync it.
     if (document.body.dataset.projectMember) {
-      entry.content = await fetchFileContents(projectName, filename);
+      entry.content = await fetchFileContents(projectSlug, filename);
     }
 
     entry.contentReset = true;

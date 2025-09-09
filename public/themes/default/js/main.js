@@ -34,11 +34,11 @@ if (starter && button) {
    */
   Array.from(document.querySelectorAll(`button.delete-project`)).forEach(
     (e) => {
-      const { projectName } = e.dataset;
+      const { projectSlug } = e.dataset;
       e.addEventListener(`click`, async () => {
-        if (confirm(`Are you sure you want to delete "${projectName}"?`)) {
+        if (confirm(`Are you sure you want to delete "${projectSlug}"?`)) {
           if (confirm(`No really: there is NO undelete. ARE YOU SURE?`)) {
-            await fetch(`/v1/projects/delete/${projectName}`, {
+            await fetch(`/v1/projects/delete/${projectSlug}`, {
               method: `POST`,
             });
             location.reload();

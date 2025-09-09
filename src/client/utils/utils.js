@@ -13,11 +13,11 @@ export function create(tag) {
  * helper function for getting file text content:
  */
 export async function fetchFileContents(
-  projectName,
+  projectSlug,
   fileName,
   type = `text/plain`,
 ) {
-  const response = await API.files.get(projectName, fileName);
+  const response = await API.files.get(projectSlug, fileName);
   if (type.startsWith(`text`) || type.startsWith(`application`))
     return response.text();
   return response.arrayBuffer();

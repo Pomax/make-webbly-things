@@ -3,7 +3,7 @@ import { API } from "../utils/api.js";
 const restart = document.querySelector(`#preview-buttons .restart`);
 const newtab = document.querySelector(`#preview-buttons .newtab`);
 const preview = document.getElementById(`preview`);
-const { projectName } = document.body.dataset;
+const { projectSlug } = document.body.dataset;
 
 let failures = 0;
 let first_time_load = 0;
@@ -17,7 +17,7 @@ export async function updatePreview() {
 
   if (first_time_load++ < 10) {
     console.log(`checking container for ready`);
-    const status = await API.projects.health(projectName);
+    const status = await API.projects.health(projectSlug);
     if (status === `failed`) {
       // There's only so many times we'll try a failure reload.
       if (failures < 3) {
@@ -49,7 +49,7 @@ export async function updatePreview() {
   src = src.replace(/\?v=\d+/, ``);
   src += `?v=${Date.now()}`;
   newFrame.dataset.src = src;
-  newFrame.dataset.projectName = iframe.dataset.projectName;
+  newFrame.dataset.projectSlug = iframe.dataset.projectSlug;
 
   console.log(`using ${src}`);
   preview.append(newFrame);
@@ -58,7 +58,7 @@ export async function updatePreview() {
 
 restart?.addEventListener(`click`, async () => {
   preview.classList.add(`restarting`);
-  await API.projects.restart(projectName);
+  await API.projects.restart(projectSlug);
   setTimeout(() => {
     preview.classList.remove(`restarting`);
     updatePreview();

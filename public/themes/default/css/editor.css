@@ -57,7 +57,7 @@ html {
         white-space: nowrap;
         align-items: center;
 
-        .projectname {
+        .project-slug {
           background: #222;
           color: white;
           padding: 1px 5px 3px;

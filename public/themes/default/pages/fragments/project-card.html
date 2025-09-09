@@ -1,7 +1,7 @@
 <li>
   <h3>
     <a
-      href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/edit/{{ project.name }}"
+      href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/edit/{{ project.slug }}"
       >{{ project.name }}</a
     >
   </h3>
@@ -14,7 +14,7 @@
   <button data-project-id="{{ project.id }}" class="edit-project-settings">
     settings
   </button>
-  <button data-project-name="{{ project.name }}" class="delete-project">
+  <button data-project-name="{{ project.slug }}" class="delete-project">
     delete
   </button>
   {% endif %}
@@ -22,7 +22,7 @@
   <iframe
     width="1000"
     height="600"
-    src="https://{{ project.name }}.{{ WEB_EDITOR_APPS_HOSTNAME }}/?v={{ currentTime }}"
+    src="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}/?v={{ currentTime }}"
   ></iframe>
 
   <p class="date">
@@ -33,7 +33,7 @@
   <p>
     <a
       class="website"
-      href="https://{{ project.name }}.{{ WEB_EDITOR_APPS_HOSTNAME }}"
+      href="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}"
       target="_blank"
       >Open as website in a new tab</a
     >

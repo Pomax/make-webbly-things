@@ -34,7 +34,7 @@ const COMMIT_TIMEOUTS = {};
 
 /**
  * Schedule a git commit to capture all changes since the last time we did that.
- * @param {*} projectName
+ * @param {*} project
  * @param {*} reason
  */
 export function createRewindPoint(
@@ -184,10 +184,10 @@ export function setDefaultAspects(app) {
 /**
  * Make git not guess at the name and email for commits.
  */
-export async function setupGit(dir, projectName) {
+export async function setupGit(dir, projectSlug) {
   for (let cfg of [
     `init.defaultBranch main`,
-    `user.name "${projectName}"`,
+    `user.name "${projectSlug}"`,
     `user.email "actions@browsertests.local"`,
   ]) {
     await execPromise(`git config --local ${cfg}`, { cwd: dir });

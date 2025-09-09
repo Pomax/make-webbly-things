@@ -6,7 +6,7 @@ import { DEFAULT_FILES } from "./default-files.js";
 
 import { unzip } from "/vendor/unzipit.module.js";
 
-const { projectId, projectName, defaultFile, defaultCollapse } =
+const { projectSlug, defaultFile, defaultCollapse } =
   document.body.dataset;
 
 const fileTree = document.getElementById(`filetree`);
@@ -31,7 +31,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
   if (fileEntry) {
     getOrCreateFileEditTab(
       fileEntry,
-      projectName,
+      projectSlug,
       fileEntry.getAttribute(`path`),
     );
   }
@@ -52,7 +52,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
  * Make sure we're in sync with the server...
  */
 export async function setupFileTree() {
-  const dirData = await API.files.dir(projectName);
+  const dirData = await API.files.dir(projectSlug);
   if (dirData instanceof Error) return;
   fileTree.setContent(dirData);
   addFileTreeHandling();
@@ -88,7 +88,7 @@ function addFileTreeHandling() {
     const fileEntry = evt.detail.grant();
     getOrCreateFileEditTab(
       fileEntry,
-      projectName,
+      projectSlug,
       fileEntry.getAttribute(`path`),
     );
     // note: we handle "selection" in the file tree as part of editor
@@ -127,11 +127,11 @@ function addFileTreeHandling() {
 
     // regular file creation
     else {
-      const response = await API.files.create(projectName, path);
+      const response = await API.files.create(projectSlug, path);
       if (response instanceof Error) return;
       if (response.status === 200) {
         const fileEntry = grant();
-        getOrCreateFileEditTab(fileEntry, projectName, path);
+        getOrCreateFileEditTab(fileEntry, projectSlug, path);
       } else {
         console.error(`Could not create ${path} (status:${response.status})`);
       }
@@ -140,14 +140,14 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`file:rename`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    const response = await API.files.rename(projectName, oldPath, newPath);
+    const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       const fileEntry = grant();
-      let key = oldPath.replace(projectName, ``);
+      let key = oldPath.replace(projectSlug, ``);
       const entry = fileEntry.state;
       if (entry) {
-        const newKey = newPath.replace(projectName, ``);
+        const newKey = newPath.replace(projectSlug, ``);
         updateEditorBindings(fileEntry, entry, newKey, key);
       }
     } else {
@@ -171,7 +171,7 @@ function addFileTreeHandling() {
         ? content
         : new Blob([content], { type: getMimeType(fileName) }),
     );
-    const response = await API.files.upload(projectName, fileName, form);
+    const response = await API.files.upload(projectSlug, fileName, form);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant?.();
@@ -182,14 +182,14 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`file:move`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    const response = await API.files.rename(projectName, oldPath, newPath);
+    const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       const fileEntry = grant();
-      let key = oldPath.replace(projectName, ``);
+      let key = oldPath.replace(projectSlug, ``);
       const entry = fileEntry.state;
       if (entry) {
-        const newKey = newPath.replace(projectName, ``);
+        const newKey = newPath.replace(projectSlug, ``);
         updateEditorBindings(fileEntry, entry, newKey, key);
       }
     } else {
@@ -204,7 +204,7 @@ function addFileTreeHandling() {
     const { path, grant } = evt.detail;
     if (path) {
       try {
-        const response = await API.files.delete(projectName, path);
+        const response = await API.files.delete(projectSlug, path);
         if (response instanceof Error) return;
         if (response.status === 200) {
           const [fileEntry] = grant();
@@ -223,7 +223,7 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:create`, async (evt) => {
     const { path, grant } = evt.detail;
-    const response = await API.files.create(projectName, path);
+    const response = await API.files.create(projectSlug, path);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
@@ -234,7 +234,7 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:rename`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    const response = await API.files.rename(projectName, oldPath, newPath);
+    const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
@@ -248,7 +248,7 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:move`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    const response = await API.files.rename(projectName, oldPath, newPath);
+    const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
@@ -262,7 +262,7 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:delete`, async (evt) => {
     const { path, grant } = evt.detail;
-    const response = await API.files.delete(projectName, path);
+    const response = await API.files.delete(projectSlug, path);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();

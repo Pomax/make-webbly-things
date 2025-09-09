@@ -3,11 +3,11 @@ import { setupFileTree } from "./files/file-tree-utils.js";
 import { addEventHandling } from "./editor/event-handling.js";
 import { updatePreview } from "./preview/preview.js";
 
-const { projectId, projectName } = document.body.dataset;
+const { projectId, projectSlug } = document.body.dataset;
 
 new (class Editor {
   constructor() {
-    Object.assign(this, { projectId, projectName });
+    Object.assign(this, { projectId, projectSlug });
     this.init();
   }
 
@@ -15,7 +15,7 @@ new (class Editor {
     // CodeMirror 6 has no built in file browser, so we need to add one.
     await setupFileTree(this);
     // As such, we also need custom handling for editor panes and tabs
-    addEventHandling(this.projectName);
+    addEventHandling(this.projectSlug);
     updatePreview();
     // FIXME: TODO: just move this stuff here.
   }

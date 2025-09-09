@@ -3,7 +3,7 @@ import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent } from "../files/sync.js";
 
-const { projectId, projectName } = document.body.dataset;
+const { projectId } = document.body.dataset;
 
 const fileTree = document.querySelector(`file-tree`);
 const tabs = document.getElementById(`tabs`);
@@ -101,7 +101,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
  * Create the collection of page UI elements and associated editor
  * component for a given file.
  */
-export async function getOrCreateFileEditTab(fileEntry, projectName, filename) {
+export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   const entry = fileEntry.state;
 
   if (entry?.view) {
@@ -121,7 +121,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectName, filename) {
 
   // Is this text or viewable media?
   const viewType = getViewType(filename);
-  const data = await fetchFileContents(projectName, filename, viewType.type);
+  const data = await fetchFileContents(projectSlug, filename, viewType.type);
   const verified = verifyViewType(viewType.type, data);
 
   if (!verified) return alert(`File contents does not match extension.`);
@@ -141,7 +141,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectName, filename) {
       view = create(`video`);
       view.controls = true;
     }
-    view.src = `/v1/files/content/${projectName}/${filename}`;
+    view.src = `/v1/files/content/${projectSlug}/${filename}`;
     panel.appendChild(view);
   }
 
@@ -163,7 +163,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectName, filename) {
     content: viewType.editable ? view.state.doc.toString() : data,
     sync: () => {
       if (viewType.editable) {
-        syncContent(projectName, fileEntry.state);
+        syncContent(projectSlug, fileEntry.state);
       }
     },
     noSync: !viewType.editable,

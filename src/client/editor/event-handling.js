@@ -14,7 +14,7 @@ const format = document.getElementById(`format`);
 /**
  * Hook up the "Add new file" and "Format this file" buttons
  */
-export function addEventHandling(projectName) {
+export function addEventHandling(projectSlug) {
   // disable the "Save page" shortcut because it's meaningless in this context.
   document.addEventListener(`keydown`, (evt) => {
     const { key, ctrlKey, metaKey } = evt;
@@ -27,7 +27,7 @@ export function addEventHandling(projectName) {
   });
 
   download?.addEventListener(`click`, async () => {
-    API.projects.download(projectName);
+    API.projects.download(projectSlug);
   });
 
   format?.addEventListener(`click`, async () => {
@@ -38,11 +38,11 @@ export function addEventHandling(projectName) {
     }
     const fileName = fileEntry.path;
     format.hidden = true;
-    const result = await API.files.format(projectName, fileName);
+    const result = await API.files.format(projectSlug, fileName);
     if (result instanceof Error) return;
     format.hidden = false;
     const { view } = fileEntry.state;
-    const content = await fetchFileContents(projectName, fileName);
+    const content = await fetchFileContents(projectSlug, fileName);
     fileEntry.setState({ content });
     view.dispatch({
       changes: {
