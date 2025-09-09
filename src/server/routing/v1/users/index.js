@@ -17,7 +17,7 @@ import multer from "multer";
 export const users = Router();
 
 users.get(
-  // ...force indent...
+  // stop putting everything on one line, prettier.
   `/profile/:user`,
   bindCommonValues,
   getUserProfile,
@@ -31,6 +31,7 @@ users.get(
 users.post(
   `/profile/:user`,
   (req, res, next) => {
+    // FIXME: remove this once updateUserProfile works.
     next(new Error(`Unavailable`));
   },
   bindCommonValues,
