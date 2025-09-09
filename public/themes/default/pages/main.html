@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/themes/default/css/main.css" />
   </head>
   <body>
-    <h1>Welcome{% if user %} back {{ user.name }}{% endif %}!</h1>
+    <h1>Welcome{% if user %} back <a href="/v1/users/profile/{{ user.slug }}">{{ user.name }}</a>{% endif %}!</h1>
 
     {% if user %}
       {% include "main/logged-in.html" %}

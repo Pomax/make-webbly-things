@@ -63,3 +63,11 @@ export function reserveUserAccount(req, res, next) {
     next();
   }
 }
+
+/**
+ * ...docs go here...
+ */
+export function updateUserProfile(req, res, next) {
+  // TOOD: implement this function
+  next();
+}

@@ -9,6 +9,7 @@ import {
   getUserSettings,
   checkAvailableUserName,
   reserveUserAccount,
+  updateUserProfile,
 } from "./middleware.js";
 
 import { Router } from "express";
