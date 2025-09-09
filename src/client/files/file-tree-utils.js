@@ -6,8 +6,7 @@ import { DEFAULT_FILES } from "./default-files.js";
 
 import { unzip } from "/vendor/unzipit.module.js";
 
-const { projectSlug, defaultFile, defaultCollapse } =
-  document.body.dataset;
+const { projectSlug, defaultFile, defaultCollapse } = document.body.dataset;
 
 const fileTree = document.getElementById(`filetree`);
 
