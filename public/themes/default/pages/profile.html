@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Profile for {{ lookups.user.name }}</title>
+    {% set profileUser = lookups.user %}
+    {% set allowEdit = profile.ownProfile or user.admin%}
+    <title>Profile for {{ profileUser.name }}</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/themes/default/css/layout.css" />
     <link rel="stylesheet" href="/themes/default/css/editor.css" />
@@ -11,37 +13,64 @@
     <link rel="stylesheet" href="/themes/default/css/profile.css" />
   </head>
   <body>
-    {% set user = lookups.user %}
-    <h1>Profile page for {{ user.name }}</h1>
+    <h1>
+      Profile page for {{ profileUser.name }} {% if allowEdit %}
+      <button class="show-edit">edit</button>
+      {% endif %}
+    </h1>
 
     <p>
       <a href="/">Back to main</a>
     </p>
 
     <p>
-      Joined {{ user.created_at | year }} and created {{ profile.projects.length
+      {{ profileUser.name }} joined {{ profileUser.created_at | year }} and created {{ profile.projects.length
       }} projects since then!
     </p>
 
-    <h2>
-      Bio {% if profile.ownProfile %}
-      <button class="bio-edit">edit</button>
-      {% endif %}
-    </h2>
+    <section class="presentation">
+      <h2>Bio</h2>
 
-    <p>{{ user.bio }}</p>
+      <p>{{ profileUser.bio | para | safe }}</p>
 
-    <h2>
-      Links {% if profile.ownProfile %}
-      <button class="links-edit">edit</button>
-      {% endif %}
-    </h2>
+      <h2>Links</h2>
 
-    <ul class="links">
-      {% for link in profile.links %}
-      <li>{{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a></li>
-      {% endfor %}
-    </ul>
+      <ul class="links">
+        {% for link in profile.links %}
+        <li>{{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% if allowEdit %}
+    <section class="hidden edit-form">
+      <form action="/v1/users/profile/{{ profileUser.slug }}" method="POST">
+        <fieldset>
+          <h2>Bio</h2>
+          <textarea name="bio">{{ profileUser.bio }}</textarea>
+        </fieldset>
+
+        <fieldset>
+          <h2>Links</h2>
+          <input type="button" class="add-link" value="add link" />
+          <ul class="links">
+            {% for link in profile.links %}
+            <li>
+              <label>{{ link.name }}</label>
+              <input type="hidden" name="linkNames" value="{{ link.name }}" />
+              <input type="url" name="linkHrefs" value="{{ link.url }}" />
+              <input type="hidden" name="linkOrder" value="{{ link.sort_order }}" />
+              <input type="button" class="remove-link" value="remove" />
+            </li>
+            {% endfor %}
+          </ul>
+        </fieldset>
+
+        <input type="reset" value="cancel" />
+        <input type="submit" value="save" />
+      </form>
+    </section>
+    {% endif %}
 
     <h2>Projects</h2>
 
@@ -50,5 +79,7 @@
       project in profile.projects %} {% include "fragments/project-card.html" %}
       {% endfor %}
     </ul>
+
+    <script src="/themes/default/js/profile.js" async defer></script>
   </body>
 </html>

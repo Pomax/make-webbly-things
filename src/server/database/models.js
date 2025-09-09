@@ -90,10 +90,14 @@ class Model {
   /**
    * This all records that match our where criteria.
    */
-  findAll(where) {
+  findAll(where, sortKeys, sortDir = `ASC`) {
+    if (sortKeys && !sortKeys.map) sortKeys = [sortKeys];
     const { filter, values } = composeWhere(where);
-    const sql = `SELECT * FROM ${this.table} WHERE ${filter}`;
-    if (DEBUG_SQL) console.log(`FIND`, sql, values);
+    let sql = `SELECT * FROM ${this.table} WHERE ${filter}`;
+    if (sortKeys) {
+      sql = `${sql} ORDER BY ${sortKeys.join(`,`)} ${sortDir}`;
+    }
+    if (DEBUG_SQL) console.log(`FIND ALL`, sql, values);
     return db.prepare(sql).all(values).filter(Boolean);
   }
 
@@ -152,6 +156,6 @@ export const Models = {
   Remix: new Model(`remix`, `project_id`),
   StarterProject: new Model(`starter_projects`, `project_id`),
   User: new Model(`users`, `id`),
-  UserLinks: new Model(`user_links`), // <- same here
+  UserLink: new Model(`user_links`), // <- same here
   UserSuspension: new Model(`suspended_users`, `id`),
 };

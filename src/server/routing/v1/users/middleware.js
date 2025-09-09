@@ -68,6 +68,14 @@ export function reserveUserAccount(req, res, next) {
  * ...docs go here...
  */
 export function updateUserProfile(req, res, next) {
-  // TOOD: implement this function
+  const requester = res.locals.user;
+  const user = res.locals.lookups.user;
+
+  if (user.id !== requester.id && !Database.userIsAdmin(requester)) {
+    return next(new Error(`Cannot update profile`));
+  }
+
+  Database.updateUserProfile(user, req.body);
+  res.locals.profile = Database.getUserProfile(user, user);
   next();
 }

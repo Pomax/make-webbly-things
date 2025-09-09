@@ -37,6 +37,16 @@ describe(`user middlerware tests`, async () => {
     );
   });
 
+  test(`getUserProfile`, async () => {
+    const user = User.getUser(`test-user`);
+    const res = { locals: { user, lookups: { user: user } } };
+    Middleware.getUserProfile(null, res, () => {
+      const { profile } = res.locals;
+      assert.equal(profile.user.bio, user.bio);
+      assert.equal(profile.ownProfile, true);
+    });
+  });
+
   test(`getUserSettings`, async () => {
     const user = User.getUser(`test-user`);
     const res = {
@@ -96,5 +106,22 @@ describe(`user middlerware tests`, async () => {
       { locals: {} },
       (err) => assert.equal(!!err, true),
     );
+  });
+
+  test(`updateUserProfile`, async () => {
+    const user = User.getUser(`test-user`);
+    const req = {
+      body: {
+        bio: `This is an updated text`,
+        linkNames: [],
+        linkHrefs: [],
+        linkOrder: [],
+      },
+    };
+    const res = { locals: { user, lookups: { user: user } } };
+    Middleware.updateUserProfile(req, res, () => {
+      const { profile } = res.locals;
+      assert.equal(profile.user.bio, req.body.bio);
+    });
   });
 });

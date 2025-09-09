@@ -1,13 +1,59 @@
 html {
   body {
+    h1 {
+      button.show-edit {
+        position: absolute;
+        right: 1em;
+      }
+    }
+
+    form ul,
     ul.links {
       display: block;
-      margin: 2em 3em;
+      margin: 1em 3em 2em;
       padding: 0;
 
       li {
         display: block;
         max-width: unset;
+      }
+    }
+
+    section {
+      &.hidden {
+        display: none;
+      }
+
+      form {
+        fieldset {
+          border: none;
+          padding: 0;
+          margin: 0;
+
+          textarea {
+            --m: 2em;
+            width: calc(100% - 2 * var(--m));
+            height: 10em;
+            margin: var(--m);
+            resize: vertical;
+          }
+
+          ul {
+            li {
+              position: relative;
+
+              input[type="url"] {
+                width: 30em;
+                max-width: 80%;
+              }
+
+              input[value="remove"] {
+                position: absolute;
+                right: 1em;
+              }
+            }
+          }
+        }
       }
     }
   }

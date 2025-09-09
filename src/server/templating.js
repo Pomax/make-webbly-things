@@ -19,7 +19,7 @@ export function setupTemplating(app) {
 
   nenv.addFilter(`para`, (str, count) =>
     str
-      ?.split(`\n`)
+      ?.split(/\n/g)
       .filter(Boolean)
       .map((p) => `<p>${safify(p)}</p>`)
       .join(`\n`),

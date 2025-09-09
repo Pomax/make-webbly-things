@@ -7,7 +7,7 @@ import { getOwnedProjectsForUser } from "./project.js";
 
 const {
   User,
-  UserLinks,
+  UserLink,
   Project,
   ProjectSettings,
   Access,
@@ -91,7 +91,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
       );
     }
   }
@@ -203,7 +203,7 @@ export function getUser(userSlugOrId) {
 export function getUserProfile(user = {}, lookupUser) {
   return {
     user: lookupUser,
-    links: UserLinks.findAll({ user_id: lookupUser.id }),
+    links: UserLink.findAll({ user_id: lookupUser.id }, `sort_order`, `DESC`),
     projects: getOwnedProjectsForUser(user),
     ownProfile: user.id === lookupUser.id,
   };
@@ -286,4 +286,38 @@ export function unsuspendUser(suspensionId) {
   if (!s) throw new Error(`Suspension not found`);
   s.invalidated_at = new Date().toISOString();
   UserSuspension.save(s);
+}
+
+/**
+ * ...docs go here...
+ */
+export function updateUserProfile(user, profile) {
+  let { bio, linkNames, linkHrefs, linkOrder } = profile;
+
+  // Update the user bio, if that changed:
+  if (user.bio !== bio) user.bio = bio;
+  User.save(user);
+
+  // Then, remove all links for this user...
+  const links = UserLink.findAll({ user_id: user.id });
+  links.forEach((link) => UserLink.delete(link));
+
+  //
+  if (!linkNames) return;
+
+  if (!linkNames.map) {
+    linkNames = [linkNames];
+    linkHrefs = [linkHrefs];
+    linkOrder = [linkOrder];
+  }
+
+  // And then (re)insert what the form gave us.
+  linkNames?.forEach((name, i) =>
+    UserLink.create({
+      user_id: user.id,
+      name,
+      url: linkHrefs[i],
+      sort_order: parseFloat(linkOrder[i]),
+    }),
+  );
 }
