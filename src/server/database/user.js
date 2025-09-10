@@ -4,7 +4,7 @@ import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 import { CONTENT_DIR, pathExists, slugify } from "../../helpers.js";
 import { Models } from "./models.js";
 import { getOwnedProjectsForUser } from "./project.js";
-import { validProviders } from "../routing/auth/index.js";
+import { validProviders } from "../routing/auth/settings.js";
 
 const {
   User,

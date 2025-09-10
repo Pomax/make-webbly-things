@@ -11,6 +11,8 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
+// Github
+
 export const loginWithGithub = passport.authenticate(`github`, {
   scope: [`user:email`],
 });
@@ -19,12 +21,24 @@ export const handleGithubCallback = passport.authenticate(`github`, {
   failureRedirect: `/auth/github/error`,
 });
 
+// Google
+
 export const loginWithGoogle = passport.authenticate(`google`, {
   scope: [`profile`],
 });
 
 export const handleGoogleCallback = passport.authenticate(`google`, {
   failureRedirect: `/auth/google/error`,
+});
+
+// Mastodon
+
+export const loginWithMastodon = passport.authenticate(`mastodon`, {
+  scope: [`profile`],
+});
+
+export const handleMastodonCallback = passport.authenticate(`mastodon`, {
+  failureRedirect: `/auth/mastodon/error`,
 });
 
 /**

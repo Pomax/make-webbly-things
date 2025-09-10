@@ -1,18 +1,30 @@
 import { Router } from "express";
 import { join } from "node:path";
+import { processUserSignup, processUserLogin } from "../../database/index.js";
+
 import { passport } from "./middleware.js";
 import { Strategy as GitHubStrategy } from "passport-github2";
-import { Strategy as MagicLoginStrategy } from "passport-magic-link";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { processUserSignup, processUserLogin } from "../../database/index.js";
+import { Strategy as MagicLoginStrategy } from "passport-magic-link";
+import { Strategy as MastodonStrategy } from "passport-mastodon";
+
 import {
   handleGithubCallback,
-  handleGoogleCallback,
   loginWithGithub,
+  handleGoogleCallback,
   loginWithGoogle,
+  handleMastodonCallback,
+  loginWithMastodon,
   logout,
 } from "./middleware.js";
-import { googleSettings, githubSettings, magicSettings } from "./settings.js";
+
+import {
+  googleSettings,
+  githubSettings,
+  magicSettings,
+  mastodonSettings,
+  validProviders,
+} from "./settings.js";
 
 // Explicit env loading as we rely on process.env
 // at the module's top level scope...
@@ -21,10 +33,6 @@ import { addLoginProviderForUser } from "../../database/user.js";
 const envPath = join(import.meta.dirname, `../../../../.env`);
 dotenv.config({ path: envPath, quiet: true });
 const { WEB_EDITOR_HOSTNAME } = process.env;
-const testing = process.env.LOCAL_DEVTESTING === `true`;
-
-export const validProviders = [`google`, `github`];
-if (testing) validProviders.push(`email`);
 
 /**
  * Is this a provider that we actually have auth for?
@@ -42,11 +50,12 @@ export function addPassportAuth(app) {
   addGoogleAuth(app);
   addGithubAuth(app);
   addEmailAuth(app);
+  addMastodonAuth(app);
   app.use(`/auth/logout`, (req, res, next) =>
     req.logout((err) => {
       if (err) return next(err);
       res.redirect(`/`);
-    }),
+    })
   );
 }
 
@@ -99,14 +108,15 @@ function processOAuthLogin(req, accessToken, refreshToken, profile, done) {
  * Set up google auth
  */
 function addGoogleAuth(app) {
-  const googleStrategy = new GoogleStrategy(googleSettings, processOAuthLogin);
+  if (!googleSettings) return;
 
+  const googleStrategy = new GoogleStrategy(googleSettings, processOAuthLogin);
   passport.use(googleStrategy);
 
   const google = Router();
   google.get(`/error`, (req, res) => res.send(`Unknown Error`));
   google.get(`/callback`, handleGoogleCallback, (req, res) =>
-    res.redirect(`/`),
+    res.redirect(`/`)
   );
   google.get(`/logout`, logout);
   google.get(`/`, loginWithGoogle);
@@ -117,14 +127,15 @@ function addGoogleAuth(app) {
  * Set up github auth
  */
 function addGithubAuth(app) {
-  const githubStrategy = new GitHubStrategy(githubSettings, processOAuthLogin);
+  if (!githubSettings) return;
 
+  const githubStrategy = new GitHubStrategy(githubSettings, processOAuthLogin);
   passport.use(githubStrategy);
 
   const github = Router();
   github.get(`/error`, (req, res) => res.send(`Unknown Error`));
   github.get(`/callback`, handleGithubCallback, (req, res) =>
-    res.redirect(`/`),
+    res.redirect(`/`)
   );
   github.get(`/logout`, logout);
   github.get(`/`, loginWithGithub);
@@ -132,9 +143,33 @@ function addGithubAuth(app) {
 }
 
 /**
+ * Set up mastodon auth
+ */
+function addMastodonAuth(app) {
+  if (!mastodonSettings) return;
+
+  const mastodonStrategy = new MastodonStrategy(
+    mastodonSettings,
+    processOAuthLogin
+  );
+  passport.use(mastodonStrategy);
+
+  const mastodon = Router();
+  mastodon.get(`/error`, (req, res) => res.send(`Unknown Error`));
+  mastodon.get(`/callback`, handleMastodonCallback, (req, res) =>
+    res.redirect(`/`)
+  );
+  mastodon.get(`/logout`, logout);
+  mastodon.get(`/`, loginWithMastodon);
+  app.use(`/auth/mastodon`, mastodon);
+}
+
+/**
  * Set up magic link auth
  */
 function addEmailAuth(app) {
+  if (!magicSettings) return;
+
   const magicStrategy = new MagicLoginStrategy(
     magicSettings,
     function send(user, token) {
@@ -155,7 +190,7 @@ function addEmailAuth(app) {
         service: `magic link`,
         service_id: user.email,
       });
-    },
+    }
   );
 
   passport.use(magicStrategy);
@@ -169,7 +204,7 @@ function addEmailAuth(app) {
     }),
     (req, res) => {
       res.redirect(`/auth/email/check`);
-    },
+    }
   );
 
   magic.get(`/check`, function (req, res) {
@@ -182,7 +217,7 @@ function addEmailAuth(app) {
     passport.authenticate(`magiclink`, {
       successReturnToOrRedirect: `/`,
       failureRedirect: `/`,
-    }),
+    })
   );
 
   app.use(`/auth/email`, magic);
