@@ -4,6 +4,7 @@ import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 import { CONTENT_DIR, pathExists, slugify } from "../../helpers.js";
 import { Models } from "./models.js";
 import { getOwnedProjectsForUser } from "./project.js";
+import { validProviders } from "../routing/auth/index.js";
 
 const {
   User,
@@ -95,7 +96,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
       );
     }
   }
@@ -116,6 +117,19 @@ function __processFirstTimeUserLogin(userObject) {
   user.enabled_at = user.created_at;
   user.admin = true;
   User.save(user);
+  return user;
+}
+
+/**
+ * Add a login provider for a user account
+ */
+export function addLoginProviderForUser(user, userObject) {
+  const { service, service_id } = userObject;
+  let login = Login.find({ user_id: user.id, service });
+  if (login) {
+    return processUserLoginNormally(userObject);
+  }
+  Login.create({ user_id: user.id, service, service_id });
   return user;
 }
 
@@ -204,12 +218,28 @@ export function getUser(userSlugOrId) {
 /**
  * ...docs go here...
  */
+export function getUserLoginServices(user) {
+  return Login.findAll({ user_id: user.id });
+}
+
+/**
+ * ...docs go here...
+ */
 export function getUserProfile(user = {}, lookupUser) {
+  const ownProfile = user.id === lookupUser.id;
+  const services = ownProfile
+    ? getUserLoginServices(user).map((s) => s.service)
+    : undefined;
+  const additionalServices = validProviders.filter(
+    (e) => !services.includes(e)
+  );
   return {
     user: lookupUser,
     links: UserLink.findAll({ user_id: lookupUser.id }, `sort_order`, `DESC`),
     projects: getOwnedProjectsForUser(lookupUser),
-    ownProfile: user.id === lookupUser.id,
+    services,
+    additionalServices,
+    ownProfile,
   };
 }
 
@@ -322,6 +352,6 @@ export function updateUserProfile(user, profile) {
       name,
       url: linkHrefs[i],
       sort_order: parseFloat(linkOrder[i]),
-    }),
+    })
   );
 }

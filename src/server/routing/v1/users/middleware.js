@@ -20,6 +20,15 @@ export function checkAvailableUserName(req, res, next) {
 }
 
 /**
+ * ...docs go here
+ */
+export function getUserLoginServices(req, res, next) {
+  const { user } = res.locals;
+  res.locals.services = Database.getUserLoginServices(user);
+  next();
+}
+
+/**
  * ...docs go here...
  */
 export function getUserProfile(req, res, next) {

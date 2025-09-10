@@ -1,3 +1,4 @@
+import { validAuthProvider } from "../../auth/index.js";
 import {
   bindCommonValues,
   verifyLogin,
@@ -21,11 +22,11 @@ users.get(
   `/profile/:user`,
   bindCommonValues,
   getUserProfile,
-  (_req, res) =>
+  (req, res) =>
     res.render(`profile.html`, {
       ...process.env,
       ...res.locals,
-    }),
+    })
 );
 
 users.post(
@@ -33,10 +34,26 @@ users.post(
   bindCommonValues,
   multer().none(),
   updateUserProfile,
-  (_req, res) => {
+  (req, res) => {
     const { slug } = res.locals.lookups.user;
     res.redirect(`/v1/users/profile/${slug}`);
+  }
+);
+
+users.get(
+  `/service/add/:service`,
+  verifyLogin,
+  bindCommonValues,
+  (req, res, next) => {
+    // Set a flag that tells the system this user is
+    // adding a new auth provider to their account
+    req.session.reservedAccount = {
+      newProvider: req.params.service.trim(),
+    };
+    req.session.save();
+    next();
   },
+  redirectToAuth
 );
 
 users.get(
@@ -45,25 +62,31 @@ users.get(
   bindCommonValues,
   verifyAccesToUser,
   getUserSettings,
-  (_req, res) => res.json(res.locals.settings),
+  (req, res) => res.json(res.locals.settings)
 );
 
 users.get(
   `/signup/:username`,
   bindCommonValues,
   checkAvailableUserName,
-  (_req, res) => res.json(res.locals.available),
+  (req, res) => res.json(res.locals.available)
 );
 
 users.post(
-  `/signup/:username`,
+  `/signup/:username/:service`,
   bindCommonValues,
   reserveUserAccount,
-  // For now we redirect to the github auth
-  // flow, but ultimately this should redirect
-  // to a page that offers more than one auth
-  // solution. However, we will never add
-  // email based login because we don't want
-  // that kind of information in our db.
-  (_req, res) => res.redirect(`/auth/github`),
+  redirectToAuth
 );
+
+/**
+ * Send a user into an auth flow, if we
+ * know the service they told us to use
+ */
+function redirectToAuth(req, res, next) {
+  const service = req.params.service.trim();
+  if (!validAuthProvider(service)) {
+    return next(new Error(`Unknown login service`));
+  }
+  res.redirect(`/auth/${service}`);
+}

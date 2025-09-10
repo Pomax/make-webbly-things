@@ -1,4 +1,5 @@
 import passport from "passport";
+export { passport };
 
 // When a user succesfully signs in:
 passport.serializeUser((user, done) => {
@@ -10,20 +11,20 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
-export { passport };
-
-/**
- * ...docs go here...
- */
 export const loginWithGithub = passport.authenticate(`github`, {
   scope: [`user:email`],
 });
 
-/**
- * ...docs go here...
- */
 export const handleGithubCallback = passport.authenticate(`github`, {
   failureRedirect: `/auth/github/error`,
+});
+
+export const loginWithGoogle = passport.authenticate(`google`, {
+  scope: [`profile`],
+});
+
+export const handleGoogleCallback = passport.authenticate(`google`, {
+  failureRedirect: `/auth/google/error`,
 });
 
 /**

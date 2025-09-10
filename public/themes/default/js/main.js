@@ -60,23 +60,3 @@ if (starter && button) {
     }
   );
 }
-
-const signup = document.getElementById(`signup`);
-if (signup) {
-  const submit = signup.querySelector(`button`);
-  const name = signup.querySelector(`input`);
-  const notice = signup.querySelector(`span`);
-  name.addEventListener(`input`, (evt) => {
-    const username = name.value;
-    const url = `/v1/users/signup/${username}`;
-    fetch(url)
-      .then((r) => r.text())
-      .then((flag) => {
-        const available = flag === `true`;
-        name.classList.toggle(`taken`, !available);
-        submit.disabled = !available;
-        notice.textContent = available ? `` : `That username is already taken.`;
-        signup.setAttribute(`action`, available ? url : ``);
-      });
-  });
-}

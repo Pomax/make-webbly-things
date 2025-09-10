@@ -2,6 +2,10 @@
 	# debug
 }
 
+localhost {
+	reverse_proxy localhost:8000
+}
+
 $WEB_EDITOR_HOSTNAME {
 	reverse_proxy localhost:8000
 }

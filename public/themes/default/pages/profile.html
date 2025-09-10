@@ -24,9 +24,28 @@
     </p>
 
     <p>
-      {{ profileUser.name }} joined {{ profileUser.created_at | year }} and
-      created {{ profile.projects.length }} projects since then!
+      {% if profile.ownProfile %}You{% else %}{{ profileUser.name }}{% endif %}
+      joined {{ profileUser.created_at | year }} and created {{
+      profile.projects.length }} projects since then!
     </p>
+
+    {% if profile.ownProfile %}
+    <section>
+      <h2>Login methods</h2>
+
+      <ul class="login-methods">
+        {% for service in profile.services %}
+        <li>{{ service }}</li>
+        {% endfor %} {% for service in profile.additionalServices %}
+        <li>
+          <a href="/v1/users/service/add/{{ service }}">
+            add {{ service }} as auth method
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
 
     <section class="presentation">
       <h2>Bio</h2>
