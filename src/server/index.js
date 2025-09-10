@@ -44,12 +44,12 @@ const { WEB_EDITOR_HOSTNAME } = process.env;
 const app = express();
 setupTemplating(app);
 setDefaultAspects(app);
-setupRoutes(app);
+const server = setupRoutes(app);
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   // Ensure the database is up to date
   await applyMigrations(
-    join(import.meta.dirname, `..`, `..`, `data`, `data.sqlite3`),
+    join(import.meta.dirname, `..`, `..`, `data`, `data.sqlite3`)
   );
 
   // Generate the server address notice
