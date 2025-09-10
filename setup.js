@@ -210,9 +210,6 @@ async function setupEnv() {
     WEB_EDITOR_HOSTNAME,
     WEB_EDITOR_APPS_HOSTNAME,
     WEB_EDITOR_IMAGE_NAME,
-    GITHUB_CLIENT_ID,
-    GITHUB_CLIENT_SECRET,
-    GITHUB_CALLBACK_URL,
     TLS_DNS_PROVIDER,
     TLS_DNS_API_KEY,
   } = process.env;
@@ -229,7 +226,7 @@ project containers.
 `);
 
     if (!WEB_EDITOR_HOSTNAME) {
-      let defaultHost = `editor.com.localhost`;
+      let defaultHost = `localhost`;
       WEB_EDITOR_HOSTNAME =
         (await question(
           `Web editor hostname (defaults to ${defaultHost})`,
@@ -268,26 +265,23 @@ have a Docker image by that name, so...
   }
 
   // Github login setup?
-  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
-    console.log(`
-For now, we're using GitHub as our oauth mediator, so you'll need to have
-a GitHub application defined over on https://github.com/settings/developers
+  const GITHUB_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/github/callback`;
+  const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = await setupGithubAuth(
+    process.env
+  );
 
-Create a new OAuth app if you don't have one already set up; for the
-homepage url, give it "https://${WEB_EDITOR_HOSTNAME}", and as authorization
-callback url, give it "https://${WEB_EDITOR_HOSTNAME}/auth/github/callback".
+  // Google login setup?
+  const GOOGLE_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/google/callback`;
+  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = await setupGoogleAuth(
+    process.env
+  );
 
-Once saved, generate a client secret, and then fill in the client id
-and secrets here: they'll get saved to an untracked .env file that the
-codebase will read in every time it starts up.
-`);
+  // Mastodon login setup?
+  const MASTODON_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/mastodon/callback`;
+  const { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET } =
+    await setupMastodonAuth(process.env);
 
-    GITHUB_CLIENT_ID = await question(`Github client id`);
-    GITHUB_CLIENT_SECRET = await question(`Github client secret`);
-  }
-
-  GITHUB_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/github/callback`;
-
+  // Is this a hosted instance?
   if (!TLS_DNS_API_KEY) {
     TLS_DNS_PROVIDER = `false`;
     TLS_DNS_API_KEY = `false`;
@@ -309,15 +303,28 @@ This will require knowing your DNS provider and your API key for that provider.
   writeFileSync(
     join(moduleDir, `.env`),
     `LOCAL_DEV_TESTING=${LOCAL_DEV_TESTING || `true`}
+
 WEB_EDITOR_HOSTNAME="${WEB_EDITOR_HOSTNAME}"
 WEB_EDITOR_APPS_HOSTNAME="${WEB_EDITOR_APPS_HOSTNAME}"
 WEB_EDITOR_APP_SECRET="${WEB_EDITOR_APP_SECRET}"
 WEB_EDITOR_IMAGE_NAME="${WEB_EDITOR_IMAGE_NAME}"
+
 SESSION_SECRET="${randomSecret()}"
 MAGIC_LINK_SECRET="${randomSecret()}"
-GITHUB_CLIENT_ID="${GITHUB_CLIENT_ID}"
-GITHUB_CLIENT_SECRET="${GITHUB_CLIENT_SECRET}"
-GITHUB_CALLBACK_URL="${GITHUB_CALLBACK_URL}"
+
+GITHUB_CLIENT_ID="${GITHUB_CLIENT_ID || ``}"
+GITHUB_CLIENT_SECRET="${GITHUB_CLIENT_SECRET || ``}"
+GITHUB_CALLBACK_URL="${GITHUB_CALLBACK_URL || ``}"
+
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID || ``}"
+GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET || ``}"
+GOOGLE_CALLBACK_URL="${GOOGLE_CALLBACK_URL || ``}"
+
+MASTODON_OAUTH_DOMAIN="${MASTODON_OAUTH_DOMAIN || ``}"
+MASTODON_CLIENT_ID="${MASTODON_CLIENT_ID || ``}"
+MASTODON_CLIENT_SECRET="${MASTODON_CLIENT_SECRET || ``}"
+MASTODON_CALLBACK_URL="${MASTODON_CALLBACK_URL || ``}"
+
 TLS_DNS_PROVIDER="${TLS_DNS_PROVIDER}"
 TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
 `
@@ -337,6 +344,122 @@ TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
     TLS_DNS_PROVIDER,
     TLS_DNS_API_KEY,
   });
+}
+
+/**
+ * Set up GitHub as auth provider
+ */
+async function setupGithubAuth(env) {
+  // Are we already done?
+  let { WEB_EDITOR_HOSTNAME, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = env;
+  if (GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET) {
+    return { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET };
+  }
+
+  // We are not. Should we add github?
+  const setup = await question(`Set up GitHub as auth provider (Y/n)`);
+  if (setup.toLowerCase() === `n`) return {};
+
+  // We should. Let's get some values.
+  console.log(`
+In order to add GitHub as an auth provider, so you'll need to have
+a GitHub application defined over on https://github.com/settings/developers
+
+Create a new OAuth app if you don't have one already set up; for the
+homepage url, give it "https://${WEB_EDITOR_HOSTNAME}", and as authorization
+callback url, give it "https://${WEB_EDITOR_HOSTNAME}/auth/github/callback".
+
+Once saved, generate a client secret, and then fill in the client id
+and secrets here: they'll get saved to an untracked .env file that the
+codebase will read in every time it starts up.
+`);
+
+  GITHUB_CLIENT_ID = await question(`Github client id`);
+  GITHUB_CLIENT_SECRET = await question(`Github client secret`);
+
+  return { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET };
+}
+
+/**
+ * Set up Google as auth provider
+ */
+async function setupGoogleAuth(env) {
+  // Are we already done?
+  let { WEB_EDITOR_HOSTNAME, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = env;
+  if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    return { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET };
+  }
+
+  // We are not. Should we add google?
+  const setup = await question(`Set up Google as auth provider (Y/n)`);
+  if (setup.toLowerCase() === `n`) return {};
+
+  // We should. Let's get some values.
+  console.log(`
+In order to add Google as an auth provider, so you'll need to have
+a Google application defined over on https://console.cloud.google.com/apis/dashboard
+
+Create a new OAuth app if you don't have one already set up, and then
+create an OAuth client; for the
+homepage url, give it "https://${WEB_EDITOR_HOSTNAME}", and as authorization
+callback url, give it "https://${WEB_EDITOR_HOSTNAME}/auth/github/callback".
+
+Once saved, generate a client secret, and then fill in the client id
+and secrets here: they'll get saved to an untracked .env file that the
+codebase will read in every time it starts up.
+`);
+
+  GOOGLE_CLIENT_ID = await question(`Google client id`);
+  GOOGLE_CLIENT_SECRET = await question(`Google client secret`);
+
+  return { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET };
+}
+
+/**
+ * Add Mastodon as auth provider
+ */
+async function setupMastodonAuth(env) {
+  let {
+    WEB_EDITOR_HOSTNAME,
+    MASTODON_OAUTH_DOMAIN,
+    MASTODON_CLIENT_ID,
+    MASTODON_CLIENT_SECRET,
+  } = env;
+  if (MASTODON_OAUTH_DOMAIN && MASTODON_CLIENT_ID && MASTODON_CLIENT_SECRET) {
+    return {
+      MASTODON_OAUTH_DOMAIN,
+      MASTODON_CLIENT_ID,
+      MASTODON_CLIENT_SECRET,
+    };
+  }
+
+  // We are not. Should we add google?
+  const setup = await question(`Set up Mastodon as auth provider (Y/n)`);
+  if (setup.toLowerCase() === `n`) return {};
+
+  // We should. Let's get some values.
+  console.log(`
+In order to add Mastodon as an auth provider, so you'll need to have
+an application defined on your chosen Mastodon instance, which you
+can do by going to your preferences, then "Development", and
+then picking "New application".
+
+Create a new OAuth app if you don't have one already set up. For the
+homepage url, give it "https://${WEB_EDITOR_HOSTNAME}", and as authorization
+callback url, give it "https://${WEB_EDITOR_HOSTNAME}/auth/github/callback".
+
+Once saved, fill in the client id and secret here: they'll get saved
+to an untracked .env file that the codebase will read in every time
+it starts up.
+`);
+
+  MASTODON_OAUTH_DOMAIN = await question(
+    `Which mastodon instance (e.g. mastodon.social)`
+  );
+  MASTODON_CLIENT_ID = await question(`Mastodon client id`);
+  MASTODON_CLIENT_SECRET = await question(`Mastodon client secret`);
+
+  return { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET };
 }
 
 /**

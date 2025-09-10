@@ -15,6 +15,8 @@ import {
   getStarterProjects,
 } from "../database/index.js";
 
+import { validProviders } from "./auth/settings.js";
+
 import { ROOT_DIR, CONTENT_DIR, slugify } from "../../helpers.js";
 
 /**
@@ -255,6 +257,14 @@ export function loadProjectList(req, res, next) {
   } else {
     res.locals.projectList = getMostRecentProjects(5);
   }
+  next();
+}
+
+/**
+ * ...docs go here...
+ */
+export function loadProviders(req, res, next) {
+  res.locals.availableProviders = validProviders.slice();
   next();
 }
 

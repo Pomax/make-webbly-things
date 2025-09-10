@@ -3,7 +3,9 @@
 *.sqlite3.*
 *.db.*
 .DS_Store
+*.env
 .env
+.env.*
 Caddyfile
 node_modules
 content/*

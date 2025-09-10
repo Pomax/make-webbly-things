@@ -5,6 +5,7 @@ import betterSQLite3Store from "better-sqlite3-session-store";
 import {
   bindCommonValues,
   loadProjectList,
+  loadProviders,
   loadStarters,
   noStaticHTML,
   pageNotFound,
@@ -79,6 +80,7 @@ export function setupRoutes(app) {
     `/`,
     bindCommonValues,
     loadProjectList, // either user list, or global "most recent"
+    loadProviders,
     loadStarters,
     (req, res) =>
       res.render(`main.html`, {

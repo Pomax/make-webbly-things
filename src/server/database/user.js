@@ -231,7 +231,7 @@ export function getUserProfile(user = {}, lookupUser) {
     ? getUserLoginServices(user).map((s) => s.service)
     : undefined;
   const additionalServices = validProviders.filter(
-    (e) => !services.includes(e),
+    (e) => !services?.includes(e),
   );
   return {
     user: lookupUser,

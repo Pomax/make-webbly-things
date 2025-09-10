@@ -9,20 +9,20 @@ const { env } = process;
 
 const testing = env.LOCAL_DEVTESTING === `true`;
 
-export const googleSettings = env.GOOGLE_CLIENT_ID
-  ? {
-      clientID: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      callbackURL: env.GOOGLE_CALLBACK_URL,
-      passReqToCallback: true,
-    }
-  : undefined;
-
 export const githubSettings = env.GITHUB_CLIENT_ID
   ? {
       clientID: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
       callbackURL: env.GITHUB_CALLBACK_URL,
+      passReqToCallback: true,
+    }
+  : undefined;
+
+export const googleSettings = env.GOOGLE_CLIENT_ID
+  ? {
+      clientID: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      callbackURL: env.GOOGLE_CALLBACK_URL,
       passReqToCallback: true,
     }
   : undefined;
@@ -51,7 +51,9 @@ export const mastodonSettings = env.MASTODON_CLIENT_ID
  * Which providers do we offer?
  */
 export const validProviders = [];
-if (googleSettings) validProviders.push(`google`);
-if (githubSettings) validProviders.push(`github`);
 if (testing && magicSettings) validProviders.push(`email`);
+if (githubSettings) validProviders.push(`github`);
+if (googleSettings) validProviders.push(`google`);
 if (mastodonSettings) validProviders.push(`mastodon`);
+
+console.log(`Auth providers: ${validProviders.join(`, `)}`);
