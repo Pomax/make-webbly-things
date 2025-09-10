@@ -3,10 +3,12 @@
  *
  * - will run npm install to make sure the code can run,
  * - checks whether or not you have docker, caddy, and sqlite3 installed
- * - If you don't, it'll do nothing.
- * - If you do, it'll set up the docker base image that is used for projects,
- * - set up a Caddyfile for this project that gets used for host routing, and
- * - set up the database that the code relies on for housing user/project/etc data.
+ * - If you don't, it'll do nothing and tell you to install them.
+ * - If you do, it will:
+ *   - set up the docker base image that is used for projects,
+ *   - set up a Caddyfile for this project that gets used for host routing, and
+ *   - set up the database that the code relies on for housing user/project/etc data.
+ *   - set up an .env file that holds all the various environment variables needed
  */
 
 import readline from "node:readline";
@@ -34,11 +36,20 @@ const noop = () => {};
 
 const filePath = fileURLToPath(import.meta.url);
 const moduleDir = dirname(filePath);
+
+// Run setup, but only if code wasn't loaded as a module import!
 if (filePath.startsWith(process.argv[1])) {
   setup(
-    () => {
+    async () => {
+      const packageJson = (
+        await import(`./package.json`, {
+          with: {
+            type: `json`,
+          },
+        })
+      ).default;
       // Pretty crucial:
-      const minimum = 22;
+      const minimum = parseFloat(packageJson.engines.node.match(/\d+(\.|$)/)[0]);
       const v = checkFor(`node`);
       const m = v.match(/v(\d+)/)[1];
       const version = parseFloat(m);

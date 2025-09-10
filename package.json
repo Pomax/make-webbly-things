@@ -4,6 +4,9 @@
   "type": "module",
   "description": "A platform for hosting user generated websites",
   "main": "",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
     "prettier": "prettier --write \"./src/**/*.js\"",
