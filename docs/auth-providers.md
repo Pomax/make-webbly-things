@@ -14,7 +14,7 @@ By default, the platform offers Github, Google, and Mastodon authentication, usi
 - https://github.com/jaredhanson/passport-google
 - https://github.com/techfeed/passport-mastodon
 
-You can see how these are used to implement authentication over in `src/server/routes/auth/index.js`
+You can see how these are used to implement authentication over in `src/server/routing/auth/index.js`
 
 ## User accounts and authentications
 
