@@ -46,7 +46,7 @@ export function addPassportAuth(app) {
     req.logout((err) => {
       if (err) return next(err);
       res.redirect(`/`);
-    })
+    }),
   );
 }
 
@@ -61,7 +61,11 @@ export function addPassportAuth(app) {
  */
 function processOAuthLogin(req, accessToken, refreshToken, profile, done) {
   const { user: sessionUser } = req.session.passport ?? {};
+
+  // Are there special circumstances surrounding this callback?
   const { username, slug, newProvider } = req.session.reservedAccount ?? {};
+  delete req.session.reservedAccount;
+  req.session.save();
 
   const userObject = {
     profileName: profile.displayName,
@@ -102,7 +106,7 @@ function addGoogleAuth(app) {
   const google = Router();
   google.get(`/error`, (req, res) => res.send(`Unknown Error`));
   google.get(`/callback`, handleGoogleCallback, (req, res) =>
-    res.redirect(`/`)
+    res.redirect(`/`),
   );
   google.get(`/logout`, logout);
   google.get(`/`, loginWithGoogle);
@@ -120,7 +124,7 @@ function addGithubAuth(app) {
   const github = Router();
   github.get(`/error`, (req, res) => res.send(`Unknown Error`));
   github.get(`/callback`, handleGithubCallback, (req, res) =>
-    res.redirect(`/`)
+    res.redirect(`/`),
   );
   github.get(`/logout`, logout);
   github.get(`/`, loginWithGithub);
@@ -151,7 +155,7 @@ function addEmailAuth(app) {
         service: `magic link`,
         service_id: user.email,
       });
-    }
+    },
   );
 
   passport.use(magicStrategy);
@@ -165,7 +169,7 @@ function addEmailAuth(app) {
     }),
     (req, res) => {
       res.redirect(`/auth/email/check`);
-    }
+    },
   );
 
   magic.get(`/check`, function (req, res) {
@@ -178,7 +182,7 @@ function addEmailAuth(app) {
     passport.authenticate(`magiclink`, {
       successReturnToOrRedirect: `/`,
       failureRedirect: `/`,
-    })
+    }),
   );
 
   app.use(`/auth/email`, magic);

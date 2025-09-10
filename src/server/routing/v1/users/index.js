@@ -26,7 +26,7 @@ users.get(
     res.render(`profile.html`, {
       ...process.env,
       ...res.locals,
-    })
+    }),
 );
 
 users.post(
@@ -37,7 +37,7 @@ users.post(
   (req, res) => {
     const { slug } = res.locals.lookups.user;
     res.redirect(`/v1/users/profile/${slug}`);
-  }
+  },
 );
 
 users.get(
@@ -53,7 +53,7 @@ users.get(
     req.session.save();
     next();
   },
-  redirectToAuth
+  redirectToAuth,
 );
 
 users.get(
@@ -62,21 +62,21 @@ users.get(
   bindCommonValues,
   verifyAccesToUser,
   getUserSettings,
-  (req, res) => res.json(res.locals.settings)
+  (req, res) => res.json(res.locals.settings),
 );
 
 users.get(
   `/signup/:username`,
   bindCommonValues,
   checkAvailableUserName,
-  (req, res) => res.json(res.locals.available)
+  (req, res) => res.json(res.locals.available),
 );
 
 users.post(
   `/signup/:username/:service`,
   bindCommonValues,
   reserveUserAccount,
-  redirectToAuth
+  redirectToAuth,
 );
 
 /**
