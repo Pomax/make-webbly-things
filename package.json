@@ -6,7 +6,7 @@
   "author": "Pomax (pomax@nihongoresources.com)",
   "license": "See LICENSE.md",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "build": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
