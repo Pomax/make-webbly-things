@@ -49,7 +49,9 @@ if (filePath.startsWith(process.argv[1])) {
         })
       ).default;
       // Pretty crucial:
-      const minimum = parseFloat(packageJson.engines.node.match(/\d+(\.|$)/)[0]);
+      const minimum = parseFloat(
+        packageJson.engines.node.match(/\d+(\.|$)/)[0]
+      );
       const v = checkFor(`node`);
       const m = v.match(/v(\d+)/)[1];
       const version = parseFloat(m);
@@ -368,7 +370,7 @@ async function setupGithubAuth(env) {
   }
 
   // We are not. Should we add github?
-  const setup = await question(`Set up GitHub as auth provider (Y/n)`);
+  const setup = await question(`\nSet up GitHub as auth provider (Y/n)`);
   if (setup.toLowerCase() === `n`) return {};
 
   // We should. Let's get some values.
@@ -402,7 +404,7 @@ async function setupGoogleAuth(env) {
   }
 
   // We are not. Should we add google?
-  const setup = await question(`Set up Google as auth provider (Y/n)`);
+  const setup = await question(`\nSet up Google as auth provider (Y/n)`);
   if (setup.toLowerCase() === `n`) return {};
 
   // We should. Let's get some values.
@@ -436,6 +438,7 @@ async function setupMastodonAuth(env) {
     MASTODON_CLIENT_ID,
     MASTODON_CLIENT_SECRET,
   } = env;
+
   if (MASTODON_OAUTH_DOMAIN && MASTODON_CLIENT_ID && MASTODON_CLIENT_SECRET) {
     return {
       MASTODON_OAUTH_DOMAIN,
@@ -445,7 +448,7 @@ async function setupMastodonAuth(env) {
   }
 
   // We are not. Should we add google?
-  const setup = await question(`Set up Mastodon as auth provider (Y/n)`);
+  const setup = await question(`\nSet up Mastodon as auth provider (Y/n)`);
   if (setup.toLowerCase() === `n`) return {};
 
   // We should. Let's get some values.
