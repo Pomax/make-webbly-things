@@ -1,4 +1,3 @@
-import { validAuthProvider } from "../../auth/index.js";
 import {
   bindCommonValues,
   verifyLogin,
@@ -9,7 +8,11 @@ import {
   getUserProfile,
   getUserSettings,
   checkAvailableUserName,
+  redirectToAuth,
+  redirectToProfile,
+  removeAuthProvider,
   reserveUserAccount,
+  setNewProvider,
   updateUserProfile,
 } from "./middleware.js";
 
@@ -44,16 +47,16 @@ users.get(
   `/service/add/:service`,
   verifyLogin,
   bindCommonValues,
-  (req, res, next) => {
-    // Set a flag that tells the system this user is
-    // adding a new auth provider to their account
-    req.session.reservedAccount = {
-      newProvider: req.params.service.trim(),
-    };
-    req.session.save();
-    next();
-  },
+  setNewProvider,
   redirectToAuth,
+);
+
+users.get(
+  `/service/remove/:service`,
+  verifyLogin,
+  bindCommonValues,
+  removeAuthProvider,
+  redirectToProfile,
 );
 
 users.get(
@@ -78,15 +81,3 @@ users.post(
   reserveUserAccount,
   redirectToAuth,
 );
-
-/**
- * Send a user into an auth flow, if we
- * know the service they told us to use
- */
-function redirectToAuth(req, res, next) {
-  const service = req.params.service.trim();
-  if (!validAuthProvider(service)) {
-    return next(new Error(`Unknown login service`));
-  }
-  res.redirect(`/auth/${service}`);
-}

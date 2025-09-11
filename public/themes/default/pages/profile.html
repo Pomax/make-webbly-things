@@ -42,12 +42,15 @@
       </p>
 
       <ul class="login-methods">
-        {% for service in profile.services %}
-        <li>{{ service.service_domain or service.service }}</li>
-        {% endfor %} {% for service in profile.additionalServices %}
+        {% for entry in profile.services %}
         <li>
-          <a href="/v1/users/service/add/{{ service.service }}">
-            add {{ service.service_domain or service.service }} as auth method
+          {{ entry.service_domain or entry.service }}
+          (<a href="/v1/users/service/remove/{{ entry.service }}">remove</a>)
+        </li>
+        {% endfor %} {% for entry in profile.additionalServices %}
+        <li>
+          <a href="/v1/users/service/add/{{ entry.service }}">
+            add {{ entry.service_domain or entry.service }} as auth method
           </a>
         </li>
         {% endfor %}

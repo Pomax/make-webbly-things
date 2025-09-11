@@ -4,7 +4,7 @@ import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 import { CONTENT_DIR, pathExists, slugify } from "../../helpers.js";
 import { Models } from "./models.js";
 import { getOwnedProjectsForUser } from "./project.js";
-import { validProviders } from "../routing/auth/settings.js";
+import { getServiceDomain, validProviders } from "../routing/auth/settings.js";
 
 const {
   User,
@@ -229,9 +229,12 @@ export function getUserProfile(user = {}, lookupUser) {
   const ownProfile = user.id === lookupUser.id;
   const services = ownProfile ? getUserLoginServices(user) : undefined;
   const serviceNames = services?.map((s) => s.service);
-  const additionalServices = validProviders.filter(
-    (e) => !serviceNames?.includes(e),
-  );
+  const additionalServices = validProviders
+    .filter((e) => !serviceNames?.includes(e))
+    .map((e) => ({
+      service: e,
+      service_domain: getServiceDomain(e),
+    }));
   return {
     user: lookupUser,
     links: UserLink.findAll({ user_id: lookupUser.id }, `sort_order`, `DESC`),
@@ -282,6 +285,14 @@ export function hasAccessToUserRecords(user, targetUser) {
   const a = Admin.find({ user_id: user.id });
   if (!a) return false;
   return true;
+}
+
+/**
+ * ...docs go here...
+ */
+export function removeAuthProvider(user, service) {
+  const login = Login.find({ user_id: user.id, service });
+  if (login) Login.delete(login);
 }
 
 /**

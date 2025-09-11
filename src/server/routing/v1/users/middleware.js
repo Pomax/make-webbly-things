@@ -1,5 +1,6 @@
 import * as Database from "../../../database/index.js";
 import { slugify } from "../../../../helpers.js";
+import { validAuthProvider } from "../../auth/index.js";
 
 /**
  * ...docs go here...
@@ -51,6 +52,39 @@ export function getUserSettings(req, res, next) {
 }
 
 /**
+ * Send a user into an auth flow, if we
+ * know the service they told us to use
+ */
+export function redirectToAuth(req, res, next) {
+  const service = req.params.service.trim();
+  if (!validAuthProvider(service)) {
+    return next(new Error(`Unknown login service`));
+  }
+  res.redirect(`/auth/${service}`);
+}
+
+/**
+ * Redirect a user to their profile page
+ */
+export function redirectToProfile(req, res) {
+  const { user } = res.locals;
+  res.redirect(`/v1/users/profile/${user.slug}`);
+}
+
+/**
+ * ...docs go here...
+ */
+export function removeAuthProvider(req, res, next) {
+  const { user } = res.locals;
+  const service = req.params.service?.trim();
+  if (!service) {
+    return next(new Error(`Unknown auth provider`));
+  }
+  Database.removeAuthProvider(user, service);
+  next();
+}
+
+/**
  * ...docs go here...
  */
 export function reserveUserAccount(req, res, next) {
@@ -71,6 +105,18 @@ export function reserveUserAccount(req, res, next) {
     req.session.save();
     next();
   }
+}
+
+/**
+ * Set a flag that tells the system this user is
+ * adding a new auth provider to their account
+ */
+export function setNewProvider(req, res, next) {
+  req.session.reservedAccount = {
+    newProvider: req.params.service.trim(),
+  };
+  req.session.save();
+  next();
 }
 
 /**
