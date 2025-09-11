@@ -41,41 +41,7 @@
 
 <h2>Log in</h2>
 
-<p>If the above all sounds reasonable, then you'll probably want to either:</p>
-
-<ul>
-  <li>
-    <form id="signup" method="POST">
-      <p>
-        <label>Pick a username:</label>
-        <input type="text" placeholder="Write your username here" />
-        and then pick which auth service you want to be your primary login
-        method: {% for entry in availableProviders %}
-        <button class="provider" data-name="{{ entry.service }}" disabled>
-          {{ entry.service_domain or entry.service }}
-        </button>
-        {% endfor %}
-      </p>
-      <span style="color: red"></span>
-    </form>
-
-    <hr />
-
-    <p>
-      Note that your user name is "what you want people to see". Whether you
-      will be able to register that will be based on whether or not that name's
-      "slug" equivalent (i.e. a url-safe equivalent) is already taken or not.
-    </p>
-
-    <p>
-      Also note that you can add additional authentication methods once your
-      account has been enabled, so that even if you lose access to a service,
-      you're not suddenly also locked out of your account here.
-    </p>
-  </li>
-</ul>
-
-<p>or if you already have an account, log in:</p>
+<p>If you already have an account, just log in:</p>
 
 <ul>
   {% for entry in availableProviders %}
@@ -98,6 +64,46 @@
     </p>
   </li>
   {% endif %}
+</ul>
+
+<p>
+  But if you don't, and the above all sounds reasonable, then you'll probably
+  want to sign up.
+</p>
+
+<ul>
+  <li class="full-width">
+    <form id="signup" method="POST">
+      <p>
+        <label>Step 1: pick a username:</label>
+        <input type="text" placeholder="Write your username here" />
+        <br />
+        <span style="color: red"></span>
+      </p>
+      <p>
+        Step 2: pick which auth service you want to be your primary login
+        method: {% for entry in availableProviders %}
+        <button class="provider" data-name="{{ entry.service }}" disabled>
+          {{ entry.service_domain or entry.service }}
+        </button>
+        {% endfor %}
+      </p>
+    </form>
+
+    <hr />
+
+    <p>
+      Note that your user name is "what you want people to see". Whether you
+      will be able to register that will be based on whether or not that name's
+      "slug" equivalent (i.e. a url-safe equivalent) is already taken or not.
+    </p>
+
+    <p>
+      Also note that you can add additional authentication methods once your
+      account has been enabled, so that even if you lose access to a service,
+      you're not suddenly also locked out of your account here.
+    </p>
+  </li>
 </ul>
 
 <p>
@@ -139,15 +145,15 @@
   Accounts are created in a "disabled" state, requiring an admin to enable them
   before they can actually use the editor (beyond what anonymous visitors can
   do). If we know each other, shoot me a message saying you signed up and I'll
-  immediately enable your account, but if I have no idea who you are, trust me
-  to hit the delete button: you want to run your own instance, instead.
+  immediately enable your account, but if I have no idea who you are, it's quite
+  likely that I'll just delete your account...
 </p>
 
 <p>
-  In fact, that's the main selling point (except of course, it's free open
-  source software =D) of this platform: you don't need my approval, just go run
-  your own copy and have fun with it. Let your friends join that one, and have a
-  good time on the interwebs.
+  In fact, that's the main selling point of this platform:
+  <em>you don't need my approval</em> to use it, just go run your own instance
+  and have fun with it. Let your friends join that one, and have a good time on
+  the interwebs.
 </p>
 
 <h2>Starter projects</h2>

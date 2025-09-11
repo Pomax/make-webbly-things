@@ -33,6 +33,14 @@
     <section>
       <h2>Login methods</h2>
 
+      <p>
+        This "login" section is only visible to you, no one else can see it - if
+        you only have a single method of authentication tied to your user
+        account, you'll want to add at least one more, so that if you ever lose
+        access to your primary method of authentication, you can just log in
+        with your secondary (or tertiary, or... etc).
+      </p>
+
       <ul class="login-methods">
         {% for service in profile.services %}
         <li>{{ service.service_domain or service.service }}</li>

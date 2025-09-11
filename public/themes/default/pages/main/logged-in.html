@@ -1,8 +1,8 @@
 <p>
-  Click here to
-  <a href="/auth/logout">log out</a>{% if user.admin %}, or
-  (since you're an admin) click here for the <a href="/v1/admin">admin
-  interface</a>{% endif %}.
+  Click here for your <a href="/v1/users/profile/{{ user.slug }}">profile</a>,
+  or here to <a href="/auth/logout">log out</a>. {% if user.admin %} Or,
+  since you're an admin, click here for the <a href="/v1/admin">admin
+  interface</a>.{% endif %}
 </p>
 
 <h2>Start a new project</h2>

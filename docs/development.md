@@ -44,3 +44,7 @@ This also means there are three stages of testing: endpoint testing, to see if U
 ## Testing
 
 Testing uses the built in Node test framework. Just run `node test` and it'll will run through every test in the `src/tests` folder. Note that every file in the `src` dir has a corresponding `test.js` file in the `src/tests` folder: if you're making new files, remember to also write new tests =D
+
+Note that tests will throw a lot of errors about not being able to `cd` or write files: that's expected, the test suite simply doesn't suppress any stdout/stderr while running, so errors that are _supposed_ to happen in the code, but aren't a test failure, will still end up writing error text to the console.
+
+Just wait for it to finish, and then _then_ see if there are any real errors: they'll be mentioned after the coverage table.
