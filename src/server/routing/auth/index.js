@@ -69,7 +69,13 @@ export function addPassportAuth(app) {
  * @param {*} done
  * @returns
  */
-function processOAuthLogin(req, accessToken, refreshToken, profile, done) {
+export function processOAuthLogin(
+  req,
+  accessToken,
+  refreshToken,
+  profile,
+  done,
+) {
   const { user: sessionUser } = req.session.passport ?? {};
 
   // Are there special circumstances surrounding this callback?
@@ -107,31 +113,12 @@ function processOAuthLogin(req, accessToken, refreshToken, profile, done) {
 }
 
 /**
- * Set up google auth
- */
-function addGoogleAuth(app) {
-  if (!googleSettings) return;
-
-  const googleStrategy = new GoogleStrategy(googleSettings, processOAuthLogin);
-  passport.use(googleStrategy);
-
-  const google = Router();
-  google.get(`/error`, (req, res) => res.send(`Unknown Error`));
-  google.get(`/callback`, handleGoogleCallback, (req, res) =>
-    res.redirect(`/`),
-  );
-  google.get(`/logout`, logout);
-  google.get(`/`, loginWithGoogle);
-  app.use(`/auth/google`, google);
-}
-
-/**
  * Set up github auth
  */
-function addGithubAuth(app) {
-  if (!githubSettings) return;
+export function addGithubAuth(app, settings = githubSettings) {
+  if (!settings) return;
 
-  const githubStrategy = new GitHubStrategy(githubSettings, processOAuthLogin);
+  const githubStrategy = new GitHubStrategy(settings, processOAuthLogin);
   passport.use(githubStrategy);
 
   const github = Router();
@@ -145,15 +132,31 @@ function addGithubAuth(app) {
 }
 
 /**
+ * Set up google auth
+ */
+export function addGoogleAuth(app, settings = googleSettings) {
+  if (!settings) return;
+
+  const googleStrategy = new GoogleStrategy(settings, processOAuthLogin);
+  passport.use(googleStrategy);
+
+  const google = Router();
+  google.get(`/error`, (req, res) => res.send(`Unknown Error`));
+  google.get(`/callback`, handleGoogleCallback, (req, res) =>
+    res.redirect(`/`),
+  );
+  google.get(`/logout`, logout);
+  google.get(`/`, loginWithGoogle);
+  app.use(`/auth/google`, google);
+}
+
+/**
  * Set up mastodon auth
  */
-function addMastodonAuth(app) {
-  if (!mastodonSettings) return;
+export function addMastodonAuth(app, settings = mastodonSettings) {
+  if (!settings) return;
 
-  const mastodonStrategy = new MastodonStrategy(
-    mastodonSettings,
-    processOAuthLogin,
-  );
+  const mastodonStrategy = new MastodonStrategy(settings, processOAuthLogin);
   passport.use(mastodonStrategy);
 
   const mastodon = Router();
@@ -169,11 +172,11 @@ function addMastodonAuth(app) {
 /**
  * Set up magic link auth
  */
-function addEmailAuth(app) {
-  if (!magicSettings) return;
+export function addEmailAuth(app, settings = magicSettings) {
+  if (!settings) return;
 
   const magicStrategy = new MagicLoginStrategy(
-    magicSettings,
+    settings,
     function send(user, token) {
       const url = `https://${WEB_EDITOR_HOSTNAME}/auth/email/verify?token=${token}`;
       console.log(`send:`, user, url);
