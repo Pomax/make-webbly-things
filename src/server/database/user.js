@@ -291,8 +291,11 @@ export function hasAccessToUserRecords(user, targetUser) {
  * ...docs go here...
  */
 export function removeAuthProvider(user, service) {
-  const login = Login.find({ user_id: user.id, service });
-  if (login) Login.delete(login);
+  const logins = Login.findAll({ user_id: user.id }).length;
+  if (logins > 1) {
+    const login = Login.find({ user_id: user.id, service });
+    if (login) Login.delete(login);
+  }
 }
 
 /**

@@ -45,7 +45,9 @@
         {% for entry in profile.services %}
         <li>
           {{ entry.service_domain or entry.service }}
+          {% if profile.services.length > 1 %}
           (<a href="/v1/users/service/remove/{{ entry.service }}">remove</a>)
+          {% endif %}
         </li>
         {% endfor %} {% for entry in profile.additionalServices %}
         <li>
@@ -77,11 +79,18 @@
       <form action="/v1/users/profile/{{ profileUser.slug }}" method="POST">
         <fieldset>
           <h2>Bio</h2>
+          <p>Describe yourself! And if you want to use markdown: go for it!</p>
           <textarea name="bio">{{ profileUser.bio }}</textarea>
         </fieldset>
 
         <fieldset>
           <h2>Links</h2>
+          <p>
+            This is where you can list as many links that are related to
+            yourself as you want. And you're free to name those however you see
+            fit, there's no prescribed list of "you can only list X, Y, or Z",
+            if there's a link worth listing, go for it!
+          </p>
           <input type="button" class="add-link" value="add link" />
           <ul class="links">
             {% for link in profile.links %}
