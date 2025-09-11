@@ -1,4 +1,5 @@
-<!doctype html>{% set project = lookups.project %}{% set projectId = lookups.project.id %}
+<!doctype html>
+{% set project = lookups.project %}{% set projectId = lookups.project.id %}
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -19,25 +20,25 @@
     data-project-id="{{ projectId }}"
     data-project-slug="{{ project.slug }}"
     data-default-file="{{ viewFile }}"
-    data-default-collapse="{{ projectSettings.default_collapse}}"
+    data-default-collapse="{{ projectSettings.default_collapse }}"
   >
     <main>
       <span id="buttons">
         <a class="link-back" href="https://{{ WEB_EDITOR_HOSTNAME }}">home</a>
         <span class="projectname">{{ project.name }}</span>
         {% if user %}
-        <button id="download" title="Download project files">💾</button>
-        <a
-          title="Remix this project!"
-          href="/v1/projects/remix/{{ project.slug }}"
-          >✨</a
-        >
+          <button id="download" title="Download project files">💾</button>
+          <a
+            title="Remix this project!"
+            href="/v1/projects/remix/{{ project.slug }}"
+            >✨</a
+          >
         {% endif %}
         {% if user and (user.admin or projectOwner) %}
-        <button class="project-settings">settings</button>
+          <button class="project-settings">settings</button>
         {% endif %}
         {% if user and (user.admin or projectMember) %}
-        <button id="format" title="Make my code pretty!">🤩</button>
+          <button id="format" title="Make my code pretty!">🤩</button>
         {% endif %}
       </span>
 
@@ -57,9 +58,9 @@
       <div id="preview" style="position: relative">
         <span id="preview-buttons">
           {% if user and app_type != "static" %}
-          <button class="restart" title="Restart your host container">
-            restart
-          </button>
+            <button class="restart" title="Restart your host container">
+              restart
+            </button>
           {% endif %}
           <button class="newtab" title="Open preview in new tab">
             new tab
@@ -87,9 +88,7 @@
           >&lt;file-tree&gt;</a
         >
         for its file browser. The project is hosted over on
-        <a
-          href="https://github.com/pomax/make-webbly-things"
-          target="_blank"
+        <a href="https://github.com/pomax/make-webbly-things" target="_blank"
           >https://github.com/pomax/make-webbly-things</a
         >.
       </div>

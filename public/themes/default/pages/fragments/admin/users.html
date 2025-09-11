@@ -10,7 +10,9 @@
       <th>admin</th>
       <th></th>
     </tr>
-    {% for user in admin.userList %} {% include "./user.html" %} {% endfor %}
+    {% for user in admin.userList %}
+      {% include "./user.html" %}
+    {% endfor %}
   </table>
   <p>Should show projects each user has access to</p>
 </section>

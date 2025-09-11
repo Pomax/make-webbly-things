@@ -1,23 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% if user %}{{ user.name }}'s{% else %}A{% endif%} browser based web editor</title>
+    <title>
+      {% if user %}{{ user.name }}'s{% else %}A{% endif %} browser based web
+      editor
+    </title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/themes/default/css/layout.css" />
     <link rel="stylesheet" href="/themes/default/css/editor.css" />
     <link rel="stylesheet" href="/themes/default/css/main.css" />
   </head>
   <body>
-    <h1>Welcome{% if user %} back <a href="/v1/users/profile/{{ user.slug }}">{{ user.name }}</a>{% endif %}!</h1>
+    <h1>
+      Welcome{% if user %}
+        back <a href="/v1/users/profile/{{ user.slug }}">{{ user.name }}</a>
+      {% endif %}!
+    </h1>
 
     {% if user %}
       {% include "main/logged-in.html" %}
     {% else %}
       {% include "main/anonymous.html" %}
     {% endif %}
-    
+
     <script src="/themes/default/js/main.js" async defer></script>
   </body>
 </html>

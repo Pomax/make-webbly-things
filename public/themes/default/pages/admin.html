@@ -24,10 +24,19 @@
       <a href="/">the main page</a>.
     </p>
 
-    {% include "./fragments/admin/users.html" %} {% include
-    "./fragments/admin/projects.html" %} {% include
-    "./fragments/admin/containers.html" %} {% include
-    "./fragments/admin/servers.html" %}
+    {% include "./fragments/admin/users.html" %}
+    {%
+      include
+      "./fragments/admin/projects.html"
+    %}
+    {%
+      include
+      "./fragments/admin/containers.html"
+    %}
+    {%
+      include
+      "./fragments/admin/servers.html"
+    %}
 
     <footer>
       <a href="https://github.com/Pomax/make-webbly-things/issues"

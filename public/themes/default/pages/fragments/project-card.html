@@ -7,16 +7,16 @@
   </h3>
 
   {% if project.description %}
-  <p>{{ project.description | para | safe}}</p>
-  {% endif %} 
-  
+    <p>{{ project.description | para | safe }}</p>
+  {% endif %}
+
   {% if ownProject %}
-  <button data-project-id="{{ project.id }}" class="edit-project-settings">
-    settings
-  </button>
-  <button data-project-name="{{ project.slug }}" class="delete-project">
-    delete
-  </button>
+    <button data-project-id="{{ project.id }}" class="edit-project-settings">
+      settings
+    </button>
+    <button data-project-name="{{ project.slug }}" class="delete-project">
+      delete
+    </button>
   {% endif %}
 
   <iframe
@@ -26,8 +26,11 @@
   ></iframe>
 
   <p class="date">
-    Created {{ project.created_at | year }}, last updated {{ project.updated_at
-    | year }}
+    Created {{ project.created_at | year }}, last updated
+    {{
+      project.updated_at
+      | year
+    }}
   </p>
 
   <p>

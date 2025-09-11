@@ -10,8 +10,9 @@
       <th>created</th>
       <th></th>
     </tr>
-    {% for project in admin.projectList %} {% include
-    "./project.html" %} {% endfor %}
+    {% for project in admin.projectList %}
+      {% include "./project.html" %}
+    {% endfor %}
   </table>
   <p>Should show all users who have access</p>
 </section>

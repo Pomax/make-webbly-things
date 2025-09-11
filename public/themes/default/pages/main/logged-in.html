@@ -1,8 +1,10 @@
 <p>
   Click here for your <a href="/v1/users/profile/{{ user.slug }}">profile</a>,
-  or here to <a href="/auth/logout">log out</a>. {% if user.admin %} Or,
-  since you're an admin, click here for the <a href="/v1/admin">admin
-  interface</a>.{% endif %}
+  or here to <a href="/auth/logout">log out</a>.
+  {% if user.admin %}
+    Or, since you're an admin, click here for the
+    <a href="/v1/admin">admin interface</a>.
+  {% endif %}
 </p>
 
 <h2>Start a new project</h2>
@@ -10,29 +12,35 @@
 <div id="create-project-form">
   Remix:
   <select name="starter">
-  {% for s in starters %}
-  {% set name = s.name %}
-  <option
-    value="{{ name }}"
-    data-description="{{ s.description }}"
-    {% if name === "basic-nodejs" %}selected{% endif %}>{{ name }}</option>
-  {% endfor %}
-  </select> <span class="description"></span> as a new project <button disabled>Let's go!</button>
+    {% for s in starters %}
+      {% set name = s.name %}
+      <option
+        value="{{ name }}"
+        data-description="{{ s.description }}"
+        {% if name === "basic-nodejs" %}selected{% endif %}
+      >
+        {{ name }}
+      </option>
+    {% endfor %}
+  </select>
+  <span class="description"></span> as a new project
+  <button disabled>Let's go!</button>
 </div>
 
 {% if projectList %}
-<h2>Your projects:</h2>
+  <h2>Your projects:</h2>
 
-<ul>
-  {% for project in projectList %}
-  {% set ownProject = true %}
-  {% include "fragments/project-card.html" %}
-  {% endfor %}
-</ul>
+  <ul>
+    {% for project in projectList %}
+      {% set ownProject = true %}
+      {% include "fragments/project-card.html" %}
+    {% endfor %}
+  </ul>
 {% endif %}
-
 {% include "fragments/settings.html" %}
 
 <footer>
-  <a href="https://github.com/Pomax/make-webbly-things/issues">File issues here</a>
+  <a href="https://github.com/Pomax/make-webbly-things/issues"
+    >File issues here</a
+  >
 </footer>

@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {% set profileUser = lookups.user %} {% set allowEdit = profile.ownProfile
-    or user.admin%}
+    {% set profileUser = lookups.user %}
+    {%
+      set allowEdit = profile.ownProfile
+      or user.admin
+    %}
     <title>Profile for {{ profileUser.name }}</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/themes/default/css/layout.css" />
@@ -14,8 +17,9 @@
   </head>
   <body>
     <h1>
-      Profile page for {{ profileUser.name }} {% if allowEdit %}
-      <button class="show-edit">edit</button>
+      Profile page for {{ profileUser.name }}
+      {% if allowEdit %}
+        <button class="show-edit">edit</button>
       {% endif %}
     </h1>
 
@@ -25,39 +29,42 @@
 
     <p>
       {% if profile.ownProfile %}You{% else %}{{ profileUser.name }}{% endif %}
-      joined {{ profileUser.created_at | year }} and created {{
-      profile.projects.length }} projects since then!
+      joined {{ profileUser.created_at | year }} and created
+      {{ profile.projects.length }} projects since then!
     </p>
 
     {% if profile.ownProfile %}
-    <section>
-      <h2>Login methods</h2>
+      <section>
+        <h2>Login methods</h2>
 
-      <p>
-        This "login" section is only visible to you, no one else can see it - if
-        you only have a single method of authentication tied to your user
-        account, you'll want to add at least one more, so that if you ever lose
-        access to your primary method of authentication, you can just log in
-        with your secondary (or tertiary, or... etc).
-      </p>
+        <p>
+          This "login" section is only visible to you, no one else can see it -
+          if you only have a single method of authentication tied to your user
+          account, you'll want to add at least one more, so that if you ever
+          lose access to your primary method of authentication, you can just log
+          in with your secondary (or tertiary, or... etc).
+        </p>
 
-      <ul class="login-methods">
-        {% for entry in profile.services %}
-        <li>
-          {{ entry.service_domain or entry.service }}
-          {% if profile.services.length > 1 %}
-          (<a href="/v1/users/service/remove/{{ entry.service }}">remove</a>)
-          {% endif %}
-        </li>
-        {% endfor %} {% for entry in profile.additionalServices %}
-        <li>
-          <a href="/v1/users/service/add/{{ entry.service }}">
-            add {{ entry.service_domain or entry.service }} as auth method
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-    </section>
+        <ul class="login-methods">
+          {% for entry in profile.services %}
+            <li>
+              {{ entry.service_domain or entry.service }}
+              {% if profile.services.length > 1 %}
+                (<a href="/v1/users/service/remove/{{ entry.service }}"
+                  >remove</a
+                >)
+              {% endif %}
+            </li>
+          {% endfor %}
+          {% for entry in profile.additionalServices %}
+            <li>
+              <a href="/v1/users/service/add/{{ entry.service }}">
+                add {{ entry.service_domain or entry.service }} as auth method
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
     {% endif %}
 
     <section class="presentation">
@@ -69,66 +76,73 @@
 
       <ul class="links">
         {% for link in profile.links %}
-        <li>{{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a></li>
+          <li>{{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a></li>
         {% endfor %}
       </ul>
     </section>
 
     {% if allowEdit %}
-    <section class="hidden edit-form">
-      <form action="/v1/users/profile/{{ profileUser.slug }}" method="POST">
-        <fieldset>
-          <h2>Bio</h2>
-          <p>Describe yourself! And if you want to use markdown: go for it!</p>
-          <textarea name="bio">{{ profileUser.bio }}</textarea>
-        </fieldset>
+      <section class="hidden edit-form">
+        <form action="/v1/users/profile/{{ profileUser.slug }}" method="POST">
+          <fieldset>
+            <h2>Bio</h2>
+            <p>
+              Describe yourself! And if you want to use markdown: go for it!
+            </p>
+            <textarea name="bio">{{ profileUser.bio }}</textarea>
+          </fieldset>
 
-        <fieldset>
-          <h2>Links</h2>
-          <p>
-            This is where you can list as many links that are related to
-            yourself as you want. And you're free to name those however you see
-            fit, there's no prescribed list of "you can only list X, Y, or Z",
-            if there's a link worth listing, go for it!
-          </p>
-          <input type="button" class="add-link" value="add link" />
-          <ul class="links">
-            {% for link in profile.links %}
-            <li>
-              <label>{{ link.name }}</label>
-              <input type="hidden" name="linkNames" value="{{ link.name }}" />
-              <input type="url" name="linkHrefs" value="{{ link.url }}" />
-              <input
-                type="hidden"
-                name="linkOrder"
-                value="{{ link.sort_order }}"
-              />
-              <input type="button" class="remove-link" value="remove" />
-            </li>
-            {% endfor %}
-          </ul>
-        </fieldset>
+          <fieldset>
+            <h2>Links</h2>
+            <p>
+              This is where you can list as many links that are related to
+              yourself as you want. And you're free to name those however you
+              see fit, there's no prescribed list of "you can only list X, Y, or
+              Z", if there's a link worth listing, go for it!
+            </p>
+            <input type="button" class="add-link" value="add link" />
+            <ul class="links">
+              {% for link in profile.links %}
+                <li>
+                  <label>{{ link.name }}</label>
+                  <input
+                    type="hidden"
+                    name="linkNames"
+                    value="{{ link.name }}"
+                  />
+                  <input type="url" name="linkHrefs" value="{{ link.url }}" />
+                  <input
+                    type="hidden"
+                    name="linkOrder"
+                    value="{{ link.sort_order }}"
+                  />
+                  <input type="button" class="remove-link" value="remove" />
+                </li>
+              {% endfor %}
+            </ul>
+          </fieldset>
 
-        <input type="reset" value="cancel" />
-        <input type="submit" value="save" />
-      </form>
-    </section>
+          <input type="reset" value="cancel" />
+          <input type="submit" value="save" />
+        </form>
+      </section>
     {% endif %}
 
     <h2>Projects</h2>
 
     <ul>
-      {% if profile.ownProfile %} {% set ownProject = true %} {% endif %} {% for
-      project in profile.projects %} {% include "fragments/project-card.html" %}
+      {% if profile.ownProfile %}{% set ownProject = true %}{% endif %}
+      {% for project in profile.projects %}
+        {% include "fragments/project-card.html" %}
       {% endfor %}
     </ul>
 
     {% if user %}
-    <footer>
-      <a href="https://github.com/Pomax/make-webbly-things/issues"
-        >File issues here</a
-      >
-    </footer>
+      <footer>
+        <a href="https://github.com/Pomax/make-webbly-things/issues"
+          >File issues here</a
+        >
+      </footer>
     {% endif %}
 
     <script src="/themes/default/js/profile.js" async defer></script>

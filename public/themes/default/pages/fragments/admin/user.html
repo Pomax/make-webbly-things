@@ -14,53 +14,57 @@
   <td>{{ user.admin }}</td>
   <!-- needs toggle -->
   <td>
-    {% if not user.admin %} {% if user.enabled_at != null %}
-    <form action="/v1/admin/user/disable/{{ user.id }}" method="post">
-      <button>disable</button>
-    </form>
-    {% if not user.activeSuspensions %}
-    <form action="/v1/admin/user/suspend/{{ user.id }}" method="post">
-      <input type="text" name="reason" placeholder="suspension reason" />
-      <button>suspend</button>
-    </form>
-    {% endif %} {% else %}
-    <form action="/v1/admin/user/enable/{{ user.id }}" method="post">
-      <button>enable</button>
-    </form>
-    {% endif %}
-    <form action="/v1/admin/user/delete/{{ user.id }}" method="post" disabled>
-      <fieldset disabled>
-        <button>delete</button>
-      </fieldset>
-    </form>
+    {% if not user.admin %}
+      {% if user.enabled_at != null %}
+        <form action="/v1/admin/user/disable/{{ user.id }}" method="post">
+          <button>disable</button>
+        </form>
+        {% if not user.activeSuspensions %}
+          <form action="/v1/admin/user/suspend/{{ user.id }}" method="post">
+            <input type="text" name="reason" placeholder="suspension reason" />
+            <button>suspend</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <form action="/v1/admin/user/enable/{{ user.id }}" method="post">
+          <button>enable</button>
+        </form>
+      {% endif %}
+      <form action="/v1/admin/user/delete/{{ user.id }}" method="post" disabled>
+        <fieldset disabled>
+          <button>delete</button>
+        </fieldset>
+      </form>
     {% endif %}
   </td>
 </tr>
 
 {% if user.suspensions.length %}
-<tr>
-  <td colspan="6">&nbsp;</td>
-</tr>
-{% for s in user.suspensions |reverse %}
-<tr>
-  <td></td>
-  <td colspan="5">
-    {% if not s.invalidated_at %}
-    <strong>Active suspension:</strong> "{{ s.reason }}", active since {{
-    s.suspended_at }}
-    <form action="/v1/admin/user/unsuspend/{{ s.id }}" method="post">
-      <button>lift suspension</button>
-    </form>
-    {% else %}<em>
-      Past suspension: "{{ s.reason }}" set {{ s.suspended_at}} but invalidated
-      on {{ s.invalidated_at | date }} </em
-    >{% endif %}
-  </td>
-</tr>
-{% endfor %}
-<tr>
-  <td colspan="6">&nbsp;</td>
-</tr>
+  <tr>
+    <td colspan="6">&nbsp;</td>
+  </tr>
+  {% for s in user.suspensions |reverse %}
+    <tr>
+      <td></td>
+      <td colspan="5">
+        {% if not s.invalidated_at %}
+          <strong>Active suspension:</strong> "{{ s.reason }}", active since
+          {{ s.suspended_at }}
+          <form action="/v1/admin/user/unsuspend/{{ s.id }}" method="post">
+            <button>lift suspension</button>
+          </form>
+        {% else %}
+          <em>
+            Past suspension: "{{ s.reason }}" set {{ s.suspended_at }} but
+            invalidated on {{ s.invalidated_at | date }}
+          </em>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan="6">&nbsp;</td>
+  </tr>
 {% endif %}
 
 <!-- we probably want a list of services the user has auth set up for, too -->

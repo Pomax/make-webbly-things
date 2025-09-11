@@ -45,24 +45,25 @@
 
 <ul>
   {% for entry in availableProviders %}
-  <li>
-    using
-    <a href="/auth/{{ entry.service }}"
-      >{{ entry.service_domain or entry.service }}</a
-    >
-  </li>
-  {% endfor %} {% if LOCAL_DEV_TESTING === "true" %}
-  <li>
-    <form action="/auth/email" method="post">
-      Or, <button>fake</button> an
-      <input type="email" name="email" placeholder="email" /> signin.
-    </form>
-    <p>
-      Note that this second option only exists to do user testing<br />
-      with fake users, and doesn't actually send out any emails.<br />
-      The activation link gets logged to the console.
-    </p>
-  </li>
+    <li>
+      using
+      <a href="/auth/{{ entry.service }}"
+        >{{ entry.service_domain or entry.service }}</a
+      >
+    </li>
+  {% endfor %}
+  {% if LOCAL_DEV_TESTING === "true" %}
+    <li>
+      <form action="/auth/email" method="post">
+        Or, <button>fake</button> an
+        <input type="email" name="email" placeholder="email" /> signin.
+      </form>
+      <p>
+        Note that this second option only exists to do user testing<br />
+        with fake users, and doesn't actually send out any emails.<br />
+        The activation link gets logged to the console.
+      </p>
+    </li>
   {% endif %}
 </ul>
 
@@ -82,10 +83,11 @@
       </p>
       <p>
         Step 2: pick which auth service you want to be your primary login
-        method: {% for entry in availableProviders %}
-        <button class="provider" data-name="{{ entry.service }}" disabled>
-          {{ entry.service_domain or entry.service }}
-        </button>
+        method:
+        {% for entry in availableProviders %}
+          <button class="provider" data-name="{{ entry.service }}" disabled>
+            {{ entry.service_domain or entry.service }}
+          </button>
         {% endfor %}
       </p>
     </form>
@@ -176,27 +178,28 @@
 </p>
 
 {% if projectList %}
-<h2>What are folks doing on this instance?</h2>
+  <h2>What are folks doing on this instance?</h2>
 
-<p>
-  If you just want to see some cool stuff that's happening on this instance,
-  here are the five most recent projects that people have been working on. You
-  can fire each of them up in the editor view (although of course as a random
-  visitor you will not be able to edit anything), or you can open the associated
-  websites by clicking the link at the bottom of each project card.
-</p>
+  <p>
+    If you just want to see some cool stuff that's happening on this instance,
+    here are the five most recent projects that people have been working on. You
+    can fire each of them up in the editor view (although of course as a random
+    visitor you will not be able to edit anything), or you can open the
+    associated websites by clicking the link at the bottom of each project card.
+  </p>
 
-<p>
-  Note that not all projects may be running, but if they are: those are not
-  screenshots, you're looking at the websites running as an embed. And if
-  they're interactive, you can interact with them. Or you can open them in their
-  own tab to experience them as proper, full website, of course!
-</p>
+  <p>
+    Note that not all projects may be running, but if they are: those are not
+    screenshots, you're looking at the websites running as an embed. And if
+    they're interactive, you can interact with them. Or you can open them in
+    their own tab to experience them as proper, full website, of course!
+  </p>
 
-<ul>
-  {% for project in projectList %} {% include "fragments/project-card.html" %}
-  {% endfor %}
-</ul>
+  <ul>
+    {% for project in projectList %}
+      {% include "fragments/project-card.html" %}
+    {% endfor %}
+  </ul>
 {% endif %}
 
 <h2>Is this open source?</h2>
