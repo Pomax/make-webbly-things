@@ -9,25 +9,27 @@ const { env } = process;
 
 const testing = env.LOCAL_DEVTESTING === `true`;
 
-export const githubSettings = env.GITHUB_CLIENT_ID
+const settings = {};
+
+export const githubSettings = (settings[`github`] = env.GITHUB_CLIENT_ID
   ? {
       clientID: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
       callbackURL: env.GITHUB_CALLBACK_URL,
       passReqToCallback: true,
     }
-  : undefined;
+  : undefined);
 
-export const googleSettings = env.GOOGLE_CLIENT_ID
+export const googleSettings = (settings[`google`] = env.GOOGLE_CLIENT_ID
   ? {
       clientID: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       callbackURL: env.GOOGLE_CALLBACK_URL,
       passReqToCallback: true,
     }
-  : undefined;
+  : undefined);
 
-export const magicSettings =
+export const magicSettings = (settings[`email`] =
   testing && env.MAGIC_LINK_SECRET
     ? {
         secret: env.MAGIC_LINK_SECRET,
@@ -35,9 +37,9 @@ export const magicSettings =
         tokenField: "token",
         verifyUserAfterToken: true,
       }
-    : undefined;
+    : undefined);
 
-export const mastodonSettings = env.MASTODON_CLIENT_ID
+export const mastodonSettings = (settings[`mastodon`] = env.MASTODON_CLIENT_ID
   ? {
       clientID: env.MASTODON_CLIENT_ID,
       clientSecret: env.MASTODON_CLIENT_SECRET,
@@ -45,7 +47,14 @@ export const mastodonSettings = env.MASTODON_CLIENT_ID
       domain: env.MASTODON_OAUTH_DOMAIN,
       passReqToCallback: true,
     }
-  : undefined;
+  : undefined);
+
+/**
+ * ...docs go here...
+ */
+export function getServiceDomain(provider) {
+  return settings[provider]?.domain;
+}
 
 /**
  * Which providers do we offer?
@@ -55,5 +64,3 @@ if (testing && magicSettings) validProviders.push(`email`);
 if (githubSettings) validProviders.push(`github`);
 if (googleSettings) validProviders.push(`google`);
 if (mastodonSettings) validProviders.push(`mastodon`);
-
-console.log(`Auth providers: ${validProviders.join(`, `)}`);

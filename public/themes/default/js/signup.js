@@ -23,11 +23,12 @@ const signup = document.getElementById(`signup`);
     providers.forEach((submit) => (submit.disabled = !available));
   });
 
-  const providers = [`google`, `github`].map((name) => {
-    const submit = signup.querySelector(`button.${name}`);
-    submit.addEventListener(`click`, () => {
-      signup.action = `${signup.dataset.action}/${name}`;
-    });
-    return submit;
-  });
+  const providers = [...document.querySelectorAll(`button.provider`)].map(
+    (submit) => {
+      submit.addEventListener(`click`, () => {
+        signup.action = `${signup.dataset.action}/${submit.dataset.name}`;
+      });
+      return submit;
+    }
+  );
 })();

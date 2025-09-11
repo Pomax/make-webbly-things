@@ -52,7 +52,7 @@ export function processUserSignup(username, userObject) {
   } catch (e) {
     // this is what we want: "error: no user found".
   }
-  const { service, service_id } = userObject;
+  const { service, service_id, service_domain } = userObject;
   const existingLogin = Login.find({ service, service_id });
   if (existingLogin) {
     // Nice try, but you only get one user account
@@ -61,7 +61,7 @@ export function processUserSignup(username, userObject) {
   }
   // Unknown user, and unknown service login: create a new account!
   const user = User.create({ name: username });
-  Login.create({ user_id: user.id, service, service_id });
+  Login.create({ user_id: user.id, service, service_id, service_domain });
   return user;
 }
 
@@ -109,10 +109,10 @@ function processUserLoginNormally(userObject) {
 function __processFirstTimeUserLogin(userObject) {
   unlinkSync(firstTimeSetup);
   __processUserLogin = processUserLoginNormally;
-  const { profileName, service, service_id } = userObject;
+  const { profileName, service, service_id, service_domain } = userObject;
   console.log(`First time login: marking ${profileName} as admin`);
   const user = User.create({ name: profileName });
-  Login.create({ user_id: user.id, service, service_id });
+  Login.create({ user_id: user.id, service, service_id, service_domain });
   Admin.create({ user_id: user.id });
   user.enabled_at = user.created_at;
   user.admin = true;
@@ -124,12 +124,12 @@ function __processFirstTimeUserLogin(userObject) {
  * Add a login provider for a user account
  */
 export function addLoginProviderForUser(user, userObject) {
-  const { service, service_id } = userObject;
+  const { service, service_id, service_domain } = userObject;
   let login = Login.find({ user_id: user.id, service });
   if (login) {
     return processUserLoginNormally(userObject);
   }
-  Login.create({ user_id: user.id, service, service_id });
+  Login.create({ user_id: user.id, service, service_id, service_domain });
   return user;
 }
 
@@ -227,11 +227,10 @@ export function getUserLoginServices(user) {
  */
 export function getUserProfile(user = {}, lookupUser) {
   const ownProfile = user.id === lookupUser.id;
-  const services = ownProfile
-    ? getUserLoginServices(user).map((s) => s.service)
-    : undefined;
+  const services = ownProfile ? getUserLoginServices(user) : undefined;
+  const serviceNames = services?.map((s) => s.service);
   const additionalServices = validProviders.filter(
-    (e) => !services?.includes(e),
+    (e) => !serviceNames?.includes(e),
   );
   return {
     user: lookupUser,

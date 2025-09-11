@@ -15,7 +15,7 @@ import {
   getStarterProjects,
 } from "../database/index.js";
 
-import { validProviders } from "./auth/settings.js";
+import { getServiceDomain, validProviders } from "./auth/settings.js";
 
 import { ROOT_DIR, CONTENT_DIR, slugify } from "../../helpers.js";
 
@@ -264,7 +264,10 @@ export function loadProjectList(req, res, next) {
  * ...docs go here...
  */
 export function loadProviders(req, res, next) {
-  res.locals.availableProviders = validProviders.slice();
+  res.locals.availableProviders = validProviders.map((name) => ({
+    service: name,
+    service_domain: getServiceDomain(name),
+  }));
   next();
 }
 

@@ -55,6 +55,7 @@ describe(`Helper function tests`, async () => {
       `migrations/0002.js`,
       `migrations/0003.sql`,
       `migrations/0004.sql`,
+      `migrations/0005.sql`,
       `schema.sql`,
       `README.md`,
     ].every((f) => listing.includes(f));

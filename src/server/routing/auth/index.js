@@ -24,6 +24,7 @@ import {
   magicSettings,
   mastodonSettings,
   validProviders,
+  getServiceDomain,
 } from "./settings.js";
 
 // Explicit env loading as we rely on process.env
@@ -80,6 +81,7 @@ function processOAuthLogin(req, accessToken, refreshToken, profile, done) {
     profileName: profile.displayName,
     service: profile.provider,
     service_id: profile.id,
+    service_domain: getServiceDomain(profile.provider),
   };
 
   let user;
