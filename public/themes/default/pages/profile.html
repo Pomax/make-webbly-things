@@ -70,14 +70,28 @@
     <section class="presentation">
       <h2>Bio</h2>
 
-      <div class="bio">{{ profileUser.bio | markdown | safe }}</div>
+      <div class="bio">
+        {% if profileUser.bio %}
+          {{ profileUser.bio | markdown | safe }}
+        {% else %}
+          This user has not filled in a personal bio yet, which may mean their
+          account hasn't been activated yet.
+        {% endif %}
+      </div>
 
       <h2>Links</h2>
 
       <ul class="links">
-        {% for link in profile.links %}
-          <li>{{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a></li>
-        {% endfor %}
+        {% if profile.links.length %}
+          {% for link in profile.links %}
+            <li>
+              {{ link.name }}: <a href="{{ link.url }}">{{ link.url }}</a>
+            </li>
+          {% endfor %}
+        {% else %}
+          This user has not added any links to their profile, which may mean
+          their account hasn't been activated yet.
+        {% endif %}
       </ul>
     </section>
 
@@ -130,19 +144,19 @@
 
     <h2>Projects</h2>
 
-    <ul>
-      {% if profile.ownProfile %}{% set ownProject = true %}{% endif %}
-      {% for project in profile.projects %}
-        {% include "fragments/project-card.html" %}
-      {% endfor %}
-    </ul>
+    {% if profile.projects.length %}
+      <ul>
+        {% if profile.ownProfile %}{% set ownProject = true %}{% endif %}
+        {% for project in profile.projects %}
+          {% include "fragments/project-card.html" %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      This user does not have any projects yet.
+    {% endif %}
 
     {% if user %}
-      <footer>
-        <a href="https://github.com/Pomax/make-webbly-things/issues"
-          >File issues here</a
-        >
-      </footer>
+      {% include "fragments/file-issues.html" %}
     {% endif %}
 
     <script src="/themes/default/js/profile.js" async defer></script>

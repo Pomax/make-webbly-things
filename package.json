@@ -1,5 +1,5 @@
 {
-  "name": "Make webbly things",
+  "name": "make-webbly-things",
   "version": "1.0.0",
   "type": "module",
   "description": "A platform for hosting user generated websites",
@@ -14,7 +14,8 @@
     "prettier:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
     "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
     "start": "node src/server/index.js",
-    "test": "npm run prettier && npm run prettier:html && npm run build && cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 ./src/tests/**/*.test.js && npm run test:cleanup",
+    "#test": "npm run prettier && npm run prettier:html && npm run build && cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 ./src/tests/**/*.test.js && npm run test:cleanup",
+    "test": "npm run prettier && npm run prettier:html && npm run build && cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 ./src/tests/setup/**/*.test.js && npm run test:cleanup",
     "test:cleanup": "node ./src/tests/test-cleanup.js"
   },
   "dependencies": {
