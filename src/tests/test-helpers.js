@@ -6,8 +6,8 @@ import * as User from "../server/database/user.js";
 import * as Project from "../server/database/project.js";
 
 import dotenv from "@dotenvx/dotenvx";
-import { CONTENT_DIR, scrubDateTime } from "../helpers.js";
-const envPath = resolve(join(import.meta.dirname, `..`, `..`, `.env`));
+import { CONTENT_DIR, scrubDateTime, ROOT_DIR } from "../helpers.js";
+const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 /**

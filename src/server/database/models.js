@@ -1,7 +1,6 @@
 import sqlite3 from "better-sqlite3";
-import { join, dirname } from "node:path";
 import { composeWhere } from "./utils.js";
-import { scrubDateTime, readContentDir } from "../../helpers.js";
+import { scrubDateTime, TESTING } from "../../helpers.js";
 
 const DEBUG_SQL = false;
 
@@ -14,8 +13,7 @@ export const EDITOR = 20; // edit access, cannot delete projects, can edit proje
 export const MEMBER = 10; // edit access, cannot edit project settings
 
 // We're in ./src/server/database, and we want ./data
-const testing = process.env.NODE_ENV === `TESTING`;
-const dbName = testing ? `test.sqlite3` : `data.sqlite3`;
+const dbName = TESTING ? `test.sqlite3` : `data.sqlite3`;
 const dbPath = `${import.meta.dirname}/../../../data/${dbName}`;
 
 export const db = sqlite3(dbPath);

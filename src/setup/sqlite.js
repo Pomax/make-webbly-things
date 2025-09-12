@@ -1,10 +1,11 @@
 import sqlite3 from "better-sqlite3";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT_DIR, slugify } from "../helpers.js";
+import { slugify } from "../helpers.js";
 import { applyMigrations } from "../server/database/utils.js";
+import { SETUP_ROOT_DIR } from "./utils.js";
 
-const dbPath = join(ROOT_DIR, `data`, `data.sqlite3`);
+const dbPath = join(SETUP_ROOT_DIR, `data`, `data.sqlite3`);
 
 /**
  * If we have sqlite3 available, check to see if there's a data.sqlite3
@@ -27,7 +28,7 @@ export async function setupSqlite() {
 
   starters.forEach((name) => {
     const settingsFile = join(
-      ROOT_DIR,
+      SETUP_ROOT_DIR,
       starterDir,
       name,
       `.container`,

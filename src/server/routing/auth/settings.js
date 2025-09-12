@@ -7,7 +7,7 @@ const envPath = join(import.meta.dirname, `../../../../.env`);
 dotenv.config({ path: envPath, quiet: true });
 const { env } = process;
 
-const testing = env.LOCAL_DEVTESTING === `true`;
+const LOCAL_DEV = env.LOCAL_DEVTESTING === `true`;
 
 const settings = {};
 
@@ -30,7 +30,7 @@ export const googleSettings = (settings[`google`] = env.GOOGLE_CLIENT_ID
   : undefined);
 
 export const magicSettings = (settings[`email`] =
-  testing && env.MAGIC_LINK_SECRET
+  LOCAL_DEV && env.MAGIC_LINK_SECRET
     ? {
         secret: env.MAGIC_LINK_SECRET,
         userFields: ["email"],
@@ -60,7 +60,7 @@ export function getServiceDomain(provider) {
  * Which providers do we offer?
  */
 export const validProviders = [];
-if (testing && magicSettings) validProviders.push(`email`);
+if (LOCAL_DEV && magicSettings) validProviders.push(`email`);
 if (githubSettings) validProviders.push(`github`);
 if (googleSettings) validProviders.push(`google`);
 if (mastodonSettings) validProviders.push(`mastodon`);

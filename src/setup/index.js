@@ -13,18 +13,18 @@
 
 import { join } from "node:path";
 import { writeFileSync } from "node:fs";
-import { pathExists, ROOT_DIR } from "../helpers.js";
+import { pathExists } from "../helpers.js";
 import dotenv from "@dotenvx/dotenvx";
 dotenv.config({ quiet: true });
 
-import { checkNodeVersion, runNpmInstall } from "./utils.js";
+import { checkNodeVersion, runNpmInstall, SETUP_ROOT_DIR } from "./utils.js";
 import { checkDependencies } from "./dependencies.js";
 import { setupEnv } from "./env.js";
 import { setupCaddy } from "../server/caddy/caddy.js";
 import { setupDocker } from "./docker.js";
 import { setupSqlite } from "./sqlite.js";
 
-const dbPath = join(ROOT_DIR, `data`, `data.sqlite3`);
+const dbPath = join(SETUP_ROOT_DIR, `data`, `data.sqlite3`);
 const BYPASS_FINISH = pathExists(dbPath);
 const DOCKER_MAINTENANCE = process.argv.includes(`--clean`);
 const noop = () => {};
@@ -73,7 +73,7 @@ Run "npm start", log in, and have fun!
     // enables the user account, and flips the admin switch for it.
     else {
       const token = `${Math.random()}`.substring(2);
-      writeFileSync(join(ROOT_DIR, `.finish-setup`), token);
+      writeFileSync(join(SETUP_ROOT_DIR, `.finish-setup`), token);
 
       console.log(`
 Setup complete.

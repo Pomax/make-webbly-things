@@ -13,12 +13,10 @@ import {
   randomDockerProjectName,
 } from "../../../../test-helpers.js";
 import { portBindings } from "../../../../../server/caddy/caddy.js";
-import { CONTENT_DIR } from "../../../../../helpers.js";
+import { CONTENT_DIR, ROOT_DIR } from "../../../../../helpers.js";
 
 import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `..`, `..`, `.env`),
-);
+const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 const WITHOUT_RUNNING = false;

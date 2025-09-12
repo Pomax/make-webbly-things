@@ -9,11 +9,9 @@ import {
 import * as Project from "../../../../../server/database/project.js";
 import * as User from "../../../../../server/database/user.js";
 import * as Middleware from "../../../../../server/routing/v1/admin/middleware.js";
-
+import { ROOT_DIR } from "../../../../../helpers.js";
 import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `..`, `..`, `.env`),
-);
+const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 describe(`admin middlerware tests`, async () => {

@@ -7,11 +7,9 @@ import {
   concludeTesting,
   Models,
 } from "../../../server/database/index.js";
-
+import { ROOT_DIR } from "../../../helpers.js";
 import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`),
-);
+const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 describe(`user tests`, async () => {

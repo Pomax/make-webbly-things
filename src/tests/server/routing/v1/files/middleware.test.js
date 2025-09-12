@@ -13,9 +13,7 @@ import { createPatch } from "../../../../../../public/vendor/diff.js";
 
 import dotenv from "@dotenvx/dotenvx";
 import { ROOT_DIR, CONTENT_DIR } from "../../../../../helpers.js";
-const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `..`, `..`, `.env`),
-);
+const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 const WITHOUT_RUNNING = false;

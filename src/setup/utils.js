@@ -1,5 +1,13 @@
 import readline from "node:readline";
+import { join } from "node:path";
 import { execSync } from "node:child_process";
+import { TESTING, ROOT_DIR } from "../helpers.js";
+
+// We want to make sure that test setup does
+// NOT overwrite our "production" settings!
+export const SETUP_ROOT_DIR = TESTING
+  ? join(ROOT_DIR, `__setup_dir`)
+  : ROOT_DIR;
 
 // used by the question() helper
 const stdin = readline.createInterface({
@@ -12,7 +20,9 @@ export const STDIO = process.argv.includes(`--debug`) ? `inherit` : `ignore`;
 
 // Rather important for testing:
 export function closeReader() {
-  stdin.close();
+  try {
+    stdin.close();
+  } catch (e) {}
 }
 
 /**

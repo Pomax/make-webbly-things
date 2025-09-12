@@ -1,12 +1,11 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { question, randomSecret } from "./utils.js";
+import { question, randomSecret, SETUP_ROOT_DIR } from "./utils.js";
 import {
   setupGithubAuth,
   setupGoogleAuth,
   setupMastodonAuth,
 } from "./auth-providers.js";
-import { ROOT_DIR } from "../helpers.js";
 
 /**
  * (Re)generate the .env file that we need.
@@ -108,7 +107,7 @@ This will require knowing your DNS provider and your API key for that provider.
 
   // (Re)generate the .env file
   writeFileSync(
-    join(ROOT_DIR, `.env`),
+    join(SETUP_ROOT_DIR, `.env`),
     `LOCAL_DEV_TESTING=${LOCAL_DEV_TESTING || `true`}
 
 WEB_EDITOR_HOSTNAME="${WEB_EDITOR_HOSTNAME}"

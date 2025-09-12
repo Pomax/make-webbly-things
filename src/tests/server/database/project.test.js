@@ -10,12 +10,10 @@ import * as Project from "../../../server/database/project.js";
 
 import { portBindings } from "../../../server/caddy/caddy.js";
 import { createDockerProject, tryFor } from "../../test-helpers.js";
-import { scrubDateTime } from "../../../helpers.js";
+import { scrubDateTime, ROOT_DIR } from "../../../helpers.js";
 
 import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(
-  join(import.meta.dirname, `..`, `..`, `..`, `..`, `.env`),
-);
+const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 describe(`project testing`, async () => {

@@ -96,12 +96,16 @@ export {
   updateSettingsForProject,
 };
 
-import { readContentDir, scrubDateTime } from "../../helpers.js";
+import {
+  readContentDir,
+  scrubDateTime,
+  TESTING,
+  ROOT_DIR,
+} from "../../helpers.js";
 import { applyMigrations } from "./utils.js";
 import { join } from "node:path";
 
-const testing = process.env.NODE_ENV === `TESTING`;
-const dataPath = join(import.meta.dirname, `..`, `..`, `..`, `data`);
+const dataPath = join(ROOT_DIR, `data`);
 
 /**
  * Are we on the right version of the database?
@@ -120,7 +124,7 @@ export async function getMigrationStatus() {
  * This should be obvious... =D
  */
 export async function initTestDatabase() {
-  if (!testing) return;
+  if (!TESTING) return;
 
   // Ensure the test database is up to date
   await applyMigrations(join(dataPath, `test.sqlite3`));
@@ -173,7 +177,7 @@ export async function initTestDatabase() {
  * @returns
  */
 export function concludeTesting() {
-  if (!testing) return;
+  if (!TESTING) return;
   db.exec(`DELETE FROM users`);
   db.exec(`DELETE FROM projects`);
   db.exec(`DELETE FROM remix`);

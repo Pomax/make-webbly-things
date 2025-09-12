@@ -1,8 +1,7 @@
 import { execSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { STDIO } from "./utils.js";
-import { ROOT_DIR } from "../helpers.js";
+import { SETUP_ROOT_DIR, STDIO } from "./utils.js";
 
 const DOCKER_MAINTENANCE = process.argv.includes(`--clean`);
 
@@ -49,7 +48,7 @@ export function setupDocker() {
     });
   }
   writeFileSync(
-    join(ROOT_DIR, `Dockerfile`),
+    join(SETUP_ROOT_DIR, `Dockerfile`),
     `FROM ${WEB_EDITOR_IMAGE_NAME}:latest
 CMD sh .container/run.sh
 `,
