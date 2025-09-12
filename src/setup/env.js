@@ -10,7 +10,7 @@ import {
 /**
  * (Re)generate the .env file that we need.
  */
-export async function setupEnv() {
+export async function setupEnv(readProcess = true, autoFill = {}) {
   let {
     LOCAL_DEV_TESTING,
     WEB_EDITOR_HOSTNAME,
@@ -18,7 +18,7 @@ export async function setupEnv() {
     WEB_EDITOR_IMAGE_NAME,
     TLS_DNS_PROVIDER,
     TLS_DNS_API_KEY,
-  } = process.env;
+  } = readProcess ? process.env : autoFill;
 
   // Do we need to do any host setup?
   if (!WEB_EDITOR_HOSTNAME || !WEB_EDITOR_APPS_HOSTNAME) {
@@ -37,6 +37,7 @@ project containers.
         (await question(
           `Web editor hostname (defaults to ${defaultHost})`,
           true,
+          autoFill.WEB_EDITOR_HOSTNAME,
         )) || defaultHost;
     }
 
@@ -46,6 +47,7 @@ project containers.
         (await question(
           `Web app hostname (defaults to ${defaultAppHost})`,
           true,
+          autoFill.WEB_EDITOR_APPS_HOSTNAME,
         )) || defaultAppHost;
     }
   }
@@ -67,6 +69,7 @@ have a Docker image by that name, so...
       (await question(
         `Base docker image name (defaults to ${defaultImage})`,
         true,
+        autoFill.WEB_EDITOR_IMAGE_NAME,
       )) || defaultImage;
   }
 
@@ -74,18 +77,20 @@ have a Docker image by that name, so...
   const GITHUB_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/github/callback`;
   const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = await setupGithubAuth(
     process.env,
+    autoFill,
   );
 
   // Google login setup?
   const GOOGLE_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/google/callback`;
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = await setupGoogleAuth(
     process.env,
+    autoFill,
   );
 
   // Mastodon login setup?
   const MASTODON_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/mastodon/callback`;
   const { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET } =
-    await setupMastodonAuth(process.env);
+    await setupMastodonAuth(process.env, autoFill);
 
   // Is this a hosted instance?
   if (!TLS_DNS_API_KEY) {
@@ -98,10 +103,23 @@ caddy with the information it needs to negotiate DNS "ACME" connections.
 This will require knowing your DNS provider and your API key for that provider.
 `);
 
-    const setupTLS = await question(`Add TLS information now? [y/n]`);
+    const setupTLS = await question(
+      `Add TLS information now? [y/n]`,
+      false,
+      autoFill.SETUP_TLS,
+    );
     if (setupTLS.toLowerCase().startsWith(`y`)) {
-      TLS_DNS_PROVIDER = await question(`TLS DNS provider (e.g. digitalocean)`);
-      TLS_DNS_API_KEY = await question(`TLS DNS provider API key`);
+      TLS_DNS_PROVIDER = await question(
+        `TLS DNS provider (e.g. digitalocean)`,
+        false,
+        autoFill.TLS_DNS_PROVIDER,
+      );
+
+      TLS_DNS_API_KEY = await question(
+        `TLS DNS provider API key`,
+        false,
+        autoFill.TLS_DNS_API_KEY,
+      );
     }
   }
 

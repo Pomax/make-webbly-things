@@ -1,13 +1,11 @@
 // -- Schema v3
 
-import { slugify } from "../../src/helpers.js";
-
 /**
  * This migration adds a new users.slug column, which needs to
  * be a unique, not-null text value equal to the name column, as
  * run through our "slugify" function so it bcomes a URL-safe value
  */
-export default function update(data) {
+export default async function update(data, { slugify }) {
   // extend the user schema
   const tableStart = data.indexOf(`CREATE TABLE users`);
   const createdAt = data.indexOf(`  created_at`, tableStart);

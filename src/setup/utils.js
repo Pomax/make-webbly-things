@@ -63,7 +63,8 @@ export async function checkNodeVersion() {
  * A little wrapper function so we can ask questions that may,
  * or may not, accept empty answers.
  */
-export async function question(q, allowEmpty = false) {
+export async function question(q, allowEmpty = false, autoFill = false) {
+  if (autoFill !== false) return autoFill;
   return new Promise((resolve) => {
     stdin.question(`${q}? `, (value) => {
       value = value.trim();

@@ -5,9 +5,14 @@ const NO_AUTH_PROVIDERS = process.argv.includes(`--no-auth`);
 /**
  * Set up GitHub as auth provider
  */
-export async function setupGithubAuth(env) {
+export async function setupGithubAuth(env, autoFill = {}) {
   // Are we already done?
-  let { WEB_EDITOR_HOSTNAME, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = env;
+  let { WEB_EDITOR_HOSTNAME } = env;
+  let { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = autoFill;
+
+  GITHUB_CLIENT_ID ??= env.GITHUB_CLIENT_ID;
+  GITHUB_CLIENT_SECRET ??= env.GITHUB_CLIENT_SECRET;
+
   if (GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET) {
     return { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET };
   }
@@ -41,9 +46,14 @@ codebase will read in every time it starts up.
 /**
  * Set up Google as auth provider
  */
-export async function setupGoogleAuth(env) {
+export async function setupGoogleAuth(env, autoFill = {}) {
   // Are we already done?
-  let { WEB_EDITOR_HOSTNAME, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = env;
+  let { WEB_EDITOR_HOSTNAME } = env;
+  let { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = autoFill;
+
+  GOOGLE_CLIENT_ID ??= env.GOOGLE_CLIENT_ID;
+  GOOGLE_CLIENT_SECRET ??= env.GOOGLE_CLIENT_SECRET;
+
   if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
     return { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET };
   }
@@ -78,13 +88,15 @@ codebase will read in every time it starts up.
 /**
  * Add Mastodon as auth provider
  */
-export async function setupMastodonAuth(env) {
-  let {
-    WEB_EDITOR_HOSTNAME,
-    MASTODON_OAUTH_DOMAIN,
-    MASTODON_CLIENT_ID,
-    MASTODON_CLIENT_SECRET,
-  } = env;
+export async function setupMastodonAuth(env, autoFill = {}) {
+  let { WEB_EDITOR_HOSTNAME } = env;
+
+  let { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET } =
+    autoFill;
+
+  MASTODON_OAUTH_DOMAIN ??= env.MASTODON_OAUTH_DOMAIN;
+  MASTODON_CLIENT_ID ??= env.MASTODON_CLIENT_ID;
+  MASTODON_CLIENT_SECRET ??= env.MASTODON_CLIENT_SECRET;
 
   if (MASTODON_OAUTH_DOMAIN && MASTODON_CLIENT_ID && MASTODON_CLIENT_SECRET) {
     return {

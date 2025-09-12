@@ -8,8 +8,9 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { readContentDir } from "../../helpers.js";
+import * as Helpers from "../../helpers.js";
 import sqlite3 from "better-sqlite3";
+const { readContentDir } = Helpers;
 
 /**
  * Uplift a database, based on its `user_version` pragma,
@@ -108,7 +109,9 @@ export async function migrate(dbPath, migrationScript, migrationNumber) {
   const update = await import(pathToFileURL(migrationScript)).then(
     (lib) => lib.default,
   );
-  data = update(data) + `\n\PRAGMA user_version = ${migrationNumber + 1};\n`;
+  data =
+    (await update(data, Helpers)) +
+    `\n\PRAGMA user_version = ${migrationNumber + 1};\n`;
   writeFileSync(sqlPath, data);
   cpSync(dbPath, oldDb);
   rmSync(dbPath);
