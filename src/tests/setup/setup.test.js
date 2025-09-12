@@ -1,6 +1,6 @@
 import sqlite3 from "better-sqlite3";
 import test, { after, describe, before } from "node:test";
-import assert, { fail } from "node:assert";
+import assert from "node:assert";
 import * as Utils from "../../setup/utils.js";
 import { cpSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -29,6 +29,7 @@ const autoFill = {
 
 Utils.checkNodeVersion();
 Utils.runNpmInstall();
+Utils.closeReader();
 
 const recursive = { recursive: true };
 
@@ -55,18 +56,18 @@ describe(`Setup script tests`, async () => {
     Utils.closeReader();
   });
 
-  test(`There are no parse errors on load`, async () => {
+  test(`runSetup`, async () => {
     await import(`../../setup/index.js`)
       .then((lib) => {
         const { runSetup } = lib;
         assert.equal(!!runSetup, true);
+        // TODO: what can we test here?
       })
       .catch((e) => {
         console.error(e);
-        fail();
+        assert.equal(true, false);
       });
   });
-
   test(`dependencies`, async () => {
     const { checkDependencies } = await import(`../../setup/dependencies.js`);
     assert.equal(!!checkDependencies, true);
@@ -75,7 +76,7 @@ describe(`Setup script tests`, async () => {
       assert.equal(true, true);
     } catch (e) {
       console.error(e);
-      fail();
+      assert.equal(true, false);
     }
   });
 
@@ -109,13 +110,5 @@ describe(`Setup script tests`, async () => {
     let version = db.prepare(`PRAGMA user_version`).get().user_version;
     db.close();
     assert.equal(version, 6);
-
-    //await setupEnv(false, autoFill);
-    //// See https://github.com/dotenvx/dotenvx/issues/673
-    //const asWritten = readFileSync(join(SETUP_ROOT_DIR, `.env`)).toString();
-    //const env = dotenv.parse(asWritten, { processEnv: {} });
-    //for (const [key, value] of Object.entries(env)) {
-    //  assert.equal(value, env[key]);
-    //}
   });
 });
