@@ -31,7 +31,7 @@ export async function setupSqlite() {
       starterDir,
       name,
       `.container`,
-      `settings.json`
+      `settings.json`,
     );
     const slug = slugify(name);
     const settings = JSON.parse(readFileSync(settingsFile).toString());
@@ -49,12 +49,12 @@ export async function setupSqlite() {
     let result = db.prepare(`SELECT * FROM projects WHERE name = ?`).get(name);
     if (!result) {
       db.prepare(
-        `INSERT INTO projects (name, slug, description) VALUES (?, ?, ?)`
+        `INSERT INTO projects (name, slug, description) VALUES (?, ?, ?)`,
       ).run(name, slug, description);
       result = db.prepare(`SELECT * FROM projects WHERE name = ?`).get(name);
       const { id } = result;
       db.prepare(
-        `INSERT INTO project_settings (project_id, default_file, default_collapse, run_script, env_vars, app_type, root_dir) VALUES (?,?,?,?,?,?,?)`
+        `INSERT INTO project_settings (project_id, default_file, default_collapse, run_script, env_vars, app_type, root_dir) VALUES (?,?,?,?,?,?,?)`,
       ).run(
         id,
         default_file ?? ``,
@@ -62,19 +62,19 @@ export async function setupSqlite() {
         run_script,
         env_vars ?? ``,
         app_type,
-        root_dir
+        root_dir,
       );
       db.prepare(`INSERT INTO starter_projects (project_id) VALUES (?)`).run(
-        id
+        id,
       );
     } else {
       const { id } = result;
       db.prepare(`UPDATE projects SET description=? WHERE id=?`).run(
         description,
-        id
+        id,
       );
       db.prepare(
-        `UPDATE project_settings SET default_file=?, default_collapse=?, run_script=?, env_vars=?, app_type=?, root_dir=? WHERE project_id=?`
+        `UPDATE project_settings SET default_file=?, default_collapse=?, run_script=?, env_vars=?, app_type=?, root_dir=? WHERE project_id=?`,
       ).run(
         default_file ?? ``,
         default_collapse ?? ``,
@@ -82,7 +82,7 @@ export async function setupSqlite() {
         env_vars ?? ``,
         app_type,
         root_dir,
-        id
+        id,
       );
     }
   });

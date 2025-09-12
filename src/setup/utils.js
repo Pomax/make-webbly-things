@@ -10,7 +10,6 @@ const stdin = readline.createInterface({
 // used by various execSync operations
 export const STDIO = process.argv.includes(`--debug`) ? `inherit` : `ignore`;
 
-
 // Rather important for testing:
 export function closeReader() {
   stdin.close();
@@ -72,7 +71,7 @@ export function randomSecret() {
   let randomSecret = ``;
   while (randomSecret.length < 40) {
     randomSecret += String.fromCharCode(
-      0x30 + (((0x7a - 0x30) * Math.random()) | 0)
+      0x30 + (((0x7a - 0x30) * Math.random()) | 0),
     );
   }
   return randomSecret;

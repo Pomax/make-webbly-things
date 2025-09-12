@@ -52,6 +52,6 @@ export function setupDocker() {
     join(ROOT_DIR, `Dockerfile`),
     `FROM ${WEB_EDITOR_IMAGE_NAME}:latest
 CMD sh .container/run.sh
-`
+`,
   );
 }

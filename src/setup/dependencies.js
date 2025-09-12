@@ -15,7 +15,7 @@ export function checkDependencies() {
   }
   if (!dockerRunning) {
     throw new Error(
-      `The docker command is available, but docker engine is not currently running.`
+      `The docker command is available, but docker engine is not currently running.`,
     );
   }
 }
