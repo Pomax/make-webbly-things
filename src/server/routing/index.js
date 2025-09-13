@@ -1,3 +1,6 @@
+import http from "node:http";
+import { join } from "node:path";
+import { WebSocketServer } from "ws";
 import express from "express";
 import session from "express-session";
 import sqlite3 from "better-sqlite3";
@@ -12,7 +15,13 @@ import {
 } from "./middleware.js";
 import { addPassportAuth } from "./auth/index.js";
 import { setupRoutesV1 } from "./v1/setup-routes.js";
-import { scrubDateTime } from "../../helpers.js";
+import {
+  CONTENT_DIR,
+  getFileSum,
+  ROOT_DIR,
+  scrubDateTime,
+} from "../../helpers.js";
+import { watchFile } from "node:fs";
 
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 
@@ -40,23 +49,24 @@ function internalErrorHandler(err, req, res, next) {
 function addSessionManagement(app) {
   const SQLite3Store = betterSQLite3Store(session);
   const sessionsDB = new sqlite3("./data/sessions.sqlite3");
-  app.use(
-    session({
-      cookie: {
-        httpOnly: true,
+  const sessionParser = session({
+    cookie: {
+      httpOnly: true,
+    },
+    resave: false,
+    saveUninitialized: false,
+    secret: process.env.SESSION_SECRET,
+    store: new SQLite3Store({
+      client: sessionsDB,
+      expired: {
+        clear: true,
+        intervalMs: FIFTEEN_MINUTES_IN_MS,
       },
-      resave: false,
-      saveUninitialized: false,
-      secret: process.env.SESSION_SECRET,
-      store: new SQLite3Store({
-        client: sessionsDB,
-        expired: {
-          clear: true,
-          intervalMs: FIFTEEN_MINUTES_IN_MS,
-        },
-      }),
     }),
-  );
+  });
+
+  app.use(sessionParser);
+  return sessionParser;
 }
 
 /**
@@ -67,7 +77,7 @@ export function setupRoutes(app) {
   app.use(log);
 
   // We're going to need sessions
-  addSessionManagement(app);
+  const sessionParser = addSessionManagement(app);
 
   // passport-mediated login routes
   addPassportAuth(app);
@@ -88,7 +98,7 @@ export function setupRoutes(app) {
         ...process.env,
         ...res.locals,
         ...req.session,
-      }),
+      })
   );
 
   // static routes for the website itself
@@ -100,4 +110,60 @@ export function setupRoutes(app) {
 
   // And terminal error handling.
   app.use(internalErrorHandler);
+
+  // TEST: websocket routing:
+
+  const watchers = {};
+  const listeners = {};
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ clientTracking: false, noServer: true });
+
+  // Set up session-backed websocket negotiation:
+  server.on("upgrade", function (request, socket, head) {
+    socket.on("error", console.error);
+    sessionParser(request, {}, () => {
+      const { user } = request.session.passport ?? {};
+      if (!user) {
+        socket.write(`HTTP/1.1 401 Unauthorized\r\n\r\n`);
+        socket.destroy();
+        return;
+      }
+      console.log(`Session is parsed, user is ${user.id}!`);
+      socket.removeListener("error", console.error);
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit(`connection`, ws, request);
+      });
+    });
+  });
+
+  // Then set up our websocket messaging protocol:
+  wss.on("connection", (ws, request) => {
+    const { user } = request.session.passport ?? {};
+    ws.on("error", console.error);
+    ws.on("message", (message) => {
+      message = message.toString();
+      console.log(`Received message ${message} from user ${user.slug}`);
+
+      // server-side file update?
+      if (message.startsWith(`register:update:`)) {
+        const key = message.replace(`register:update:`, ``);
+        const path = join(ROOT_DIR, CONTENT_DIR, key);
+        watchers[key] ??= watchFile(path, { interval: 500 }, () => {
+          const hash = getFileSum(null, path, true);
+          listeners[key].forEach((ws) =>
+            ws.send(
+              `update:${key}:${JSON.stringify({
+                hash,
+              })}`
+            )
+          );
+        });
+        listeners[key] ??= [];
+        listeners[key].push(ws);
+      }
+    });
+    ws.on("close", () => {});
+  });
+
+  return server;
 }

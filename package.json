@@ -51,6 +51,12 @@
     "cross-env": "^10.0.0",
     "esbuild": "^0.25.8",
     "prettier": "^3.6.2",
+<<<<<<< HEAD
     "prettier-plugin-jinja-template": "^2.1.0"
+=======
+    "ubase.js": "^1.0.3",
+    "use-models-for-data": "^0.0.27",
+    "ws": "^8.18.3"
+>>>>>>> 5212348 (basic websocket test)
   }
 }

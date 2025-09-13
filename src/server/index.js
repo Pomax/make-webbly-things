@@ -44,9 +44,9 @@ const { WEB_EDITOR_HOSTNAME } = process.env;
 const app = express();
 setupTemplating(app);
 setDefaultAspects(app);
-setupRoutes(app);
+const server = setupRoutes(app);
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   // Ensure the database is up to date
   await applyMigrations(join(ROOT_DIR, `data`, `data.sqlite3`));
 

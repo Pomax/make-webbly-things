@@ -29736,6 +29736,13 @@ async function syncContent(projectSlug4, entry, filename = entry.filename) {
   entry.debounce = false;
 }
 
+// src/client/websocket.js
+var ws = void 0;
+try {
+  ws = new WebSocket(location.toString().replace(`https:`, `wss:`));
+} catch (e2) {
+}
+
 // src/client/editor/editor-components.js
 var { projectId } = document.body.dataset;
 var fileTree = document.querySelector(`file-tree`);
@@ -29812,10 +29819,15 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
   const data3 = await fetchFileContents(projectSlug4, filename, viewType.type);
   const verified = verifyViewType(viewType.type, data3);
   if (!verified) return alert(`File contents does not match extension.`);
+  const key = `${projectSlug4}/${filename}`;
   let view;
   if (viewType.text || viewType.unknown) {
     const initialState = getInitialState(fileEntry, filename, data3);
     view = setupView(panel, initialState);
+    view.updateFile = (data4) => {
+      data4 = JSON.parse(data4);
+      console.log(`updateFile ${key}`, data4);
+    };
   } else if (viewType.media) {
     const { type } = viewType;
     if (type.startsWith(`image`)) {
@@ -29827,9 +29839,21 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
       view = create(`video`);
       view.controls = true;
     }
-    view.src = `/v1/files/content/${projectSlug4}/${filename}`;
+    view.src = `/v1/files/content/${key}`;
+    view.updateFile = (data4) => {
+      view.src = `/v1/files/content/${key}?v=${Date.now()}`;
+    };
     panel.appendChild(view);
   }
+  const updateEvent = `update:${key}:`;
+  const updateKey = `${updateEvent}:`;
+  ws.addEventListener(`message`, ({ data: data4 }) => {
+    if (data4.startsWith(updateKey)) {
+      view.updateFile(data4.replace(updateKey, ``));
+    }
+  });
+  console.log(`registering for updates to ${key}`);
+  ws.send(`register:${updateEvent}`);
   view.tabElement = tab;
   addEditorEventHandling(fileEntry, panel, tab, close, view);
   const properties2 = {

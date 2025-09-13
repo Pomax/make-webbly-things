@@ -2,6 +2,7 @@ import { getInitialState, setupView } from "./code-mirror-6.js";
 import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent } from "../files/sync.js";
+import { ws } from "../websocket.js";
 
 const { projectId } = document.body.dataset;
 
@@ -122,15 +123,26 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   // Is this text or viewable media?
   const viewType = getViewType(filename);
   const data = await fetchFileContents(projectSlug, filename, viewType.type);
-  const verified = verifyViewType(viewType.type, data);
 
+  const verified = verifyViewType(viewType.type, data);
   if (!verified) return alert(`File contents does not match extension.`);
 
+  const key = `${projectSlug}/${filename}`;
+
   let view;
+
+  // Plain text?
   if (viewType.text || viewType.unknown) {
     const initialState = getInitialState(fileEntry, filename, data);
     view = setupView(panel, initialState);
-  } else if (viewType.media) {
+    view.updateFile = (data) => {
+      data = JSON.parse(data);
+      console.log(`updateFile ${key}`, data);
+    };
+  }
+
+  // Media file?
+  else if (viewType.media) {
     const { type } = viewType;
     if (type.startsWith(`image`)) {
       view = create(`img`);
@@ -141,9 +153,23 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
       view = create(`video`);
       view.controls = true;
     }
-    view.src = `/v1/files/content/${projectSlug}/${filename}`;
+    view.src = `/v1/files/content/${key}`;
+    view.updateFile = (data) => {
+      view.src = `/v1/files/content/${key}?v=${Date.now()}`;
+    };
     panel.appendChild(view);
   }
+
+  // TEST: websocket change notifications
+  const updateEvent = `update:${key}:`;
+  const updateKey = `${updateEvent}:`;
+  ws.addEventListener(`message`, ({ data }) => {
+    if (data.startsWith(updateKey)) {
+      view.updateFile(data.replace(updateKey, ``));
+    }
+  });
+  console.log(`registering for updates to ${key}`);
+  ws.send(`register:${updateEvent}`);
 
   // FIXME: this feels like a hack, but there doesn't appear to be
   //        a clean way to associate data with an editor such that
