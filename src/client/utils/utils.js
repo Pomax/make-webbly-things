@@ -5,8 +5,17 @@ export const noop = () => {};
 /**
  * nicer than always typing document.createElement
  */
-export function create(tag) {
-  return document.createElement(tag);
+export function create(tag, attributes = {}) {
+  const e = document.createElement(tag);
+  const props = [`innerHTML`, `textContent`];
+  Object.entries(attributes).forEach(([k, v]) => {
+    if (props.includes(k)) {
+      e[k] = v;
+    } else {
+      e.setAttribute(k, v);
+    }
+  });
+  return e;
 }
 
 /**

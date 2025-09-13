@@ -1,6 +1,34 @@
 // src/client/entry-point.js
 import "/vendor/file-tree.esm.min.js";
 
+// src/client/utils/utils.js
+function create(tag, attributes = {}) {
+  const e2 = document.createElement(tag);
+  const props = [`innerHTML`, `textContent`];
+  Object.entries(attributes).forEach(([k, v]) => {
+    if (props.includes(k)) {
+      e2[k] = v;
+    } else {
+      e2.setAttribute(k, v);
+    }
+  });
+  return e2;
+}
+async function fetchFileContents(projectSlug4, fileName, type = `text/plain`) {
+  const response = await API.files.get(projectSlug4, fileName);
+  if (type.startsWith(`text`) || type.startsWith(`application`))
+    return response.text();
+  return response.arrayBuffer();
+}
+function getFileSum(data3) {
+  const enc = new TextEncoder();
+  return enc.encode(data3).reduce((t2, e2) => t2 + e2, 0);
+}
+function listEquals(a1, a2) {
+  if (a1.length !== a2.length) return false;
+  return a1.every((v, i) => a2[i] === v);
+}
+
 // src/client/utils/api.js
 var PREFIX = `/v1`;
 var fetch = (...args) => globalThis.fetch(`${PREFIX}/${args.shift()}`, ...args);
@@ -9,8 +37,9 @@ var API = {
   // restarting the container, updating settings, etc.
   projects: {
     download: async (projectSlug4) => {
-      const a = document.createElement(`a`);
-      a.href = `${PREFIX}/projects/download/${projectSlug4}`;
+      const a = create(`a`, {
+        href: `${PREFIX}/projects/download/${projectSlug4}`
+      });
       a.click();
     },
     remix: async (projectSlug4) => {
@@ -50,25 +79,6 @@ var API = {
     // NOTE: there is no separate delete-dir, the delete route should just "do what needs to be done".
   }
 };
-
-// src/client/utils/utils.js
-function create(tag) {
-  return document.createElement(tag);
-}
-async function fetchFileContents(projectSlug4, fileName, type = `text/plain`) {
-  const response = await API.files.get(projectSlug4, fileName);
-  if (type.startsWith(`text`) || type.startsWith(`application`))
-    return response.text();
-  return response.arrayBuffer();
-}
-function getFileSum(data3) {
-  const enc = new TextEncoder();
-  return enc.encode(data3).reduce((t2, e2) => t2 + e2, 0);
-}
-function listEquals(a1, a2) {
-  if (a1.length !== a2.length) return false;
-  return a1.every((v, i) => a2[i] === v);
-}
 
 // src/client/files/content-types.js
 function getMimeType(fileName) {
@@ -176,7 +186,7 @@ if (pause) {
 async function updatePreview() {
   if (!refresh) return;
   const iframe = preview.querySelector(`iframe`);
-  const newFrame = document.createElement(`iframe`);
+  const newFrame = create(`iframe`);
   if (first_time_load++ < 10) {
     console.log(`checking container for ready`);
     const status = await API.projects.health(projectSlug);
@@ -222,9 +232,10 @@ restart?.addEventListener(`click`, async () => {
 });
 newtab?.addEventListener(`click`, async () => {
   const iframe = preview.querySelector(`iframe`);
-  const link = document.createElement(`a`);
-  link.href = iframe.src.replace(/\?v=\d+/, ``);
-  link.target = `_blank`;
+  const link = create(`a`, {
+    href: iframe.src.replace(/\?v=\d+/, ``),
+    target: `_blank`
+  });
   link.click();
 });
 
@@ -29746,21 +29757,23 @@ settingsIcon?.addEventListener(`click`, () => {
   showEditDialog(projectId);
 });
 function setupEditorPanel(filename) {
-  const panel = create(`div`);
-  panel.id = filename;
-  panel.title = filename;
-  panel.classList.add(`editor`, `tab`);
-  return panel;
+  return create(`div`, {
+    id: filename,
+    title: filename,
+    class: `tab editor`
+  });
 }
 function setupEditorTab(filename) {
-  const tab = create(`div`);
-  tab.title = filename;
-  tab.textContent = filename.includes(`/`) ? filename.substring(filename.lastIndexOf(`/`) + 1) : filename;
   document.querySelectorAll(`.active`).forEach((e2) => e2.classList.remove(`active`));
-  tab.classList.add(`tab`, `active`);
-  const close = create(`button`);
-  close.textContent = `x`;
-  close.classList.add(`close`);
+  const tab = create(`div`, {
+    title: filename,
+    textContent: filename.includes(`/`) ? filename.substring(filename.lastIndexOf(`/`) + 1) : filename,
+    class: `active tab`
+  });
+  const close = create(`button`, {
+    textContent: `x`,
+    class: `close`
+  });
   tab.appendChild(close);
   return { tab, close };
 }
@@ -30171,6 +30184,30 @@ function addTabScrollHandling() {
   }
 }
 
+// src/client/utils/notifications.js
+var Notice = class {
+  constructor(message, ttl = 5e3, type = `info`) {
+    const notice = this.notice = create(`div`, {
+      class: `${type} notice`
+    });
+    notice.textContent = message;
+    const close = create(`button`, {
+      class: `close`,
+      textContent: `x`
+    });
+    notice.addEventListener(`transitionend`, () => notice.remove());
+    close.addEventListener(`click`, () => {
+      close.disabled = true;
+      notice.style.opacity = 0;
+    });
+    notice.appendChild(close);
+    document.body.appendChild(notice);
+    if (ttl !== Infinity) {
+      setTimeout(() => close.click(), ttl);
+    }
+  }
+};
+
 // src/client/entry-point.js
 var { projectId: projectId2, projectSlug: projectSlug3 } = document.body.dataset;
 new class Editor {
@@ -30182,5 +30219,6 @@ new class Editor {
     await setupFileTree(this);
     addEventHandling(this.projectSlug);
     updatePreview();
+    new Notice(`Something has gone very wrong...`);
   }
 }();

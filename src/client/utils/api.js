@@ -1,3 +1,5 @@
+import { create } from "./utils.js";
+
 const PREFIX = `/v1`;
 
 // Make sure that "fetch()" automatically prepends the API
@@ -10,8 +12,9 @@ export const API = {
   // restarting the container, updating settings, etc.
   projects: {
     download: async (projectSlug) => {
-      const a = document.createElement(`a`);
-      a.href = `${PREFIX}/projects/download/${projectSlug}`;
+      const a = create(`a`, {
+        href: `${PREFIX}/projects/download/${projectSlug}`,
+      });
       a.click();
     },
     remix: async (projectSlug) => {
