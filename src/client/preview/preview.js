@@ -1,4 +1,5 @@
 import { API } from "../utils/api.js";
+import { create } from "../utils/utils.js";
 
 const restart = document.querySelector(`#preview-buttons .restart`);
 const pause = document.querySelector(`#preview-buttons .pause`);
@@ -26,7 +27,7 @@ export async function updatePreview() {
   if (!refresh) return;
 
   const iframe = preview.querySelector(`iframe`);
-  const newFrame = document.createElement(`iframe`);
+  const newFrame = create(`iframe`);
 
   if (first_time_load++ < 10) {
     console.log(`checking container for ready`);
@@ -80,8 +81,9 @@ restart?.addEventListener(`click`, async () => {
 
 newtab?.addEventListener(`click`, async () => {
   const iframe = preview.querySelector(`iframe`);
-  const link = document.createElement(`a`);
-  link.href = iframe.src.replace(/\?v=\d+/, ``);
-  link.target = `_blank`;
+  const link = create(`a`, {
+    href: iframe.src.replace(/\?v=\d+/, ``),
+    target: `_blank`,
+  });
   link.click();
 });

@@ -19,31 +19,35 @@ settingsIcon?.addEventListener(`click`, () => {
  * Create the editor's on-page container
  */
 export function setupEditorPanel(filename) {
-  const panel = create(`div`);
-  panel.id = filename;
-  panel.title = filename;
-  panel.classList.add(`editor`, `tab`);
-  return panel;
+  return create(`div`, {
+    id: filename,
+    title: filename,
+    class: `tab editor`,
+  });
 }
 
 /**
  * Create an editor's associated "tab" in the tab row
  */
 export function setupEditorTab(filename) {
-  const tab = create(`div`);
-  tab.title = filename;
-  tab.textContent = filename.includes(`/`)
-    ? filename.substring(filename.lastIndexOf(`/`) + 1)
-    : filename;
   // TODO: make tabs draggable so users can reorder them
   document
     .querySelectorAll(`.active`)
     .forEach((e) => e.classList.remove(`active`));
-  tab.classList.add(`tab`, `active`);
 
-  const close = create(`button`);
-  close.textContent = `x`;
-  close.classList.add(`close`);
+  const tab = create(`div`, {
+    title: filename,
+    textContent: filename.includes(`/`)
+      ? filename.substring(filename.lastIndexOf(`/`) + 1)
+      : filename,
+    class: `active tab`,
+  });
+
+  const close = create(`button`, {
+    textContent: `x`,
+    class: `close`,
+  });
+
   tab.appendChild(close);
 
   return { tab, close };

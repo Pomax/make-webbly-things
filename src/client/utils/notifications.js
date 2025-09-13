@@ -7,9 +7,9 @@ export class Notice {
     }));
     notice.textContent = message;
     const close = create(`button`, {
-      class: "close",
+      class: `close`,
+      textContent: `x`,
     });
-    close.textContent = `x`;
     notice.addEventListener(`transitionend`, () => notice.remove());
     close.addEventListener(`click`, () => {
       close.disabled = true;

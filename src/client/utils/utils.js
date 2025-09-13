@@ -7,7 +7,14 @@ export const noop = () => {};
  */
 export function create(tag, attributes = {}) {
   const e = document.createElement(tag);
-  Object.entries(attributes).forEach(([k, v]) => e.setAttribute(k, v));
+  const props = [`innerHTML`, `textContent`];
+  Object.entries(attributes).forEach(([k, v]) => {
+    if (props.includes(k)) {
+      e[k] = v;
+    } else {
+      e.setAttribute(k, v);
+    }
+  });
   return e;
 }
 
