@@ -18,7 +18,7 @@ new (class Editor {
     // As such, we also need custom handling for editor panes and tabs
     addEventHandling(this.projectSlug);
     updatePreview();
-    new Notice(`Something has gone very wrong...`)
+    new Notice(`Something has gone very wrong...`);
   }
 })();
 
