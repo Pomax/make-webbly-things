@@ -37,8 +37,8 @@ and secrets here: they'll get saved to an untracked .env file that the
 codebase will read in every time it starts up.
 `);
 
-  GITHUB_CLIENT_ID = await question(`Github client id`);
-  GITHUB_CLIENT_SECRET = await question(`Github client secret`);
+  GITHUB_CLIENT_ID ??= await question(`Github client id`);
+  GITHUB_CLIENT_SECRET ??= await question(`Github client secret`);
 
   return { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET };
 }
@@ -79,8 +79,8 @@ and secrets here: they'll get saved to an untracked .env file that the
 codebase will read in every time it starts up.
 `);
 
-  GOOGLE_CLIENT_ID = await question(`Google client id`);
-  GOOGLE_CLIENT_SECRET = await question(`Google client secret`);
+  GOOGLE_CLIENT_ID ??= await question(`Google client id`);
+  GOOGLE_CLIENT_SECRET ??= await question(`Google client secret`);
 
   return { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET };
 }
@@ -128,11 +128,20 @@ to an untracked .env file that the codebase will read in every time
 it starts up.
 `);
 
-  MASTODON_OAUTH_DOMAIN = await question(
-    `Which mastodon instance (e.g. mastodon.social)`,
-  );
-  MASTODON_CLIENT_ID = await question(`Mastodon client id`);
-  MASTODON_CLIENT_SECRET = await question(`Mastodon client secret`);
+  if (!MASTODON_OAUTH_DOMAIN) {
+    const defaultDomain = `mastodon.social`;
+    WEB_EDITOR_HOSTNAME =
+      (await question(
+        `Which mastodon instance (default to ${defaultDomain})`,
+        true,
+        autoFill.MASTODON_OAUTH_DOMAIN,
+      )) || defaultDomain;
+  }
+
+  MASTODON_OAUTH_DOMAIN ??= MASTODON_CLIENT_ID =
+    await question(`Mastodon client id`);
+
+  MASTODON_CLIENT_SECRET ??= await question(`Mastodon client secret`);
 
   return { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET };
 }

@@ -32,7 +32,7 @@ project containers.
 `);
 
     if (!WEB_EDITOR_HOSTNAME) {
-      let defaultHost = `localhost`;
+      const defaultHost = `localhost`;
       WEB_EDITOR_HOSTNAME =
         (await question(
           `Web editor hostname (defaults to ${defaultHost})`,
