@@ -9,7 +9,8 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "npm run lint && esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
+    "build": "npm run lint && npm run build:es",
+    "build:es": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm src/client/entry-point.js > public/js/editor.bundle.js",
     "prettier": "prettier --write \"./src/**/*.js\"",
     "prettier:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
     "prettier:single": "prettier --no-config --ignore-path \"\" --write ",

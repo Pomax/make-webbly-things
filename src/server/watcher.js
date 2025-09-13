@@ -15,7 +15,7 @@ let fileHashes = {};
 function rebuild() {
   console.log(`rebuilding`);
   const start = Date.now();
-  spawnSync(npm, [`run`, `build`], {
+  spawnSync(npm, [`run`, `build:es`], {
     stdio: `inherit`,
   });
   (console.log(`Build took ${Date.now() - start}ms`), 8);
