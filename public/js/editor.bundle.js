@@ -26952,8 +26952,8 @@ for (let a of eventAttributes)
   GlobalAttrs[a] = null;
 var Schema = class {
   constructor(extraTags, extraAttrs) {
-    this.tags = Object.assign(Object.assign({}, Tags), extraTags);
-    this.globalAttrs = Object.assign(Object.assign({}, GlobalAttrs), extraAttrs);
+    this.tags = { ...Tags, ...extraTags };
+    this.globalAttrs = { ...GlobalAttrs, ...extraAttrs };
     this.allTags = Object.keys(this.tags);
     this.globalAttrNames = Object.keys(this.globalAttrs);
   }
@@ -27186,7 +27186,7 @@ var htmlPlain = /* @__PURE__ */ LRLanguage.define({
   languageData: {
     commentTokens: { block: { open: "<!--", close: "-->" } },
     indentOnInput: /^\s*<\/\w+\W$/,
-    wordChars: "-._"
+    wordChars: "-_"
   }
 });
 var htmlLanguage = /* @__PURE__ */ htmlPlain.configure({
