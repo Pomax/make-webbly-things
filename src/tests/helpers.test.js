@@ -47,7 +47,7 @@ describe(`Helper function tests`, async () => {
   });
 
   test(`readContentDir`, async () => {
-    const listing = await Helpers.readContentDir(`./data`);
+    const { files } = Helpers.readContentDir(`./data`);
     const found = [
       `data.sqlite3`,
       `migrations`,
@@ -58,7 +58,7 @@ describe(`Helper function tests`, async () => {
       `migrations/0005.sql`,
       `schema.sql`,
       `README.md`,
-    ].every((f) => listing.includes(f));
+    ].every((f) => files.includes(f));
     assert.equal(found, true);
   });
 

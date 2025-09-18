@@ -84,13 +84,13 @@ export async function formatFile(req, res, next) {
   if ([`.js`, `.css`, `.html`].includes(ext)) {
     try {
       const output = await execPromise(
-        `${npm} run prettier:single -- "${fullPath}"`,
+        `${npm} run prettier:single -- "${fullPath}"`
       );
       console.log(output);
       formatted = true;
     } catch (e) {
       return next(
-        new Error(`Prettier could not format file:\n` + e.toString()),
+        new Error(`Prettier could not format file:\n` + e.toString())
       );
     }
   }
@@ -120,26 +120,13 @@ export async function getDirListing(req, res, next) {
 
   const dirName = join(contentDir, project.slug);
 
-  let dir = await readContentDir(dirName);
-  if (dir === false) {
-    return next(new Error(`read dir didn't work??`));
-  }
-
   // Remove any "private" data from the dir listing if
   // the user has no access rights to them.
   const accessLevel = userName ? getAccessFor(user, project) : -1;
 
-  // Users do not directly interact with the .container
-  // folder. Instead its content is regulated via the
-  // project settings.
-  dir = dir.filter((v) => !v.match(/^\.container\b/));
-
-  if (accessLevel < MEMBER) {
-    // private data is only visible to owners, editors, and
-    dir = dir.filter((v) => !v.match(/^\.data\b/));
-  }
-
-  res.locals.dir = dir;
+  const excludes = [`.container/**`];
+  if (accessLevel < MEMBER) excludes.push(`.data/**`);
+  res.locals.dirData = readContentDir(dirName, `*`, excludes);
   next();
 }
 

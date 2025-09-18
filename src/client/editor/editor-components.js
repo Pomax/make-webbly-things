@@ -1,8 +1,7 @@
 import { getInitialState, setupView } from "./code-mirror-6.js";
 import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
-import { syncContent } from "../files/sync.js";
-import { ws } from "../websocket.js";
+import { syncContent, createUpdateListener } from "../files/sync.js";
 
 const { projectId } = document.body.dataset;
 
@@ -103,7 +102,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
  * component for a given file.
  */
 export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
-  const entry = fileEntry.state;
+  let entry = fileEntry.state;
 
   if (entry?.view) {
     const { closed, tab, panel } = entry;
@@ -122,7 +121,14 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
 
   // Is this text or viewable media?
   const viewType = getViewType(filename);
-  const data = await fetchFileContents(projectSlug, filename, viewType.type);
+
+  // Do we fetch it via websocket or REST?
+  let data;
+  if (fileEntry.root.OT) {
+    ({ data } = await fileEntry.load());
+  } else {
+    data = await fetchFileContents(projectSlug, filename, viewType.type);
+  }
 
   const verified = verifyViewType(viewType.type, data);
   if (!verified) return alert(`File contents does not match extension.`);
@@ -133,12 +139,11 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
 
   // Plain text?
   if (viewType.text || viewType.unknown) {
+    if (data.map) {
+      data = data.map((v) => String.fromCharCode(v)).join(``);
+    }
     const initialState = getInitialState(fileEntry, filename, data);
     view = setupView(panel, initialState);
-    view.updateFile = (data) => {
-      data = JSON.parse(data);
-      console.log(`updateFile ${key}`, data);
-    };
   }
 
   // Media file?
@@ -154,22 +159,8 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
       view.controls = true;
     }
     view.src = `/v1/files/content/${key}`;
-    view.updateFile = (data) => {
-      view.src = `/v1/files/content/${key}?v=${Date.now()}`;
-    };
     panel.appendChild(view);
   }
-
-  // TEST: websocket change notifications
-  const updateEvent = `update:${key}:`;
-  const updateKey = `${updateEvent}:`;
-  ws.addEventListener(`message`, ({ data }) => {
-    if (data.startsWith(updateKey)) {
-      view.updateFile(data.replace(updateKey, ``));
-    }
-  });
-  console.log(`registering for updates to ${key}`);
-  ws.send(`register:${updateEvent}`);
 
   // FIXME: this feels like a hack, but there doesn't appear to be
   //        a clean way to associate data with an editor such that
@@ -189,7 +180,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
     content: viewType.editable ? view.state.doc.toString() : data,
     sync: () => {
       if (viewType.editable) {
-        syncContent(projectSlug, fileEntry.state);
+        syncContent(projectSlug, fileEntry);
       }
     },
     noSync: !viewType.editable,
@@ -199,6 +190,14 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
     Object.assign(entry, properties);
   } else {
     fileEntry.setState(properties);
+    entry = fileEntry.state;
+  }
+
+  // Make sure we have a change listener in place
+  // TODO: this feels like it should live in sync.js, not here
+  if (!entry.updateListener) {
+    const updateListener = createUpdateListener(entry);
+    fileEntry.addEventListener(`content:update`, updateListener);
   }
 
   // And activate this editor

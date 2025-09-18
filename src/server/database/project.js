@@ -151,7 +151,7 @@ export function deleteProjectForUser(user, project, adminCall) {
 export function getAccessFor(user, project) {
   if (!user) return UNKNOWN_USER;
   if (!user.enabled_at) return NOT_ACTIVATED;
-  const admin = userIsAdmin(user);
+  const admin = user.admin || userIsAdmin(user);
   if (admin) return ADMIN;
   const a = Access.find({ project_id: project.id, user_id: user.id });
   return a ? a.access_level : UNKNOWN_USER;
@@ -223,7 +223,7 @@ export function getProjectEnvironmentVariables(project) {
       .split(`\n`)
       .filter((v) => v.includes(`=`))
       .map((v) => v.trim().split(`=`))
-      .map(([k, v]) => [k.trim(), v.trim()]),
+      .map(([k, v]) => [k.trim(), v.trim()])
   );
 }
 
@@ -275,7 +275,7 @@ export function getStarterProjects() {
 export function isProjectSuspended(project) {
   return (
     ProjectSuspension.findAll({ project_id: project.id }).filter(
-      (s) => !s.invalidated_at,
+      (s) => !s.invalidated_at
     ).length > 0
   );
 }

@@ -6,7 +6,8 @@ import { DEFAULT_FILES } from "./default-files.js";
 
 import { unzip } from "/vendor/unzipit.module.js";
 
-const { projectSlug, defaultFile, defaultCollapse } = document.body.dataset;
+const { defaultCollapse, defaultFile, projectMember, projectSlug } =
+  document.body.dataset;
 
 const fileTree = document.getElementById(`filetree`);
 
@@ -31,7 +32,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
     getOrCreateFileEditTab(
       fileEntry,
       projectSlug,
-      fileEntry.getAttribute(`path`),
+      fileEntry.getAttribute(`path`)
     );
   }
 
@@ -53,8 +54,44 @@ fileTree.addEventListener(`tree:ready`, async () => {
 export async function setupFileTree() {
   const dirData = await API.files.dir(projectSlug);
   if (dirData instanceof Error) return;
-  fileTree.setContent(dirData);
+  // Only folks with edit rights get a websocket connection:
+  if (!projectMember) {
+    fileTree.setContent(dirData);
+  } else {
+    fileTree.connectViaWebSocket(`wss://${location.host}`, projectSlug);
+  }
   addFileTreeHandling();
+}
+
+/**
+ * ...
+ */
+async function uploadFile(fileTree, fileName, content, grant) {
+  const fileSize = content.byteLength;
+
+  if (fileSize > 10_000_000) {
+    return alert(`File uploads are limited to 10 MB`);
+  }
+
+  if (fileTree.OT) {
+    return grant(Array.from(new Uint8Array(content)));
+  }
+
+  const form = new FormData();
+  form.append(`filename`, fileName);
+  form.append(
+    `content`,
+    typeof content === "string"
+      ? content
+      : new Blob([content], { type: getMimeType(fileName) })
+  );
+  const response = await API.files.upload(projectSlug, fileName, form);
+  if (response instanceof Error) return;
+  if (response.status === 200) {
+    grant?.();
+  } else {
+    console.error(`Could not upload ${fileName} (status:${response.status})`);
+  }
 }
 
 /**
@@ -88,7 +125,7 @@ function addFileTreeHandling() {
     getOrCreateFileEditTab(
       fileEntry,
       projectSlug,
-      fileEntry.getAttribute(`path`),
+      fileEntry.getAttribute(`path`)
     );
     // note: we handle "selection" in the file tree as part of editor
     // reveals, so we do not call the event's own grant() function.
@@ -127,7 +164,7 @@ function addFileTreeHandling() {
         if (
           prefix &&
           confirm(
-            `Unpack into the root, rather than "${prefix.substring(0, prefix.length - 1)}"?`,
+            `Unpack into the root, rather than "${prefix.substring(0, prefix.length - 1)}"?`
           )
         ) {
           entries.forEach((e) => (e.path = e.path.replace(prefix, ``)));
@@ -138,17 +175,21 @@ function addFileTreeHandling() {
           const content = new TextDecoder().decode(arrayBuffer);
           if (content.trim()) {
             path = basePath + path;
-            uploadFile(path, content, () => fileTree.createEntry(path));
+            uploadFile(fileTree, path, content, () =>
+              fileTree.createEntry(path, true, content)
+            );
           }
         }
       } else {
-        uploadFile(path, content, grant);
+        uploadFile(fileTree, path, content, grant);
       }
       updatePreview();
     }
 
     // regular file creation
     else {
+      if (fileTree.OT) return;
+
       const response = await API.files.create(projectSlug, path);
       if (response instanceof Error) return;
       if (response.status === 200) {
@@ -162,6 +203,8 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`file:rename`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree.OT) return grant();
+
     const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -174,36 +217,16 @@ function addFileTreeHandling() {
       }
     } else {
       console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`,
+        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
       );
     }
     updatePreview();
   });
 
-  async function uploadFile(fileName, content, grant) {
-    const fileSize = content.byteLength;
-    if (fileSize > 10_000_000) {
-      return alert(`File uploads are limited to 1MB`);
-    }
-    const form = new FormData();
-    form.append(`filename`, fileName);
-    form.append(
-      `content`,
-      typeof content === "string"
-        ? content
-        : new Blob([content], { type: getMimeType(fileName) }),
-    );
-    const response = await API.files.upload(projectSlug, fileName, form);
-    if (response instanceof Error) return;
-    if (response.status === 200) {
-      grant?.();
-    } else {
-      console.error(`Could not upload ${fileName} (status:${response.status})`);
-    }
-  }
-
   fileTree.addEventListener(`file:move`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree.OT) return grant();
+
     const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -216,7 +239,7 @@ function addFileTreeHandling() {
       }
     } else {
       console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`,
+        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
       );
     }
     updatePreview();
@@ -224,15 +247,24 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`file:delete`, async (evt) => {
     const { path, grant } = evt.detail;
+
+    const runDelete = () => {
+      const [fileEntry] = grant();
+      const { tab, panel } = fileEntry.state ?? {};
+      tab?.remove();
+      panel?.remove();
+    };
+
+    if (fileTree.OT) {
+      return runDelete();
+    }
+
     if (path) {
       try {
         const response = await API.files.delete(projectSlug, path);
         if (response instanceof Error) return;
         if (response.status === 200) {
-          const [fileEntry] = grant();
-          const { tab, panel } = fileEntry.state ?? {};
-          tab?.remove();
-          panel?.remove();
+          runDelete();
         } else {
           console.error(`Could not delete ${path} (status:${response.status})`);
         }
@@ -243,8 +275,18 @@ function addFileTreeHandling() {
     updatePreview();
   });
 
+  fileTree.addEventListener(`ot:deleted`, async (evt) => {
+    const { entries } = evt.detail;
+    const [ fileEntry ] = entries;
+    const { tab, panel } = fileEntry.state ?? {};
+    tab?.remove();
+    panel?.remove();
+  });
+
   fileTree.addEventListener(`dir:create`, async (evt) => {
     const { path, grant } = evt.detail;
+    if (fileTree.OT) return grant();
+
     const response = await API.files.create(projectSlug, path);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -256,13 +298,15 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:rename`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree.OT) return grant();
+
     const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
     } else {
       console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`,
+        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
       );
     }
     updatePreview();
@@ -270,13 +314,15 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:move`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree.OT) return grant();
+
     const response = await API.files.rename(projectSlug, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
     } else {
       console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`,
+        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
       );
     }
     updatePreview();
@@ -284,6 +330,8 @@ function addFileTreeHandling() {
 
   fileTree.addEventListener(`dir:delete`, async (evt) => {
     const { path, grant } = evt.detail;
+    if (fileTree.OT) return grant();
+
     const response = await API.files.delete(projectSlug, path);
     if (response instanceof Error) return;
     if (response.status === 200) {

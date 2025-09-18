@@ -46,8 +46,18 @@ export function getInitialState(fileEntry, filename, data) {
           entry.debounce = setTimeout(entry.sync, 1000);
         }
         entry.contentReset = false;
+
+        // Do we need to "preserve" the scroll position?
+        const { scrollPosition } = entry;
+        if (scrollPosition) {
+          setTimeout(() => {
+            entry.view.dom.querySelector(`.cm-scroller`).scrollTop =
+              scrollPosition;
+          }, 0);
+          delete entry.scrollPosition;
+        }
       }
-    }),
+    })
   );
 
   return EditorState.create({ doc, extensions });

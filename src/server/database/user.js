@@ -2,8 +2,12 @@ import { unlinkSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { stopContainer, stopStaticServer } from "../docker/docker-helpers.js";
 import { CONTENT_DIR, pathExists, slugify } from "../../helpers.js";
-import { Models } from "./models.js";
-import { getOwnedProjectsForUser } from "./project.js";
+import { MEMBER, Models } from "./models.js";
+import {
+  getProject,
+  getOwnedProjectsForUser,
+  getAccessFor,
+} from "./project.js";
 import { getServiceDomain, validProviders } from "../routing/auth/settings.js";
 
 const {
@@ -96,7 +100,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
       );
     }
   }
@@ -290,6 +294,15 @@ export function hasAccessToUserRecords(user, targetUser) {
 /**
  * ...docs go here...
  */
+export function hasAccessToProject(user, projectSlugOrId) {
+  const project = getProject(projectSlugOrId);
+  const access = getAccessFor(user, project);
+  return access >= MEMBER;
+}
+
+/**
+ * ...docs go here...
+ */
 export function removeAuthProvider(user, service) {
   const logins = Login.findAll({ user_id: user.id }).length;
   if (logins > 1) {
@@ -365,6 +378,6 @@ export function updateUserProfile(user, profile) {
       name,
       url: linkHrefs[i],
       sort_order: parseFloat(linkOrder[i]),
-    }),
+    })
   );
 }

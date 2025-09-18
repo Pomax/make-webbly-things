@@ -31,7 +31,7 @@ const prechecks = [verifyLogin, bindCommonValues, verifyEditRights];
  *  don't show the .env file to collaborators, don't filter for owners)
  */
 files.get(`/dir/:project`, bindCommonValues, getDirListing, (_req, res) =>
-  res.json(res.locals.dir),
+  res.json(res.locals.dirData),
 );
 
 /**

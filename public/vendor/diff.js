@@ -1,4 +1,5 @@
 /* node:coverage disable */
+// https://www.npmjs.com/package/diff
 function Diff() {}
 Diff.prototype = {
   diff: function diff(oldString, newString) {

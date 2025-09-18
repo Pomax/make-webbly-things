@@ -112,7 +112,8 @@ const dataPath = join(ROOT_DIR, `data`);
  */
 export async function getMigrationStatus() {
   let version = db.prepare(`PRAGMA user_version`).get().user_version;
-  const migrations = (await readContentDir(join(dataPath, `migrations`)))
+  const { files } = readContentDir(join(dataPath, `migrations`));
+  const migrations = files
     .map((v) => parseFloat(v.match(/\d+/)?.[0]))
     .filter(Boolean)
     .sort((a, b) => a - b);

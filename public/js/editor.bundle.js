@@ -29694,6 +29694,13 @@ function getInitialState(fileEntry, filename, data3) {
           entry.debounce = setTimeout(entry.sync, 1e3);
         }
         entry.contentReset = false;
+        const { scrollPosition } = entry;
+        if (scrollPosition) {
+          setTimeout(() => {
+            entry.view.dom.querySelector(`.cm-scroller`).scrollTop = scrollPosition;
+          }, 0);
+          delete entry.scrollPosition;
+        }
       }
     })
   );
@@ -29709,38 +29716,62 @@ function setupView(parent, state) {
 }
 
 // src/client/files/sync.js
-import { createPatch } from "/vendor/diff.js";
-async function syncContent(projectSlug4, entry, filename = entry.filename) {
+import { createPatch, applyPatch } from "/vendor/diff.js";
+function createUpdateListener(entry) {
+  const { view } = entry;
+  return async (evt) => {
+    const { type, update, ours } = evt.detail;
+    console.log(`received:`, { type, update, ours });
+    if (type === `diff`) {
+      if (!ours) {
+        const oldContent = entry.content;
+        const newContent = applyPatch(oldContent, update);
+        entry.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
+        console.log(entry.scrollPosition);
+        entry.content = newContent;
+        entry.contentReset = true;
+        view.dispatch({
+          changes: {
+            from: 0,
+            to: oldContent.length,
+            insert: entry.content
+          }
+        });
+      }
+      updatePreview();
+    }
+  };
+}
+async function syncContent(projectSlug4, fileEntry, filename = fileEntry.state.filename) {
+  const entry = fileEntry.state;
   if (entry.noSync) return;
   const currentContent = entry.content;
   const newContent = entry.view.state.doc.toString();
-  const changes = createPatch(filename, currentContent, newContent);
-  const response = await API.files.sync(projectSlug4, filename, changes);
-  const responseHash = parseFloat(await response.text());
-  if (responseHash === getFileSum(newContent)) {
+  const patch = createPatch(filename, currentContent, newContent);
+  if (fileEntry.root.OT) {
     entry.content = newContent;
-    updatePreview();
+    fileEntry.updateContent(`diff`, patch);
   } else {
-    if (document.body.dataset.projectMember) {
-      entry.content = await fetchFileContents(projectSlug4, filename);
-    }
-    entry.contentReset = true;
-    entry.view.dispatch({
-      changes: {
-        from: 0,
-        to: entry.view.state.doc.length,
-        insert: entry.content
+    const response = await API.files.sync(projectSlug4, filename, patch);
+    const responseHash = parseFloat(await response.text());
+    if (responseHash === getFileSum(newContent)) {
+      entry.content = newContent;
+      updatePreview();
+    } else {
+      if (document.body.dataset.projectMember) {
+        entry.content = await fetchFileContents(projectSlug4, filename);
       }
-    });
+      entry.contentReset = true;
+      entry.view.dispatch({
+        changes: {
+          from: 0,
+          to: entry.view.state.doc.length,
+          insert: entry.content
+        }
+      });
+    }
   }
   entry.debounce = false;
-}
-
-// src/client/websocket.js
-var ws = void 0;
-try {
-  ws = new WebSocket(location.toString().replace(`https:`, `wss:`));
-} catch (e2) {
 }
 
 // src/client/editor/editor-components.js
@@ -29802,7 +29833,7 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
   });
 }
 async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
-  const entry = fileEntry.state;
+  let entry = fileEntry.state;
   if (entry?.view) {
     const { closed, tab: tab2, panel: panel2 } = entry;
     if (closed) {
@@ -29816,18 +29847,22 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
   const { tab, close } = setupEditorTab(filename);
   tabs2.appendChild(tab);
   const viewType = getViewType(filename);
-  const data3 = await fetchFileContents(projectSlug4, filename, viewType.type);
+  let data3;
+  if (fileEntry.root.OT) {
+    ({ data: data3 } = await fileEntry.load());
+  } else {
+    data3 = await fetchFileContents(projectSlug4, filename, viewType.type);
+  }
   const verified = verifyViewType(viewType.type, data3);
   if (!verified) return alert(`File contents does not match extension.`);
   const key = `${projectSlug4}/${filename}`;
   let view;
   if (viewType.text || viewType.unknown) {
+    if (data3.map) {
+      data3 = data3.map((v) => String.fromCharCode(v)).join(``);
+    }
     const initialState = getInitialState(fileEntry, filename, data3);
     view = setupView(panel, initialState);
-    view.updateFile = (data4) => {
-      data4 = JSON.parse(data4);
-      console.log(`updateFile ${key}`, data4);
-    };
   } else if (viewType.media) {
     const { type } = viewType;
     if (type.startsWith(`image`)) {
@@ -29840,20 +29875,8 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
       view.controls = true;
     }
     view.src = `/v1/files/content/${key}`;
-    view.updateFile = (data4) => {
-      view.src = `/v1/files/content/${key}?v=${Date.now()}`;
-    };
     panel.appendChild(view);
   }
-  const updateEvent = `update:${key}:`;
-  const updateKey = `${updateEvent}:`;
-  ws.addEventListener(`message`, ({ data: data4 }) => {
-    if (data4.startsWith(updateKey)) {
-      view.updateFile(data4.replace(updateKey, ``));
-    }
-  });
-  console.log(`registering for updates to ${key}`);
-  ws.send(`register:${updateEvent}`);
   view.tabElement = tab;
   addEditorEventHandling(fileEntry, panel, tab, close, view);
   const properties2 = {
@@ -29865,7 +29888,7 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
     content: viewType.editable ? view.state.doc.toString() : data3,
     sync: () => {
       if (viewType.editable) {
-        syncContent(projectSlug4, fileEntry.state);
+        syncContent(projectSlug4, fileEntry);
       }
     },
     noSync: !viewType.editable
@@ -29874,6 +29897,11 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
     Object.assign(entry, properties2);
   } else {
     fileEntry.setState(properties2);
+    entry = fileEntry.state;
+  }
+  if (!entry.updateListener) {
+    const updateListener2 = createUpdateListener(entry);
+    fileEntry.addEventListener(`content:update`, updateListener2);
   }
   tab.click();
 }
@@ -29889,7 +29917,7 @@ var DEFAULT_FILES = [
 
 // src/client/files/file-tree-utils.js
 import { unzip } from "/vendor/unzipit.module.js";
-var { projectSlug: projectSlug2, defaultFile, defaultCollapse } = document.body.dataset;
+var { defaultCollapse, defaultFile, projectMember, projectSlug: projectSlug2 } = document.body.dataset;
 var fileTree2 = document.getElementById(`filetree`);
 fileTree2.addEventListener(`tree:ready`, async () => {
   let fileEntry;
@@ -29920,8 +29948,34 @@ fileTree2.addEventListener(`tree:ready`, async () => {
 async function setupFileTree() {
   const dirData = await API.files.dir(projectSlug2);
   if (dirData instanceof Error) return;
-  fileTree2.setContent(dirData);
+  if (!projectMember) {
+    fileTree2.setContent(dirData);
+  } else {
+    fileTree2.connectViaWebSocket(`wss://${location.host}`, projectSlug2);
+  }
   addFileTreeHandling();
+}
+async function uploadFile(fileTree3, fileName, content2, grant) {
+  const fileSize = content2.byteLength;
+  if (fileSize > 1e7) {
+    return alert(`File uploads are limited to 10 MB`);
+  }
+  if (fileTree3.OT) {
+    return grant(Array.from(new Uint8Array(content2)));
+  }
+  const form = new FormData();
+  form.append(`filename`, fileName);
+  form.append(
+    `content`,
+    typeof content2 === "string" ? content2 : new Blob([content2], { type: getMimeType(fileName) })
+  );
+  const response = await API.files.upload(projectSlug2, fileName, form);
+  if (response instanceof Error) return;
+  if (response.status === 200) {
+    grant?.();
+  } else {
+    console.error(`Could not upload ${fileName} (status:${response.status})`);
+  }
 }
 function addFileTreeHandling() {
   function updateEditorBindings(fileTreeEntry, entry, key, oldKey) {
@@ -29983,14 +30037,20 @@ function addFileTreeHandling() {
           const content3 = new TextDecoder().decode(arrayBuffer);
           if (content3.trim()) {
             path2 = basePath + path2;
-            uploadFile(path2, content3, () => fileTree2.createEntry(path2));
+            uploadFile(
+              fileTree2,
+              path2,
+              content3,
+              () => fileTree2.createEntry(path2, true, content3)
+            );
           }
         }
       } else {
-        uploadFile(path, content2, grant);
+        uploadFile(fileTree2, path, content2, grant);
       }
       updatePreview();
     } else {
+      if (fileTree2.OT) return;
       const response = await API.files.create(projectSlug2, path);
       if (response instanceof Error) return;
       if (response.status === 200) {
@@ -30003,6 +30063,7 @@ function addFileTreeHandling() {
   });
   fileTree2.addEventListener(`file:rename`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree2.OT) return grant();
     const response = await API.files.rename(projectSlug2, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -30020,27 +30081,9 @@ function addFileTreeHandling() {
     }
     updatePreview();
   });
-  async function uploadFile(fileName, content2, grant) {
-    const fileSize = content2.byteLength;
-    if (fileSize > 1e7) {
-      return alert(`File uploads are limited to 1MB`);
-    }
-    const form = new FormData();
-    form.append(`filename`, fileName);
-    form.append(
-      `content`,
-      typeof content2 === "string" ? content2 : new Blob([content2], { type: getMimeType(fileName) })
-    );
-    const response = await API.files.upload(projectSlug2, fileName, form);
-    if (response instanceof Error) return;
-    if (response.status === 200) {
-      grant?.();
-    } else {
-      console.error(`Could not upload ${fileName} (status:${response.status})`);
-    }
-  }
   fileTree2.addEventListener(`file:move`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree2.OT) return grant();
     const response = await API.files.rename(projectSlug2, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -30060,15 +30103,21 @@ function addFileTreeHandling() {
   });
   fileTree2.addEventListener(`file:delete`, async (evt) => {
     const { path, grant } = evt.detail;
+    const runDelete = () => {
+      const [fileEntry] = grant();
+      const { tab, panel } = fileEntry.state ?? {};
+      tab?.remove();
+      panel?.remove();
+    };
+    if (fileTree2.OT) {
+      return runDelete();
+    }
     if (path) {
       try {
         const response = await API.files.delete(projectSlug2, path);
         if (response instanceof Error) return;
         if (response.status === 200) {
-          const [fileEntry] = grant();
-          const { tab, panel } = fileEntry.state ?? {};
-          tab?.remove();
-          panel?.remove();
+          runDelete();
         } else {
           console.error(`Could not delete ${path} (status:${response.status})`);
         }
@@ -30078,8 +30127,16 @@ function addFileTreeHandling() {
     }
     updatePreview();
   });
+  fileTree2.addEventListener(`ot:deleted`, async (evt) => {
+    const { entries } = evt.detail;
+    const [fileEntry] = entries;
+    const { tab, panel } = fileEntry.state ?? {};
+    tab?.remove();
+    panel?.remove();
+  });
   fileTree2.addEventListener(`dir:create`, async (evt) => {
     const { path, grant } = evt.detail;
+    if (fileTree2.OT) return grant();
     const response = await API.files.create(projectSlug2, path);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -30090,6 +30147,7 @@ function addFileTreeHandling() {
   });
   fileTree2.addEventListener(`dir:rename`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree2.OT) return grant();
     const response = await API.files.rename(projectSlug2, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -30103,6 +30161,7 @@ function addFileTreeHandling() {
   });
   fileTree2.addEventListener(`dir:move`, async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
+    if (fileTree2.OT) return grant();
     const response = await API.files.rename(projectSlug2, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -30116,6 +30175,7 @@ function addFileTreeHandling() {
   });
   fileTree2.addEventListener(`dir:delete`, async (evt) => {
     const { path, grant } = evt.detail;
+    if (fileTree2.OT) return grant();
     const response = await API.files.delete(projectSlug2, path);
     if (response instanceof Error) return;
     if (response.status === 200) {

@@ -1,7 +1,7 @@
 import net from "node:net";
-import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { join, resolve, sep, posix } from "node:path";
 import { exec, execSync } from "node:child_process";
+import { existsSync, globSync, lstatSync, readFileSync } from "node:fs";
 import express from "express";
 import nocache from "nocache";
 import helmet from "helmet";
@@ -41,7 +41,7 @@ const COMMIT_TIMEOUTS = {};
  */
 export function createRewindPoint(
   project,
-  reason = `Autosave ${scrubDateTime(new Date().toISOString())}`,
+  reason = `Autosave ${scrubDateTime(new Date().toISOString())}`
 ) {
   console.log(`scheduling rewind point`);
 
@@ -72,7 +72,7 @@ export async function execPromise(command, options = {}) {
     exec(command, options, (err, stdout, stderr) => {
       if (err) return reject(stderr);
       resolve(stdout.trim());
-    }),
+    })
   );
 }
 
@@ -120,27 +120,24 @@ export function pathExists(path) {
 /**
  * Ask the OS for a flat dir listing.
  */
-export async function readContentDir(dir) {
-  let dirListing;
-  let listCommand = isWindows ? `dir /b/o/s "${dir}"` : `find ${dir}`;
-
-  dirListing = await execPromise(listCommand);
-  let filtered = dirListing.split(/\r?\n/);
+export function readContentDir(dir, fileMatcher = `*`, excludes = []) {
+  let dirs = [];
+  let files = globSync(`./**/${fileMatcher}`, {
+    cwd: dir,
+    ignore: [`.git/**`, ...excludes],
+  }).filter((path) => {
+    const s = lstatSync(join(dir, path));
+    if (s.isFile()) return true;
+    dirs.push(path);
+    return false;
+  });
 
   if (isWindows) {
-    const prefix = resolve(dir) + `\\`;
-    filtered = filtered.map((v) =>
-      v.replace(prefix, ``).split(sep).join(posix.sep),
-    );
-  } else {
-    const prefix = new RegExp(`.*${dir}\\/`);
-    filtered = filtered.map((v) => v.replace(prefix, ``));
+    dirs = dirs.map((v) => v.split(sep).join(posix.sep));
+    files = files.map((v) => v.split(sep).join(posix.sep));
   }
 
-  // Never expose the git directory.
-  filtered = filtered.filter((v) => !!v && !v.startsWith(`.git`) && v !== dir);
-
-  return filtered;
+  return { dirs, files };
 }
 
 /**
@@ -179,7 +176,7 @@ export function setDefaultAspects(app) {
         scriptSrcElem: `* data: blob: 'unsafe-inline'`,
         styleSrc: `* data: blob: 'unsafe-inline'`,
       },
-    }),
+    })
   );
 }
 
@@ -208,7 +205,7 @@ export function slugify(text) {
     .replace(/[<>]/g, ``)
     .replace(
       /[\u0021-\u002C\u002E-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u00BF]+/g,
-      ``,
+      ``
     )
     .replace(/×/g, `x`)
     .replace(/÷/g, ``)
