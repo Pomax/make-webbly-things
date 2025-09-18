@@ -29742,24 +29742,25 @@ function createUpdateListener(entry) {
     }
   };
 }
-async function syncContent(projectSlug4, fileEntry, filename = fileEntry.state.filename) {
+async function syncContent(projectSlug4, fileEntry) {
+  const { path } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;
   const currentContent = entry.content;
   const newContent = entry.view.state.doc.toString();
-  const patch = createPatch(filename, currentContent, newContent);
+  const patch = createPatch(path, currentContent, newContent);
   if (fileEntry.root.OT) {
     entry.content = newContent;
     fileEntry.updateContent(`diff`, patch);
   } else {
-    const response = await API.files.sync(projectSlug4, filename, patch);
+    const response = await API.files.sync(projectSlug4, path, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
       entry.content = newContent;
       updatePreview();
     } else {
       if (document.body.dataset.projectMember) {
-        entry.content = await fetchFileContents(projectSlug4, filename);
+        entry.content = await fetchFileContents(projectSlug4, path);
       }
       entry.contentReset = true;
       entry.view.dispatch({
@@ -29818,7 +29819,8 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     const viewURL = `${currentURL}?view=${fileEntry.path}`;
     history.replaceState(null, null, viewURL);
   });
-  close.addEventListener(`pointerdown`, () => {
+  const closeTab = () => {
+    if (fileEntry.state.closed) return;
     let newTab;
     if (tab.classList.contains(`active`)) {
       fileTree.unselect();
@@ -29830,7 +29832,9 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     tab.remove();
     panel.remove();
     newTab?.click();
-  });
+  };
+  close.addEventListener(`pointerdown`, closeTab);
+  close.addEventListener(`click`, closeTab);
 }
 async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
   let entry = fileEntry.state;
@@ -29978,12 +29982,14 @@ async function uploadFile(fileTree3, fileName, content2, grant) {
   }
 }
 function addFileTreeHandling() {
-  function updateEditorBindings(fileTreeEntry, entry, key, oldKey) {
-    if (oldKey) {
-      fileTreeEntry.state = {};
+  function updateEditorBindings(fileTreeEntry) {
+    const { path, state: entry } = fileTreeEntry;
+    if (!entry) return;
+    let key = path;
+    if (key.includes(`/`)) {
+      key = key.substring(key.lastIndexOf(`/`) + 1);
     }
     const { tab, panel } = entry;
-    entry.filename = key;
     if (tab) {
       tab.title = key;
       tab.childNodes.forEach((n) => {
@@ -29993,7 +29999,7 @@ function addFileTreeHandling() {
       });
     }
     if (panel) {
-      panel.title = panel.id = key;
+      panel.title = panel.id = path;
     }
     fileTreeEntry.setState(entry);
   }
@@ -30004,12 +30010,6 @@ function addFileTreeHandling() {
       projectSlug2,
       fileEntry.getAttribute(`path`)
     );
-  });
-  fileTree2.addEventListener(`dir:click`, async (evt) => {
-    evt.detail.grant();
-  });
-  fileTree2.addEventListener(`dir:toggle`, async (evt) => {
-    evt.detail.grant();
   });
   fileTree2.addEventListener(`file:create`, async (evt) => {
     const { path, grant, content: content2 } = evt.detail;
@@ -30037,77 +30037,65 @@ function addFileTreeHandling() {
           const content3 = new TextDecoder().decode(arrayBuffer);
           if (content3.trim()) {
             path2 = basePath + path2;
-            uploadFile(
-              fileTree2,
-              path2,
-              content3,
-              () => fileTree2.createEntry(path2, true, content3)
-            );
+            uploadFile(fileTree2, path2, content3, () => {
+              fileTree2.createEntry(path2, true, content3);
+            });
           }
         }
       } else {
-        uploadFile(fileTree2, path, content2, grant);
+        const entry = await uploadFile(fileTree2, path, content2, grant);
+        getOrCreateFileEditTab(entry, projectSlug2, path);
       }
       updatePreview();
     } else {
-      if (fileTree2.OT) return;
+      const runCreate = () => {
+        const fileEntry = grant();
+        getOrCreateFileEditTab(fileEntry, projectSlug2, path);
+      };
+      if (fileTree2.OT) return runCreate();
       const response = await API.files.create(projectSlug2, path);
       if (response instanceof Error) return;
       if (response.status === 200) {
-        const fileEntry = grant();
-        getOrCreateFileEditTab(fileEntry, projectSlug2, path);
+        runCreate();
       } else {
         console.error(`Could not create ${path} (status:${response.status})`);
       }
     }
   });
-  fileTree2.addEventListener(`file:rename`, async (evt) => {
-    const { oldPath, newPath, grant } = evt.detail;
-    if (fileTree2.OT) return grant();
-    const response = await API.files.rename(projectSlug2, oldPath, newPath);
-    if (response instanceof Error) return;
-    if (response.status === 200) {
-      const fileEntry = grant();
-      let key = oldPath.replace(projectSlug2, ``);
-      const entry = fileEntry.state;
-      if (entry) {
-        const newKey = newPath.replace(projectSlug2, ``);
-        updateEditorBindings(fileEntry, entry, newKey, key);
-      }
-    } else {
-      console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
-      );
-    }
-    updatePreview();
+  fileTree2.addEventListener(`ot:created`, (evt) => {
   });
-  fileTree2.addEventListener(`file:move`, async (evt) => {
+  const renameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    if (fileTree2.OT) return grant();
+    const runMove = () => {
+      const fileEntry = grant();
+      updateEditorBindings(fileEntry);
+    };
+    if (fileTree2.OT) {
+      return runMove();
+    }
     const response = await API.files.rename(projectSlug2, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
-      const fileEntry = grant();
-      let key = oldPath.replace(projectSlug2, ``);
-      const entry = fileEntry.state;
-      if (entry) {
-        const newKey = newPath.replace(projectSlug2, ``);
-        updateEditorBindings(fileEntry, entry, newKey, key);
-      }
+      runMove();
     } else {
       console.error(
         `Could not move ${oldPath} to ${newPath} (status:${response.status})`
       );
     }
     updatePreview();
+  };
+  fileTree2.addEventListener(`file:rename`, renameHandler);
+  fileTree2.addEventListener(`file:move`, renameHandler);
+  fileTree2.addEventListener(`ot:moved`, async (evt) => {
+    updateEditorBindings(evt.detail.entry);
   });
   fileTree2.addEventListener(`file:delete`, async (evt) => {
     const { path, grant } = evt.detail;
     const runDelete = () => {
-      const [fileEntry] = grant();
-      const { tab, panel } = fileEntry.state ?? {};
-      tab?.remove();
-      panel?.remove();
+      const [entry] = grant();
+      const { close } = entry.state ?? {};
+      console.log(close);
+      close?.click();
     };
     if (fileTree2.OT) {
       return runDelete();
@@ -30130,9 +30118,14 @@ function addFileTreeHandling() {
   fileTree2.addEventListener(`ot:deleted`, async (evt) => {
     const { entries } = evt.detail;
     const [fileEntry] = entries;
-    const { tab, panel } = fileEntry.state ?? {};
-    tab?.remove();
-    panel?.remove();
+    const { close } = fileEntry.state ?? {};
+    close?.click();
+  });
+  fileTree2.addEventListener(`dir:click`, async (evt) => {
+    evt.detail.grant();
+  });
+  fileTree2.addEventListener(`dir:toggle`, async (evt) => {
+    evt.detail.grant();
   });
   fileTree2.addEventListener(`dir:create`, async (evt) => {
     const { path, grant } = evt.detail;
@@ -30145,7 +30138,7 @@ function addFileTreeHandling() {
       console.error(`Could not create ${path} (status:${response.status})`);
     }
   });
-  fileTree2.addEventListener(`dir:rename`, async (evt) => {
+  const dirRenameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
     if (fileTree2.OT) return grant();
     const response = await API.files.rename(projectSlug2, oldPath, newPath);
@@ -30158,21 +30151,9 @@ function addFileTreeHandling() {
       );
     }
     updatePreview();
-  });
-  fileTree2.addEventListener(`dir:move`, async (evt) => {
-    const { oldPath, newPath, grant } = evt.detail;
-    if (fileTree2.OT) return grant();
-    const response = await API.files.rename(projectSlug2, oldPath, newPath);
-    if (response instanceof Error) return;
-    if (response.status === 200) {
-      grant();
-    } else {
-      console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
-      );
-    }
-    updatePreview();
-  });
+  };
+  fileTree2.addEventListener(`dir:rename`, dirRenameHandler);
+  fileTree2.addEventListener(`dir:move`, dirRenameHandler);
   fileTree2.addEventListener(`dir:delete`, async (evt) => {
     const { path, grant } = evt.detail;
     if (fileTree2.OT) return grant();

@@ -90,7 +90,7 @@ export function composeWhere(where, suffix = []) {
     .join(` AND `);
   if (suffix.length) filter += ` AND ${suffix.join(` AND `)}`;
   const values = Object.values(where).filter(
-    (v) => !(v === undefined || v === null)
+    (v) => !(v === undefined || v === null),
   );
   if (ua) where.updated_at = ua;
   return { filter, values };
@@ -108,7 +108,7 @@ export async function migrate(dbPath, migrationScript, migrationNumber) {
   execSync(`sqlite3 ${dbPath} .dump > ${sqlPath}`);
   let data = readFileSync(sqlPath).toString(`utf-8`).replaceAll(/\r\n/g, `\n`);
   const update = await import(pathToFileURL(migrationScript)).then(
-    (lib) => lib.default
+    (lib) => lib.default,
   );
   data =
     (await update(data, Helpers)) +

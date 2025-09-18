@@ -45,7 +45,7 @@ export async function watchForRebuild() {
         } else {
           rebuild();
         }
-      })
+      }),
     );
 
   rebuild();

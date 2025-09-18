@@ -223,7 +223,7 @@ export function getProjectEnvironmentVariables(project) {
       .split(`\n`)
       .filter((v) => v.includes(`=`))
       .map((v) => v.trim().split(`=`))
-      .map(([k, v]) => [k.trim(), v.trim()])
+      .map(([k, v]) => [k.trim(), v.trim()]),
   );
 }
 
@@ -275,7 +275,7 @@ export function getStarterProjects() {
 export function isProjectSuspended(project) {
   return (
     ProjectSuspension.findAll({ project_id: project.id }).filter(
-      (s) => !s.invalidated_at
+      (s) => !s.invalidated_at,
     ).length > 0
   );
 }

@@ -90,7 +90,7 @@ export function setupRoutes(app) {
         ...process.env,
         ...res.locals,
         ...req.session,
-      })
+      }),
   );
 
   // static routes for the website itself

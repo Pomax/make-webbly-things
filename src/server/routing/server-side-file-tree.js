@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { WebSocketServer } from "ws";
 import { randomUUID } from "node:crypto";
 import { CONTENT_DIR, readContentDir } from "../../helpers.js";
-import { hasAccessToProject } from "../database/user.js";
+import { getProject, hasAccessToProject, touch } from "../database/index.js";
 import {
   mkdirSync,
   readFileSync,
@@ -85,7 +85,7 @@ export async function addFileTreeCommunication(socket, request) {
     } catch (e) {
       console.warn(
         `Received incompatible data via websocket: message is not JSON.`,
-        data
+        data,
       );
     }
     if (!data) return;
@@ -111,6 +111,7 @@ export async function addFileTreeCommunication(socket, request) {
 const seqnums = {};
 const changelog = {};
 const handlers = {};
+const projects = {};
 
 /**
  * Ensure we're aware of this path
@@ -120,6 +121,7 @@ function init(basePath) {
   handlers[basePath] ??= new Set();
   changelog[basePath] = [];
   seqnums[basePath] = 1;
+  projects[basePath] = getProject(basePath);
 }
 
 /**
@@ -152,6 +154,7 @@ function removeHandler(otHandler) {
  * sync via the file-tree:read operations).
  */
 function addAction({ basePath, id }, action) {
+  touch(projects[basePath]);
   action.from = id;
   action.when = Date.now();
   action.seqnum = seqnums[basePath]++;
@@ -258,13 +261,13 @@ class OTHandler {
 
   // ==========================================================================
 
-  async oncreate({ path, isFile, content }) {
+  async oncreate({ path, isFile, content = `` }) {
     if (!this.writeAccess) return;
     // console.log(`on create in ${this.basePath}:`, { path, isFile, content });
     const fullPath = this.getFullPath(path);
     if (!fullPath) return;
     if (isFile) {
-      if (content.map) content = Buffer.from(content);
+      if (content?.map) content = Buffer.from(content);
       writeFileSync(fullPath, content);
     } else {
       mkdirSync(fullPath, { recursive: true });

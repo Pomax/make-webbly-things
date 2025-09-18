@@ -93,7 +93,7 @@ describe(`project middlerware tests`, async () => {
       });
       Middleware.getDirListing(req, res, async (err) => {
         assert.equal(!!err, false);
-        assert.deepEqual(res.locals.dir.sort(), files);
+        assert.deepEqual(res.locals.dirData.files.sort(), files);
         next();
       });
     });

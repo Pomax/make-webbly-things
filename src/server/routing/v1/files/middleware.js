@@ -84,13 +84,13 @@ export async function formatFile(req, res, next) {
   if ([`.js`, `.css`, `.html`].includes(ext)) {
     try {
       const output = await execPromise(
-        `${npm} run prettier:single -- "${fullPath}"`
+        `${npm} run prettier:single -- "${fullPath}"`,
       );
       console.log(output);
       formatted = true;
     } catch (e) {
       return next(
-        new Error(`Prettier could not format file:\n` + e.toString())
+        new Error(`Prettier could not format file:\n` + e.toString()),
       );
     }
   }

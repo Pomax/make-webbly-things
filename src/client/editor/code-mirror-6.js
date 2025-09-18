@@ -57,7 +57,7 @@ export function getInitialState(fileEntry, filename, data) {
           delete entry.scrollPosition;
         }
       }
-    })
+    }),
   );
 
   return EditorState.create({ doc, extensions });

@@ -16,7 +16,7 @@ export function createUpdateListener(entry) {
 
         entry.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
         console.log(entry.scrollPosition);
-        
+
         entry.content = newContent;
         entry.contentReset = true;
         view.dispatch({
@@ -41,17 +41,14 @@ export function createUpdateListener(entry) {
  * made was correct by comparing the on-disk "hash" value with
  * the same value based on the current editor content.
  */
-export async function syncContent(
-  projectSlug,
-  fileEntry,
-  filename = fileEntry.state.filename
-) {
+export async function syncContent(projectSlug, fileEntry) {
+  const { path } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;
 
   const currentContent = entry.content;
   const newContent = entry.view.state.doc.toString();
-  const patch = createPatch(filename, currentContent, newContent);
+  const patch = createPatch(path, currentContent, newContent);
 
   // sync via websocket or REST?
   if (fileEntry.root.OT) {
@@ -61,7 +58,7 @@ export async function syncContent(
 
   // REST updates require a lot more work.
   else {
-    const response = await API.files.sync(projectSlug, filename, patch);
+    const response = await API.files.sync(projectSlug, path, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
       entry.content = newContent;
@@ -76,7 +73,7 @@ export async function syncContent(
       // Or, much more likely, the user's content has become desynced
       // somehow and we resync it.
       if (document.body.dataset.projectMember) {
-        entry.content = await fetchFileContents(projectSlug, filename);
+        entry.content = await fetchFileContents(projectSlug, path);
       }
 
       entry.contentReset = true;

@@ -127,7 +127,8 @@ function cloneProject(project, slug, isStarter) {
  * ...docs go here...
  */
 export async function createProjectDownload(req, res, next) {
-  const { dir, lookups } = res.locals;
+  const { dirData, lookups } = res.locals;
+  const { dirs, files } = dirData;
   const { slug } = lookups.project;
 
   const zipDir = resolve(join(CONTENT_DIR, `__archives`));
@@ -146,7 +147,7 @@ export async function createProjectDownload(req, res, next) {
   // Additional "these should never be in a zip file"
   const prefixes = [`node_modules/`];
 
-  dir.forEach((file) => {
+  files.forEach((file) => {
     if (prefixes.some((p) => file.startsWith(p))) return;
     const path = resolve(CONTENT_DIR, slug, file);
     if (lstatSync(path).isDirectory()) return;

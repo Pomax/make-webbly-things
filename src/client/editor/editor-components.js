@@ -81,7 +81,8 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     history.replaceState(null, null, viewURL);
   });
 
-  close.addEventListener(`pointerdown`, () => {
+  const closeTab = () => {
+    if (fileEntry.state.closed) return;
     let newTab;
     if (tab.classList.contains(`active`)) {
       // move focus to another tab, if there is one...
@@ -94,7 +95,9 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     tab.remove();
     panel.remove();
     newTab?.click();
-  });
+  };
+  close.addEventListener(`pointerdown`, closeTab);
+  close.addEventListener(`click`, closeTab);
 }
 
 /**
