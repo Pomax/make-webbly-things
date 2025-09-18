@@ -128,7 +128,7 @@ function cloneProject(project, slug, isStarter) {
  */
 export async function createProjectDownload(req, res, next) {
   const { dirData, lookups } = res.locals;
-  const { dirs, files } = dirData;
+  const { files } = dirData;
   const { slug } = lookups.project;
 
   const zipDir = resolve(join(CONTENT_DIR, `__archives`));
@@ -227,8 +227,8 @@ export async function loadProject(req, res, next) {
     if (!user?.admin)
       return next(
         new Error(
-          `This project has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
-        ),
+          `This project has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`
+        )
       );
   }
 
@@ -237,8 +237,8 @@ export async function loadProject(req, res, next) {
     if (!user?.admin) {
       return next(
         new Error(
-          `This project has been suspended because its project owner is suspended`,
-        ),
+          `This project has been suspended because its project owner is suspended`
+        )
       );
     } else {
       console.log(`Suspended project load by admin`);
@@ -328,7 +328,7 @@ export async function remixProject(req, res, next) {
   try {
     const newProject = (res.locals.newProject = createProjectForUser(
       user,
-      newProjectName,
+      newProjectName
     ));
     const newProjectSlug = (res.locals.newProjectSlug = newProject.slug);
 
@@ -397,7 +397,7 @@ export async function updateProjectSettings(req, res, next) {
   const newSettings = Object.assign(
     {},
     settings,
-    Object.fromEntries(Object.entries(req.body).map(([k, v]) => [k, v.trim()])),
+    Object.fromEntries(Object.entries(req.body).map(([k, v]) => [k, v.trim()]))
   );
 
   const newName = newSettings.name ?? project.name;
@@ -410,8 +410,8 @@ export async function updateProjectSettings(req, res, next) {
     if (pathExists(newDir)) {
       return next(
         new Error(
-          "Cannot rename project (someone else already owns this project name!)",
-        ),
+          "Cannot rename project (someone else already owns this project name!)"
+        )
       );
     }
   }
@@ -447,7 +447,7 @@ export async function updateProjectSettings(req, res, next) {
         writeFileSync(
           join(containerDir, `run.sh`),
           // shell scripts *must* use unix line endings.
-          newSettings.run_script.replace(/\r\n/g, `\n`),
+          newSettings.run_script.replace(/\r\n/g, `\n`)
         );
       } else if (env_vars !== newSettings.env_vars) {
         containerChange = true;
