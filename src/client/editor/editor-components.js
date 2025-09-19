@@ -96,6 +96,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     panel.remove();
     newTab?.click();
   };
+
   close.addEventListener(`pointerdown`, closeTab);
   close.addEventListener(`click`, closeTab);
 }
@@ -110,6 +111,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   if (entry?.view) {
     const { closed, tab, panel } = entry;
     if (closed) {
+      entry.closed = false;
       tabs.appendChild(tab);
       editors.appendChild(panel);
     }

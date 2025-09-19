@@ -8,7 +8,6 @@ export function createUpdateListener(entry) {
 
   return async (evt) => {
     const { type, update, ours } = evt.detail;
-    console.log(`received:`, { type, update, ours });
     if (type === `diff`) {
       if (!ours) {
         const oldContent = entry.content;

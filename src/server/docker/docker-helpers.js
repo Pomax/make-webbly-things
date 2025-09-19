@@ -67,7 +67,7 @@ export function getAllRunningContainers() {
     obj = Object.fromEntries(
       Object.entries(obj).map(([k, v]) => {
         return [k[0].toLowerCase() + k.substring(1), v];
-      }),
+      })
     );
     const { image, command, state, iD: id, status, size, createdAt } = obj;
     containerData.push({ image, id, command, state, status, size, createdAt });
@@ -125,9 +125,7 @@ export async function restartContainer(project, rebuild = false) {
 /**
  * ...docs go here...
  */
-export async function runContainer(project) {
-  const { slug } = project;
-
+export async function runContainer(project, slug = project.slug) {
   // note: we assume the caller already checked for project
   // suspension, so we don't try to use the database here.
 

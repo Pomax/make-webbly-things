@@ -29,7 +29,7 @@ export async function updatePreview() {
   const newFrame = document.createElement(`iframe`);
 
   if (first_time_load++ < 10) {
-    console.log(`checking container for ready`);
+    // console.log(`checking container for ready`);
     const status = await API.projects.health(projectSlug);
     if (status === `failed`) {
       // There's only so many times we'll try a failure reload.
@@ -37,7 +37,7 @@ export async function updatePreview() {
         failures++;
         return setTimeout(updatePreview, 1000);
       }
-      return console.error(`Project failed to start. That's bad`);
+      return console.error(`Project failed to start...? That's bad`);
     } else if (status === `not running` || status === `wait`) {
       if (first_time_load < 10) {
         return setTimeout(updatePreview, 1000);
@@ -52,7 +52,6 @@ export async function updatePreview() {
   };
 
   newFrame.onload = () => {
-    console.log(`loaded ${newFrame.src}`);
     setTimeout(() => (newFrame.style.opacity = 1), 250);
     setTimeout(() => iframe.remove(), 500);
   };
@@ -64,7 +63,7 @@ export async function updatePreview() {
   newFrame.dataset.src = src;
   newFrame.dataset.projectSlug = iframe.dataset.projectSlug;
 
-  console.log(`using ${src}`);
+  // console.log(`using ${src}`);
   preview.append(newFrame);
   setTimeout(() => (newFrame.src = src), 100);
 }

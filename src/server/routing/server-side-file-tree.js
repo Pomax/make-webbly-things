@@ -1,5 +1,5 @@
 import http from "node:http";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { WebSocketServer } from "ws";
 import { randomUUID } from "node:crypto";
 import { CONTENT_DIR, readContentDir } from "../../helpers.js";
@@ -77,7 +77,7 @@ export async function addFileTreeCommunication(socket, request) {
   // Our websocket based request handler.
   const otHandler = new OTHandler(socket, request.session.passport.user);
 
-  socket.on("message", (message) => {
+  socket.on("message", async (message) => {
     // This will not throw, because a server shouldn't crash out.
     let data = message.toString();
     try {
@@ -85,7 +85,7 @@ export async function addFileTreeCommunication(socket, request) {
     } catch (e) {
       console.warn(
         `Received incompatible data via websocket: message is not JSON.`,
-        data,
+        data
       );
     }
     if (!data) return;
@@ -102,6 +102,10 @@ export async function addFileTreeCommunication(socket, request) {
     if (!handler) {
       return console.warn(`Missing implementation for ${handlerName}.`);
     }
+
+    // TODO: what do we do if the container's been put to sleep?
+
+    console.log(`processing ${type} message`);
     handler(detail, request);
   });
 }
@@ -154,7 +158,6 @@ function removeHandler(otHandler) {
  * sync via the file-tree:read operations).
  */
 function addAction({ basePath, id }, action) {
-  touch(projects[basePath]);
   action.from = id;
   action.when = Date.now();
   action.seqnum = seqnums[basePath]++;
@@ -225,17 +228,21 @@ class OTHandler {
 
   // ==========================================================================
 
+  async onkeepalive({ basePath }) {
+    // make sure the container doesn't go to sleep for
+    // as long as people are editing their projects.
+    touch(projects[basePath]);
+  }
+
   async onload({ basePath, reconnect }) {
-    // does this user have write-access to this project?
-    this.writeAccess = hasAccessToProject(this.user, basePath);
-
-    console.log(`OT connection for`, basePath);
-
+    const { user, id } = this;
     this.basePath = basePath;
+    // does this user have write-access to this project?
+    this.writeAccess = hasAccessToProject(user, basePath);
     addHandler(this);
     const { dirs, files } = readContentDir(join(CONTENT_DIR, basePath));
     const seqnum = seqnums[basePath] - 1;
-    this.send(`load`, { id: this.id, dirs, files, seqnum, reconnect });
+    this.send(`load`, { id, dirs, files, seqnum, reconnect });
   }
 
   async onsync({ seqnum }) {
@@ -268,6 +275,7 @@ class OTHandler {
     if (!fullPath) return;
     if (isFile) {
       if (content?.map) content = Buffer.from(content);
+      mkdirSync(dirname(fullPath), { recursive: true });
       writeFileSync(fullPath, content);
     } else {
       mkdirSync(fullPath, { recursive: true });
@@ -302,7 +310,7 @@ class OTHandler {
     const fullPath = this.getFullPath(path);
     if (!fullPath) return;
     console.log(`removing:`, fullPath);
-    rmSync(fullPath);
+    rmSync(fullPath, { recursive: true, force: true });
     addAction(this, { action: `delete`, path });
   }
 
