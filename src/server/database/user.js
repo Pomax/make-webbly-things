@@ -49,7 +49,7 @@ const {
 export function processUserSignup(username, userObject) {
   // Make extra sure we can safely register this user:
   const slug = slugify(username);
-  console.log(`processing signup for ${username}/${slug}`);
+  // console.log(`processing signup for ${username}/${slug}`);
   try {
     getUser(slug);
     throw new Error(`Username already taken.`);

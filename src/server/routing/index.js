@@ -13,7 +13,7 @@ import {
 import { addPassportAuth } from "./auth/index.js";
 import { setupRoutesV1 } from "./v1/setup-routes.js";
 import { scrubDateTime } from "../../helpers.js";
-import { setupFileTreeWebSocket } from "./server-side-file-tree.js";
+import { setupFileTreeWebSocket } from "./v1/websocket/filetree.js";
 
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 
