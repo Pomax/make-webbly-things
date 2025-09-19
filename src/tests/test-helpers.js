@@ -10,6 +10,18 @@ import { CONTENT_DIR, scrubDateTime, ROOT_DIR } from "../helpers.js";
 const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
+import { stdin } from "../setup/utils.js";
+
+/**
+ * for when users need to type things
+ */
+export async function answer(msg) {
+  console.log(`answering "${msg}"`);
+  return new Promise((resolve) =>
+    setTimeout(() => resolve(stdin.write(`${msg}\n`)), 10),
+  );
+}
+
 /**
  * obviously
  */

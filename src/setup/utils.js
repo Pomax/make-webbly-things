@@ -1,5 +1,6 @@
 import readline from "node:readline";
 import { join } from "node:path";
+import { mkdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { TESTING, ROOT_DIR } from "../helpers.js";
 
@@ -9,8 +10,10 @@ export const SETUP_ROOT_DIR = TESTING
   ? join(ROOT_DIR, `__setup_dir`)
   : ROOT_DIR;
 
+mkdirSync(SETUP_ROOT_DIR, { recursive: true });
+
 // used by the question() helper
-const stdin = readline.createInterface({
+export const stdin = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });

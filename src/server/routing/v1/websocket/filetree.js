@@ -11,7 +11,9 @@ import { FILETREE_PREFIX, OTHandler } from "./ot-handler.js";
 export function setupFileTreeWebSocket(app, sessionParser) {
   const server = http.createServer(app);
   const wss = new WebSocketServer({ clientTracking: false, noServer: true });
+
   server.on("upgrade", (request, socket, head) => {
+    // make sure this user is authenticated before we allow a connection:
     sessionParser(request, {}, () => {
       const { user } = request.session.passport ?? {};
       if (!user) {
@@ -19,13 +21,15 @@ export function setupFileTreeWebSocket(app, sessionParser) {
         socket.destroy();
         return;
       }
-      console.log(`Session is parsed, user is ${user.id}!`);
+      // Auth is good: set up the websocket!
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit(`connection`, ws, request);
       });
     });
   });
 
+  // Whenever a websocket connection is made, make sure
+  // that socket knows how to deal with file-tree events:
   wss.on("connection", (socket, request) => {
     addFileTreeCommunication(socket, request);
   });
@@ -65,13 +69,11 @@ export async function addFileTreeCommunication(socket, request) {
     // Looks like it, let's get it processed.
     type = type.replace(FILETREE_PREFIX, ``);
     const handlerName = `on${type}`;
-    const handler = otHandler[handlerName].bind(otHandler);
-    if (!handler) {
+    try {
+      otHandler[handlerName](detail, request);
+    } catch (e) {
+      // TODO: ...what do we do if the container's been put to sleep?
       return console.warn(`Missing implementation for ${handlerName}.`);
     }
-
-    // TODO: what do we do if the container's been put to sleep??
-
-    handler(detail, request);
   });
 }

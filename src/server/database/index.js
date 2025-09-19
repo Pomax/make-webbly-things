@@ -1,3 +1,13 @@
+import { join } from "node:path";
+import { applyMigrations } from "./utils.js";
+
+import {
+  readContentDir,
+  scrubDateTime,
+  TESTING,
+  ROOT_DIR,
+} from "../../helpers.js";
+
 import {
   UNKNOWN_USER,
   NOT_ACTIVATED,
@@ -98,15 +108,6 @@ export {
   updateSettingsForProject,
 };
 
-import {
-  readContentDir,
-  scrubDateTime,
-  TESTING,
-  ROOT_DIR,
-} from "../../helpers.js";
-import { applyMigrations } from "./utils.js";
-import { join } from "node:path";
-
 const dataPath = join(ROOT_DIR, `data`);
 
 /**
@@ -184,4 +185,5 @@ export function concludeTesting() {
   db.exec(`DELETE FROM users`);
   db.exec(`DELETE FROM projects`);
   db.exec(`DELETE FROM remix`);
+  db.close();
 }

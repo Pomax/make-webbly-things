@@ -83,7 +83,7 @@ describe(`Setup script tests`, async () => {
   test(`setupEnv`, async () => {
     const { setupEnv } = await import(`../../setup/env.js`);
     assert.equal(!!setupEnv, true);
-    await setupEnv(false, autoFill);
+    await setupEnv(false, {}, autoFill);
     // See https://github.com/dotenvx/dotenvx/issues/673
     const asWritten = readFileSync(join(SETUP_ROOT_DIR, `.env`)).toString();
     const env = dotenv.parse(asWritten, { processEnv: {} });

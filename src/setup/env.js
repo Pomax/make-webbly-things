@@ -10,7 +10,11 @@ import {
 /**
  * (Re)generate the .env file that we need.
  */
-export async function setupEnv(readProcess = true, autoFill = {}) {
+export async function setupEnv(
+  readFromENV = true,
+  env = process.env,
+  autoFill = {},
+) {
   let {
     LOCAL_DEV_TESTING,
     WEB_EDITOR_HOSTNAME,
@@ -18,7 +22,7 @@ export async function setupEnv(readProcess = true, autoFill = {}) {
     WEB_EDITOR_IMAGE_NAME,
     TLS_DNS_PROVIDER,
     TLS_DNS_API_KEY,
-  } = readProcess ? process.env : autoFill;
+  } = readFromENV ? env : autoFill;
 
   // Do we need to do any host setup?
   if (!WEB_EDITOR_HOSTNAME || !WEB_EDITOR_APPS_HOSTNAME) {
@@ -123,10 +127,12 @@ This will require knowing your DNS provider and your API key for that provider.
     }
   }
 
+  LOCAL_DEV_TESTING = `${!!LOCAL_DEV_TESTING}`;
+
   // (Re)generate the .env file
   writeFileSync(
     join(SETUP_ROOT_DIR, `.env`),
-    `LOCAL_DEV_TESTING=${LOCAL_DEV_TESTING || `true`}
+    `LOCAL_DEV_TESTING=${LOCAL_DEV_TESTING}
 
 WEB_EDITOR_HOSTNAME="${WEB_EDITOR_HOSTNAME}"
 WEB_EDITOR_APPS_HOSTNAME="${WEB_EDITOR_APPS_HOSTNAME}"
@@ -156,7 +162,7 @@ TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
 
   // And make sure to update process.env because subsequent
   // functions rely on having these variables set:
-  Object.assign(process.env, {
+  Object.assign(env, {
     LOCAL_DEV_TESTING,
     WEB_EDITOR_HOSTNAME,
     WEB_EDITOR_APPS_HOSTNAME,
@@ -165,6 +171,13 @@ TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
     GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET,
     GITHUB_CALLBACK_URL,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_CALLBACK_URL,
+    MASTODON_OAUTH_DOMAIN,
+    MASTODON_CLIENT_ID,
+    MASTODON_CLIENT_SECRET,
+    MASTODON_CALLBACK_URL,
     TLS_DNS_PROVIDER,
     TLS_DNS_API_KEY,
   });

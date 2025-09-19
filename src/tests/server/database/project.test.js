@@ -5,11 +5,13 @@ import {
   initTestDatabase,
   concludeTesting,
 } from "../../../server/database/index.js";
+
 import * as User from "../../../server/database/user.js";
 import * as Project from "../../../server/database/project.js";
 
 import { portBindings } from "../../../server/caddy/caddy.js";
 import { createDockerProject, tryFor } from "../../test-helpers.js";
+import { closeReader } from "../../../setup/utils.js";
 import { scrubDateTime, ROOT_DIR } from "../../../helpers.js";
 
 import dotenv from "@dotenvx/dotenvx";
@@ -18,7 +20,10 @@ dotenv.config({ quiet: true, path: envPath });
 
 describe(`project testing`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   test(`getMostRecentProjects`, () => {
     const projects = Project.getMostRecentProjects(5);

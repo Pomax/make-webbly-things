@@ -130,7 +130,7 @@ it starts up.
 
   if (!MASTODON_OAUTH_DOMAIN) {
     const defaultDomain = `mastodon.social`;
-    WEB_EDITOR_HOSTNAME =
+    MASTODON_OAUTH_DOMAIN =
       (await question(
         `Which mastodon instance (default to ${defaultDomain})`,
         true,
@@ -138,7 +138,7 @@ it starts up.
       )) || defaultDomain;
   }
 
-  MASTODON_OAUTH_DOMAIN ??= MASTODON_CLIENT_ID =
+  MASTODON_CLIENT_ID ??= MASTODON_CLIENT_ID =
     await question(`Mastodon client id`);
 
   MASTODON_CLIENT_SECRET ??= await question(`Mastodon client secret`);

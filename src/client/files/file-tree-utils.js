@@ -177,7 +177,7 @@ async function addFileCreate(fileTree, projectSlug) {
   const bulkUploadPaths = [];
 
   fileTree.addEventListener(`file:create`, async (evt) => {
-    const { path, content, grant } = evt.detail;
+    const { path, content, bulk, grant } = evt.detail;
 
     // file upload/drop
     if (content) {
@@ -190,7 +190,7 @@ async function addFileCreate(fileTree, projectSlug) {
       // Single file upload
       else {
         const entry = await uploadFile(fileTree, path, content, grant);
-        if (!bulkUploadPaths.includes(path)) {
+        if (!bulk && !bulkUploadPaths.includes(path)) {
           getOrCreateFileEditTab(entry, projectSlug, path);
         }
       }

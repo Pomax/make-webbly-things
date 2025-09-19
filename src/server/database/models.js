@@ -16,7 +16,10 @@ export const MEMBER = 10; // edit access, cannot edit project settings
 const dbName = TESTING ? `test.sqlite3` : `data.sqlite3`;
 const dbPath = `${import.meta.dirname}/../../../data/${dbName}`;
 
+// TESTING WARNING: REMEMBER TO CLOSE THIS DATABASE
+// OR THE TESTS WILL HANG INSTEAD OF EXITING CLEANLY.
 export const db = sqlite3(dbPath);
+
 db.pragma(`foreign_keys = ON`);
 
 /**

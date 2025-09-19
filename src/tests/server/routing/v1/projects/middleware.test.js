@@ -12,6 +12,7 @@ import {
   createDockerProject,
   randomDockerProjectName,
 } from "../../../../test-helpers.js";
+import { closeReader } from "../../../../../setup/utils.js";
 import { portBindings } from "../../../../../server/caddy/caddy.js";
 import { CONTENT_DIR, ROOT_DIR } from "../../../../../helpers.js";
 
@@ -24,7 +25,10 @@ const FORCE_CLEANUP = true;
 
 describe(`project middlerware tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   test(`checkProjectHealth`, async () => {
     const { res, cleanup } = await createDockerProject();

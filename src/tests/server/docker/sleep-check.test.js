@@ -1,6 +1,7 @@
 import test, { after, before, describe } from "node:test";
 import { scheduleContainerCheck } from "../../../server/docker/sleep-check.js";
 import { createDockerProject } from "../../test-helpers.js";
+import { closeReader } from "../../../setup/utils.js";
 import {
   initTestDatabase,
   concludeTesting,
@@ -8,7 +9,10 @@ import {
 
 describe(`sleep check tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   test(`codepath has no runtime errors`, async () => {
     const projects = await Promise.all([

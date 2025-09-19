@@ -9,6 +9,7 @@ import {
 import * as Middleware from "../../../../../server/routing/v1/files/middleware.js";
 import * as ProjectMiddleware from "../../../../../server/routing/v1/projects/middleware.js";
 import { createDockerProject } from "../../../../test-helpers.js";
+import { closeReader } from "../../../../../setup/utils.js";
 import { createPatch } from "../../../../../../public/vendor/diff.js";
 
 import dotenv from "@dotenvx/dotenvx";
@@ -42,6 +43,7 @@ describe(`project middlerware tests`, async () => {
 
   after(() => {
     concludeTesting();
+    closeReader();
   });
 
   // doubles as createFile test

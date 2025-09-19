@@ -30036,14 +30036,14 @@ async function uploadArchive(path, content2, bulkUploadPaths) {
 async function addFileCreate(fileTree3, projectSlug4) {
   const bulkUploadPaths = [];
   fileTree3.addEventListener(`file:create`, async (evt) => {
-    const { path, content: content2, grant } = evt.detail;
+    const { path, content: content2, bulk, grant } = evt.detail;
     if (content2) {
       if (path.endsWith(`.zip`) && confirm(`Unpack zip file?`)) {
         bulkUploadPaths.splice(0, bulkUploadPaths.length);
         uploadArchive(path, content2, bulkUploadPaths);
       } else {
         const entry = await uploadFile(fileTree3, path, content2, grant);
-        if (!bulkUploadPaths.includes(path)) {
+        if (!bulk && !bulkUploadPaths.includes(path)) {
           getOrCreateFileEditTab(entry, projectSlug4, path);
         }
       }
