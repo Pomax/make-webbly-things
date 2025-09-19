@@ -32,7 +32,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
     getOrCreateFileEditTab(
       fileEntry,
       projectSlug,
-      fileEntry.getAttribute(`path`)
+      fileEntry.getAttribute(`path`),
     );
   }
 
@@ -89,7 +89,7 @@ async function addFileClick(fileTree, projectSlug) {
     getOrCreateFileEditTab(
       fileEntry,
       projectSlug,
-      fileEntry.getAttribute(`path`)
+      fileEntry.getAttribute(`path`),
     );
     // note: we handle "selection" in the file tree as part of editor
     // reveals, so we do not call the event's own grant() function.
@@ -120,7 +120,7 @@ async function uploadFile(fileTree, fileName, content, grant) {
     `content`,
     typeof content === "string"
       ? content
-      : new Blob([content], { type: getMimeType(fileName) })
+      : new Blob([content], { type: getMimeType(fileName) }),
   );
   const response = await API.files.upload(projectSlug, fileName, form);
   if (response instanceof Error) return;
@@ -271,7 +271,7 @@ async function addFileMove(fileTree, projectSlug) {
       runMove();
     } else {
       console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
+        `Could not move ${oldPath} to ${newPath} (status:${response.status})`,
       );
     }
     updatePreview();
@@ -384,7 +384,7 @@ async function addDirMove(fileTree, projectSlug) {
       grant();
     } else {
       console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
+        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`,
       );
     }
     updatePreview();

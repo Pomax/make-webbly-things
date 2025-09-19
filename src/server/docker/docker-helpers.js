@@ -67,7 +67,7 @@ export function getAllRunningContainers() {
     obj = Object.fromEntries(
       Object.entries(obj).map(([k, v]) => {
         return [k[0].toLowerCase() + k.substring(1), v];
-      })
+      }),
     );
     const { image, command, state, iD: id, status, size, createdAt } = obj;
     containerData.push({ image, id, command, state, status, size, createdAt });

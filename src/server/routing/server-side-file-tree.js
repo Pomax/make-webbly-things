@@ -85,7 +85,7 @@ export async function addFileTreeCommunication(socket, request) {
     } catch (e) {
       console.warn(
         `Received incompatible data via websocket: message is not JSON.`,
-        data
+        data,
       );
     }
     if (!data) return;
