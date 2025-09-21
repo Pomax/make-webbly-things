@@ -20,5 +20,3 @@ new (class Editor {
     // FIXME: TODO: just move this stuff here. https://github.com/Pomax/make-webbly-things/issues/101
   }
 })();
-
-// TODO: move the event handling into the class itself?
