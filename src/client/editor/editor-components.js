@@ -35,7 +35,7 @@ export function setupEditorTab(filename) {
   tab.textContent = filename.includes(`/`)
     ? filename.substring(filename.lastIndexOf(`/`) + 1)
     : filename;
-  // TODO: make tabs draggable so users can reorder them
+  // TODO: make tabs draggable so users can reorder them. https://github.com/Pomax/make-webbly-things/issues/102
   document
     .querySelectorAll(`.active`)
     .forEach((e) => e.classList.remove(`active`));
@@ -170,6 +170,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   // FIXME: this feels like a hack, but there doesn't appear to be
   //        a clean way to associate data with an editor such that
   //        the onChange handler can access the right key...
+  //        https://github.com/Pomax/make-webbly-things/issues/110
   view.tabElement = tab;
 
   // Add tab and tab-close event hanlding:
@@ -199,7 +200,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   }
 
   // Make sure we have a change listener in place
-  // TODO: this feels like it should live in sync.js, not here
+  // TODO: this feels like it should live in sync.js, not here. https://github.com/Pomax/make-webbly-things/issues/103
   if (!entry.updateListener) {
     const updateListener = createUpdateListener(entry);
     fileEntry.addEventListener(`content:update`, updateListener);

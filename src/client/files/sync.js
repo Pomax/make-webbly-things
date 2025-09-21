@@ -25,7 +25,7 @@ export function createUpdateListener(entry) {
           },
         });
 
-        // TODO: ideally we can preserve scroll position??
+        // TODO: ideally we can preserve scroll position cleanly? https://github.com/Pomax/make-webbly-things/issues/105
       }
       updatePreview();
     }

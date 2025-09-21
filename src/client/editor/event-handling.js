@@ -21,7 +21,7 @@ export function addEventHandling(projectSlug) {
     if (key === `s`) {
       if ((mac && metaKey) || ctrlKey) {
         evt.preventDefault();
-        // TODO: something silly to make the user think they saved?
+        // TODO: something silly to make the user think they saved? https://github.com/Pomax/make-webbly-things/issues/104
       }
     }
   });

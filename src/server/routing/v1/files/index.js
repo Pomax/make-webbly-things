@@ -9,14 +9,15 @@ import {
 
 // "file specific" middleware
 import {
-  getMimeType,
-  getDirListing,
+  confirmAccessToFile,
   createFile,
-  handleUpload,
-  patchFile,
-  moveFile,
   deleteFile,
   formatFile,
+  getDirListing,
+  getMimeType,
+  handleUpload,
+  moveFile,
+  patchFile,
 } from "./middleware.js";
 
 import { Router } from "express";
@@ -40,10 +41,9 @@ files.get(`/dir/:project`, bindCommonValues, getDirListing, (_req, res) =>
 files.get(
   `/content/:project/:filename*`,
   bindCommonValues,
+  confirmAccessToFile,
   getMimeType,
   (req, res) => {
-    // FIXME: this should throw an error if the user is trying to access
-    //        private files and they don't have the right permissions.
     res.set(`Content-Type`, res.locals.mimeType);
     res.send(res.locals.data);
   },

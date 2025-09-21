@@ -234,6 +234,7 @@ function parseFileName(req, res, filename) {
   if ((filename + suffix).includes(`..`)) {
     throw new Error(`Cannot resolve relative path`);
   }
+  res.locals.filename = filename + suffix;
   const fullPath = (res.locals.fullPath = resolve(
     join(ROOT_DIR, CONTENT_DIR, projectSlug, filename + suffix),
   ));
@@ -251,6 +252,7 @@ export function loadProjectList(req, res, next) {
   // FIXME: this shouldn't blindly rebuild the list every time,
   //        creating or deleting projects should invalidate the
   //        list but otherwise we should reuse what's there.
+  //        https://github.com/Pomax/make-webbly-things/issues/112
   const { user } = res.locals;
   if (user) {
     res.locals.projectList = getProjectListForUser(user);

@@ -315,6 +315,7 @@ export function recordProjectRemix(original, newProject) {
  * for now anyway?
  *
  * TODO: move this to where it belongs.
+ * https://github.com/Pomax/make-webbly-things/issues/108
  */
 export async function runProject(project) {
   const { settings } = project;

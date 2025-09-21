@@ -72,7 +72,6 @@ export async function addFileTreeCommunication(socket, request) {
     try {
       otHandler[handlerName](detail, request);
     } catch (e) {
-      // TODO: ...what do we do if the container's been put to sleep?
       return console.warn(`Missing implementation for ${handlerName}.`);
     }
   });

@@ -17,6 +17,6 @@ new (class Editor {
     // As such, we also need custom handling for editor panes and tabs
     addEventHandling(this.projectSlug);
     updatePreview();
-    // FIXME: TODO: just move this stuff here.
+    // FIXME: TODO: just move this stuff here. https://github.com/Pomax/make-webbly-things/issues/101
   }
 })();

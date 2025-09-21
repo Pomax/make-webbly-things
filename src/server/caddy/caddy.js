@@ -61,6 +61,7 @@ export function stopCaddy() {
   // TODO: this should honestly run until there's no caddy process left
   // in the process list, but that needs to happen in a cross-platform,
   // dependeny-cless way.
+  // https://github.com/Pomax/make-webbly-things/issues/106
   try {
     execSync(`caddy stop`, { shell: true, stdio: `inherit` });
     execSync(`caddy stop`, { shell: true, stdio: `inherit` });

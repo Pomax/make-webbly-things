@@ -148,7 +148,7 @@ export async function runContainer(project, slug = project.slug) {
     }
   }
 
-  // FIXME: TODO: check if `docker ps -a` has a dead container that we need to cleanup
+  // FIXME: TODO: check if `docker ps -a` has a dead container that we need to cleanup. https://github.com/Pomax/make-webbly-things/issues/109
 
   console.log(`- Checking for running container`);
   const check = `docker ps --no-trunc -f name=^/${slug}$`;
@@ -171,6 +171,7 @@ export async function runContainer(project, slug = project.slug) {
   //              using a 2 second timeout to see what the actual port is. Because
   //              despite all logic, I've seen docker pick a *different* port than
   //              the one the run command instructs it to use O_o
+  //              https://github.com/Pomax/make-webbly-things/issues/100
   await new Promise((resolve) => {
     setTimeout(() => {
       result = execSync(check).toString().trim();
@@ -196,6 +197,7 @@ export async function runContainer(project, slug = project.slug) {
  * running on its own port, with content security.
  *
  * FIXME: this function doesn't feel like it should live here...
+ *        https://github.com/Pomax/make-webbly-things/issues/111
  */
 export async function runStaticServer(project) {
   const { slug } = project;

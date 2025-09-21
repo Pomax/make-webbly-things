@@ -1,6 +1,10 @@
 import mime from "mime";
-
+import { basename, dirname, extname, join, sep } from "node:path";
+import { getAccessFor, MEMBER, touch } from "../../../database/index.js";
+import { applyPatch } from "../../../../../public/vendor/diff.js";
 import {
+  existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   renameSync,
@@ -8,10 +12,6 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-
-import { lstatSync } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
-import { getAccessFor, MEMBER, touch } from "../../../database/index.js";
 import {
   ROOT_DIR,
   CONTENT_DIR,
@@ -22,14 +22,43 @@ import {
   pathExists,
   readContentDir,
 } from "../../../../helpers.js";
-import { applyPatch } from "../../../../../public/vendor/diff.js";
 
 const contentDir = join(ROOT_DIR, CONTENT_DIR);
 
 /**
+ * ...docs go here...
+ */
+export async function confirmAccessToFile(req, res, next) {
+  const { filename, fullPath } = res.locals;
+  console.log({ filename, fullPath });
+  const nope = (msg = `Unknown file`) => next(new Error(msg));
+  if (!existsSync(fullPath)) {
+    return nope();
+  }
+  if (lstatSync(fullPath).isDirectory()) {
+    return nope(`Path is not a file`);
+  }
+  if (filename.startsWith(`.git${sep}`)) {
+    return nope();
+  }
+  if (filename.startsWith(`.container${sep}`)) {
+    return nope();
+  }
+  if (filename.startsWith(`.data${sep}`)) {
+    const { user } = res.locals;
+    const { project } = res.locals.lookups;
+    if (!user) return nope();
+    if (!project) return nope();
+    const access = getAccessFor(user, project);
+    if (access < MEMBER) return nope();
+  }
+  next();
+}
+
+/**
  * ...docs go gere,,,
  */
-export function createFile(req, res, next) {
+export async function createFile(req, res, next) {
   const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
@@ -133,7 +162,7 @@ export async function getDirListing(req, res, next) {
 /**
  * ...docs go here...
  */
-export function getMimeType(req, res, next) {
+export async function getMimeType(req, res, next) {
   const { fullPath } = res.locals;
   const mimeType = mime.getType(fullPath);
   res.locals = {
@@ -147,7 +176,7 @@ export function getMimeType(req, res, next) {
  * ...docs go here...
  * @returns
  */
-export function handleUpload(req, res, next) {
+export async function handleUpload(req, res, next) {
   const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
@@ -165,7 +194,7 @@ export function handleUpload(req, res, next) {
 /**
  * ...docs go here...
  */
-export function patchFile(req, res, next) {
+export async function patchFile(req, res, next) {
   const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
