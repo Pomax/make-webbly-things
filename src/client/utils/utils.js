@@ -5,8 +5,10 @@ export const noop = () => {};
 /**
  * nicer than always typing document.createElement
  */
-export function create(tag) {
-  return document.createElement(tag);
+export function create(tag, attributes = {}) {
+  const e = document.createElement(tag);
+  Object.entries(attributes).forEach(([k, v]) => e.setAttribute(k, v));
+  return e;
 }
 
 /**
