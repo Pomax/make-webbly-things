@@ -1,0 +1,7 @@
+{
+  "description": "An 11ty starter project you can use to make your very own blog",
+  "run_script": "npm install\nnpm run start",
+  "app_type": "static",
+  "root_dir": "_site",
+  "default_collapse": "node_modules\n_site"
+}
