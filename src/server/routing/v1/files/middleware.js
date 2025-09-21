@@ -30,7 +30,6 @@ const contentDir = join(ROOT_DIR, CONTENT_DIR);
  */
 export async function confirmAccessToFile(req, res, next) {
   const { filename, fullPath } = res.locals;
-  console.log({ filename, fullPath });
   const nope = (msg = `Unknown file`) => next(new Error(msg));
   if (!existsSync(fullPath)) {
     return nope();

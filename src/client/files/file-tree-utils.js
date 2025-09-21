@@ -1,4 +1,5 @@
 import { API } from "../utils/api.js";
+import { ErrorNotice, Warning } from "../utils/notifications.js";
 import { getMimeType } from "./content-types.js";
 import { updatePreview } from "../preview/preview.js";
 import { getOrCreateFileEditTab } from "../editor/editor-components.js";
@@ -56,9 +57,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
  */
 export async function setupFileTree() {
   if (setupAlready) {
-    console.log(`wtf?`);
-    console.trace();
-    return;
+    return Warning(`File tree tried to set up more than once`);
   }
   setupAlready = true;
 
@@ -140,7 +139,9 @@ async function uploadFile(fileTree, fileName, content, grant) {
   if (response.status === 200) {
     grant?.();
   } else {
-    console.error(`Could not upload ${fileName} (status:${response.status})`);
+    const msg = `Could not upload ${fileName}`;
+    new Warning(msg);
+    console.warn(`${msg} (status:${response.status})`);
   }
 }
 
@@ -225,7 +226,9 @@ async function addFileCreate(fileTree, projectSlug) {
       if (response.status === 200) {
         runCreate();
       } else {
-        console.error(`Could not create ${path} (status:${response.status})`);
+        const msg = `Could not create ${path}`;
+        new Warning(msg);
+        console.warn(`${msg}} (status:${response.status})`);
       }
     }
   });
@@ -283,9 +286,9 @@ async function addFileMove(fileTree, projectSlug) {
     if (response.status === 200) {
       runMove();
     } else {
-      console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`,
-      );
+      const msg = `Could not move ${oldPath} to ${newPath}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
   };
@@ -327,7 +330,9 @@ async function addFileDelete(fileTree, projectSlug) {
         if (response.status === 200) {
           runDelete();
         } else {
-          console.error(`Could not delete ${path} (status:${response.status})`);
+          const msg = `Could not delete ${path}`;
+          new Warning(msg);
+          console.warn(`${msg} (status:${response.status})`);
         }
       } catch (e) {
         console.error(e);
@@ -377,7 +382,9 @@ async function addDirCreate(fileTree, projectSlug) {
     if (response.status === 200) {
       grant();
     } else {
-      console.error(`Could not create ${path} (status:${response.status})`);
+      const msg = `Could not create ${path}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
   });
 }
@@ -396,9 +403,9 @@ async function addDirMove(fileTree, projectSlug) {
     if (response.status === 200) {
       grant();
     } else {
-      console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`,
-      );
+      const msg = `Could not rename ${oldPath} to ${newPath}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
   };
@@ -421,7 +428,9 @@ async function addDirDelete(fileTree, projectSlug) {
     if (response.status === 200) {
       grant();
     } else {
-      console.error(`Could not delete ${path} (status:${response.status})`);
+      const msg = `Could not delete ${path}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
   });

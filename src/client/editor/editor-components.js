@@ -2,6 +2,7 @@ import { getInitialState, setupView } from "./code-mirror-6.js";
 import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent, createUpdateListener } from "../files/sync.js";
+import { ErrorNotice } from "../utils/notifications.js";
 
 const { projectId } = document.body.dataset;
 
@@ -118,12 +119,6 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
     return tab.click();
   }
 
-  const panel = setupEditorPanel(filename);
-  editors.appendChild(panel);
-
-  const { tab, close } = setupEditorTab(filename);
-  tabs.appendChild(tab);
-
   // Is this text or viewable media?
   const viewType = getViewType(filename);
 
@@ -132,11 +127,25 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   if (fileEntry.root.OT) {
     ({ data } = await fileEntry.load());
   } else {
-    data = await fetchFileContents(projectSlug, filename, viewType.type);
+    try {
+      data = await fetchFileContents(projectSlug, filename, viewType.type);
+    } catch (e) {}
+  }
+
+  if (!data) {
+    return new ErrorNotice(`Could not load ${filename}`);
   }
 
   const verified = verifyViewType(viewType.type, data);
-  if (!verified) return alert(`File contents does not match extension.`);
+  if (!verified) {
+    return new ErrorNotice(`Content for ${filename} does not match extension.`);
+  }
+
+  const panel = setupEditorPanel(filename);
+  editors.appendChild(panel);
+
+  const { tab, close } = setupEditorTab(filename);
+  tabs.appendChild(tab);
 
   const key = `${projectSlug}/${filename}`;
 

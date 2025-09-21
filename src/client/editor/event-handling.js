@@ -1,5 +1,6 @@
 import { fetchFileContents } from "../utils/utils.js";
 import { API } from "../utils/api.js";
+import { Notice } from "../utils/notifications.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
 
@@ -21,7 +22,7 @@ export function addEventHandling(projectSlug) {
     if (key === `s`) {
       if ((mac && metaKey) || ctrlKey) {
         evt.preventDefault();
-        // TODO: something silly to make the user think they saved? https://github.com/Pomax/make-webbly-things/issues/104
+        new Notice(`Your files are auto-saved =)`, 2000);
       }
     }
   });

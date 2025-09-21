@@ -25,7 +25,7 @@ html {
       transition: opacity 0.5s linear;
 
       &.info {
-        background: #cdffaa;
+        background: #99ffaf;
         text-shadow: 1px 1px 1px #ececec;
       }
       &.warning {
@@ -33,7 +33,7 @@ html {
         text-shadow: 1px 1px 1px #ececec;
       }
       &.error {
-        background: #bd4747;
+        background: #db3939;
         color: white;
         text-shadow: 1px 1px 1px black;
       }

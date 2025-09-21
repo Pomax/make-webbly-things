@@ -1,4 +1,5 @@
 import { API } from "../utils/api.js";
+import { ErrorNotice } from "../utils/notifications.js";
 
 const restart = document.querySelector(`#preview-buttons .restart`);
 const pause = document.querySelector(`#preview-buttons .pause`);
@@ -37,7 +38,7 @@ export async function updatePreview() {
         failures++;
         return setTimeout(updatePreview, 1000);
       }
-      return console.error(`Project failed to start...? That's bad`);
+      return new ErrorNotice(`Project failed to start...`);
     } else if (status === `not running` || status === `wait`) {
       if (first_time_load < 10) {
         return setTimeout(updatePreview, 1000);

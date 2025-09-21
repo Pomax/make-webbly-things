@@ -72,6 +72,40 @@ function listEquals(a1, a2) {
   return a1.every((v, i) => a2[i] === v);
 }
 
+// src/client/utils/notifications.js
+var Notice = class {
+  constructor(message, ttl = 5e3, type = `info`) {
+    const notice = this.notice = create(`div`, {
+      class: `${type} notice`
+    });
+    notice.textContent = message;
+    const close = create(`button`, {
+      class: "close"
+    });
+    close.textContent = `x`;
+    notice.addEventListener(`transitionend`, () => notice.remove());
+    close.addEventListener(`click`, () => {
+      close.disabled = true;
+      notice.style.opacity = 0;
+    });
+    notice.appendChild(close);
+    document.body.appendChild(notice);
+    if (ttl !== Infinity) {
+      setTimeout(() => close.click(), ttl);
+    }
+  }
+};
+var Warning = class extends Notice {
+  constructor(message, ttl = Infinity) {
+    super(message, ttl, `warning`);
+  }
+};
+var ErrorNotice = class extends Notice {
+  constructor(message, ttl = Infinity) {
+    super(message, ttl, `error`);
+  }
+};
+
 // src/client/files/content-types.js
 function getMimeType(fileName) {
   return getViewType(fileName).type;
@@ -186,7 +220,7 @@ async function updatePreview() {
         failures++;
         return setTimeout(updatePreview, 1e3);
       }
-      return console.error(`Project failed to start...? That's bad`);
+      return new ErrorNotice(`Project failed to start...`);
     } else if (status === `not running` || status === `wait`) {
       if (first_time_load < 10) {
         return setTimeout(updatePreview, 1e3);
@@ -29844,19 +29878,27 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
     }
     return tab2.click();
   }
-  const panel = setupEditorPanel(filename);
-  editors.appendChild(panel);
-  const { tab, close } = setupEditorTab(filename);
-  tabs2.appendChild(tab);
   const viewType = getViewType(filename);
   let data3;
   if (fileEntry.root.OT) {
     ({ data: data3 } = await fileEntry.load());
   } else {
-    data3 = await fetchFileContents(projectSlug4, filename, viewType.type);
+    try {
+      data3 = await fetchFileContents(projectSlug4, filename, viewType.type);
+    } catch (e2) {
+    }
+  }
+  if (!data3) {
+    return new ErrorNotice(`Could not load ${filename}`);
   }
   const verified = verifyViewType(viewType.type, data3);
-  if (!verified) return alert(`File contents does not match extension.`);
+  if (!verified) {
+    return new ErrorNotice(`Content for ${filename} does not match extension.`);
+  }
+  const panel = setupEditorPanel(filename);
+  editors.appendChild(panel);
+  const { tab, close } = setupEditorTab(filename);
+  tabs2.appendChild(tab);
   const key = `${projectSlug4}/${filename}`;
   let view;
   if (viewType.text || viewType.unknown) {
@@ -29951,9 +29993,7 @@ fileTree2.addEventListener(`tree:ready`, async () => {
 });
 async function setupFileTree() {
   if (setupAlready) {
-    console.log(`wtf?`);
-    console.trace();
-    return;
+    return Warning(`File tree tried to set up more than once`);
   }
   setupAlready = true;
   const dirData = await API.files.dir(projectSlug2);
@@ -30010,7 +30050,9 @@ async function uploadFile(fileTree3, fileName, content2, grant) {
   if (response.status === 200) {
     grant?.();
   } else {
-    console.error(`Could not upload ${fileName} (status:${response.status})`);
+    const msg = `Could not upload ${fileName}`;
+    new Warning(msg);
+    console.warn(`${msg} (status:${response.status})`);
   }
 }
 async function uploadArchive(path, content2, bulkUploadPaths) {
@@ -30070,7 +30112,9 @@ async function addFileCreate(fileTree3, projectSlug4) {
       if (response.status === 200) {
         runCreate();
       } else {
-        console.error(`Could not create ${path} (status:${response.status})`);
+        const msg = `Could not create ${path}`;
+        new Warning(msg);
+        console.warn(`${msg}} (status:${response.status})`);
       }
     }
   });
@@ -30113,9 +30157,9 @@ async function addFileMove(fileTree3, projectSlug4) {
     if (response.status === 200) {
       runMove();
     } else {
-      console.error(
-        `Could not move ${oldPath} to ${newPath} (status:${response.status})`
-      );
+      const msg = `Could not move ${oldPath} to ${newPath}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
   };
@@ -30143,7 +30187,9 @@ async function addFileDelete(fileTree3, projectSlug4) {
         if (response.status === 200) {
           runDelete();
         } else {
-          console.error(`Could not delete ${path} (status:${response.status})`);
+          const msg = `Could not delete ${path}`;
+          new Warning(msg);
+          console.warn(`${msg} (status:${response.status})`);
         }
       } catch (e2) {
         console.error(e2);
@@ -30177,7 +30223,9 @@ async function addDirCreate(fileTree3, projectSlug4) {
     if (response.status === 200) {
       grant();
     } else {
-      console.error(`Could not create ${path} (status:${response.status})`);
+      const msg = `Could not create ${path}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
   });
 }
@@ -30190,9 +30238,9 @@ async function addDirMove(fileTree3, projectSlug4) {
     if (response.status === 200) {
       grant();
     } else {
-      console.error(
-        `Could not rename ${oldPath} to ${newPath} (status:${response.status})`
-      );
+      const msg = `Could not rename ${oldPath} to ${newPath}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
   };
@@ -30208,7 +30256,9 @@ async function addDirDelete(fileTree3, projectSlug4) {
     if (response.status === 200) {
       grant();
     } else {
-      console.error(`Could not delete ${path} (status:${response.status})`);
+      const msg = `Could not delete ${path}`;
+      new Warning(msg);
+      console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
   });
@@ -30226,6 +30276,7 @@ function addEventHandling(projectSlug4) {
     if (key === `s`) {
       if (mac2 && metaKey || ctrlKey) {
         evt.preventDefault();
+        new Notice(`Your files are auto-saved =)`, 2e3);
       }
     }
   });
@@ -30282,30 +30333,6 @@ function addTabScrollHandling() {
   }
 }
 
-// src/client/utils/notifications.js
-var Notice = class {
-  constructor(message, ttl = 5e3, type = `info`) {
-    const notice = this.notice = create(`div`, {
-      class: `${type} notice`
-    });
-    notice.textContent = message;
-    const close = create(`button`, {
-      class: "close"
-    });
-    close.textContent = `x`;
-    notice.addEventListener(`transitionend`, () => notice.remove());
-    close.addEventListener(`click`, () => {
-      close.disabled = true;
-      notice.style.opacity = 0;
-    });
-    notice.appendChild(close);
-    document.body.appendChild(notice);
-    if (ttl !== Infinity) {
-      setTimeout(() => close.click(), ttl);
-    }
-  }
-};
-
 // src/client/entry-point.js
 var { projectId: projectId2, projectSlug: projectSlug3 } = document.body.dataset;
 new class Editor {
@@ -30317,6 +30344,5 @@ new class Editor {
     await setupFileTree(this);
     addEventHandling(this.projectSlug);
     updatePreview();
-    new Notice(`Something has gone very wrong...`);
   }
 }();
