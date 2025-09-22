@@ -31,7 +31,7 @@ class Comms {
     this.#seqnums[basePath] = 1;
     this.#changelog[basePath] = [];
     this.#handlers[basePath] ??= new Set();
-    this.#projects[basePath] = getProject(basePath, false);
+    this.#projects[basePath] = getProject(basePath);
   }
 
   /**

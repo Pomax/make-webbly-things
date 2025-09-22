@@ -7,7 +7,7 @@ import {
 import {
   setupFileTreeWebSocket,
   addFileTreeCommunication,
-} from "../../../../../server/routing/v1/websocket/filetree.js";
+} from "../../../../../server/routing/v1/websocket/for-file-tree.js";
 import { closeReader } from "../../../../../setup/utils.js";
 
 describe(`filetree tests`, async () => {

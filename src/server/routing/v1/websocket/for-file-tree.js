@@ -32,6 +32,7 @@ export function setupFileTreeWebSocket(app, sessionParser) {
   // that socket knows how to deal with file-tree events:
   wss.on("connection", (socket, request) => {
     addFileTreeCommunication(socket, request);
+    addVersioningCommunication(socket, request);
   });
 
   return server;
@@ -74,5 +75,13 @@ export async function addFileTreeCommunication(socket, request) {
     } catch (e) {
       return console.warn(`Missing implementation for ${handlerName}.`);
     }
+  });
+}
+
+export async function addVersioningCommunication(socket, request) {
+  if (!request.session?.passport?.user) return;
+
+  socket.on("message", async (message) => {
+    // ...
   });
 }

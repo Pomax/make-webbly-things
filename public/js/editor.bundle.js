@@ -29839,6 +29839,7 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     if (!fileEntry.state) return;
     if (!fileEntry.state.tab) return;
     if (!fileEntry.parentNode) return;
+    if (!fileEntry.select) return;
     fileEntry.select();
     document.querySelectorAll(`.editor`).forEach((e2) => e2.setAttribute(`hidden`, `hidden`));
     panel.removeAttribute(`hidden`);
@@ -29869,7 +29870,7 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
 }
 async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
   let entry = fileEntry.state;
-  if (entry?.view) {
+  if (entry?.tab) {
     const { closed, tab: tab2, panel: panel2 } = entry;
     if (closed) {
       entry.closed = false;
@@ -29877,6 +29878,12 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
       editors.appendChild(panel2);
     }
     return tab2.click();
+  } else {
+    const { path } = fileEntry;
+    if (document.querySelector(`[title="${path}"]`)) {
+      console.log(`reload?`);
+      return;
+    }
   }
   const viewType = getViewType(filename);
   let data3;
@@ -30001,7 +30008,13 @@ async function setupFileTree() {
   if (USE_WEBSOCKETS && projectMember) {
     const url = `wss://${location.host}`;
     console.log(`connecting wss:`, url, projectSlug2);
-    fileTree2.connectViaWebSocket(url, projectSlug2);
+    (async function connect() {
+      const socket = await fileTree2.connectViaWebSocket(url, projectSlug2);
+      socket.addEventListener(`close`, () => {
+        console.log(`connection lost. Reconnecting...`);
+        connect();
+      });
+    })();
   } else {
     fileTree2.setContent(dirData);
   }

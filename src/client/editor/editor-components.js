@@ -65,6 +65,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     if (!fileEntry.state) return;
     if (!fileEntry.state.tab) return;
     if (!fileEntry.parentNode) return;
+    if (!fileEntry.select) return;
     fileEntry.select();
     document
       .querySelectorAll(`.editor`)
@@ -109,7 +110,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
 export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   let entry = fileEntry.state;
 
-  if (entry?.view) {
+  if (entry?.tab) {
     const { closed, tab, panel } = entry;
     if (closed) {
       entry.closed = false;
@@ -117,6 +118,16 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
       editors.appendChild(panel);
     }
     return tab.click();
+  } else {
+    // edge case: reloading the page will
+    // reconnect the websockt, which will
+    // try to load a tab that may already
+    // exist...
+    const { path } = fileEntry;
+    if (document.querySelector(`[title="${path}"]`)) {
+      console.log(`reload?`);
+      return;
+    }
   }
 
   // Is this text or viewable media?

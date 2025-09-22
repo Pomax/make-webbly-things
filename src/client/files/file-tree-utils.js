@@ -68,7 +68,14 @@ export async function setupFileTree() {
   if (USE_WEBSOCKETS && projectMember) {
     const url = `wss://${location.host}`;
     console.log(`connecting wss:`, url, projectSlug);
-    fileTree.connectViaWebSocket(url, projectSlug);
+    (async function connect() {
+      const socket = await fileTree.connectViaWebSocket(url, projectSlug);
+      // auto-reconnect when we get booted.
+      socket.addEventListener(`close`, () => {
+        console.log(`connection lost. Reconnecting...`);
+        connect();
+      });
+    })();
   } else {
     fileTree.setContent(dirData);
   }
