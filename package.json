@@ -31,6 +31,7 @@
     "better-sqlite3": "^12.2.0",
     "better-sqlite3-session-store": "^0.1.0",
     "codemirror": "^6.0.1",
+    "custom-file-tree": "github:Pomax/custom-file-tree",
     "dotenv": "^17.2.1",
     "express": "^4.21.2",
     "express-session": "^1.18.2",

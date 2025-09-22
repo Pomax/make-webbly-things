@@ -5,9 +5,14 @@ export const noop = () => {};
 /**
  * nicer than always typing document.createElement
  */
-export function create(tag, attributes = {}) {
+export function create(tag, attributes = {}, evts = {}) {
   const e = document.createElement(tag);
+  if (attributes.textContent) {
+    e.textContent = attributes.textContent;
+    delete attributes.textContent;
+  }
   Object.entries(attributes).forEach(([k, v]) => e.setAttribute(k, v));
+  Object.entries(evts).forEach(([t, fn]) => e.addEventListener(t, fn));
   return e;
 }
 

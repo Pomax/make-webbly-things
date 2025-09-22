@@ -1,6 +1,6 @@
 import http from "node:http";
 import { WebSocketServer } from "ws";
-import { FILETREE_PREFIX, OTHandler } from "./ot-handler.js";
+import { FILE_TREE_PREFIX, OTHandler } from "./ot-handler.js";
 
 /**
  * Set up file-tree related websocket handling given
@@ -32,7 +32,6 @@ export function setupFileTreeWebSocket(app, sessionParser) {
   // that socket knows how to deal with file-tree events:
   wss.on("connection", (socket, request) => {
     addFileTreeCommunication(socket, request);
-    addVersioningCommunication(socket, request);
   });
 
   return server;
@@ -50,26 +49,8 @@ export async function addFileTreeCommunication(socket, request) {
   const otHandler = new OTHandler(socket, request.session.passport.user);
 
   socket.on("message", async (message) => {
-    // This will not throw, because a server shouldn't crash out.
-    let data = message.toString();
-    try {
-      data = JSON.parse(data);
-    } catch (e) {
-      console.warn(
-        `Received incompatible data via websocket: message is not JSON.`,
-        data,
-      );
-    }
-    if (!data) return;
-
-    // Is this something we know how to handle?
-    let { type, detail } = data;
+    const { type, detail, handlerName } = unpackMessage(message);
     if (!type) return;
-    if (!type.startsWith(FILETREE_PREFIX)) return;
-
-    // Looks like it, let's get it processed.
-    type = type.replace(FILETREE_PREFIX, ``);
-    const handlerName = `on${type}`;
     try {
       otHandler[handlerName](detail, request);
     } catch (e) {
@@ -78,10 +59,34 @@ export async function addFileTreeCommunication(socket, request) {
   });
 }
 
-export async function addVersioningCommunication(socket, request) {
-  if (!request.session?.passport?.user) return;
+// Helper function for parsing messages for filetree work.
+function unpackMessage(message) {
+  let data = message.toString();
+  try {
+    data = JSON.parse(data);
+  } catch (e) {
+    // This will not throw, because a server shouldn't crash out.
+    console.warn(
+      `Received incompatible data via websocket: message is not JSON.`,
+      data,
+      e,
+    );
+  }
+  if (!data) return {};
 
-  socket.on("message", async (message) => {
-    // ...
-  });
+  // Is this something we know how to handle?
+  let { type, detail } = data;
+  if (!type) {
+    console.warn(`No type for message`, data);
+    return {};
+  }
+  if (!type.startsWith(FILE_TREE_PREFIX)) {
+    console.warn(`No file-tree prefix for message`, data);
+    return {};
+  }
+
+  // Looks like it, let's get it processed.
+  type = type.replace(FILE_TREE_PREFIX, ``);
+  const handlerName = `on${type}`;
+  return { type, detail, handlerName };
 }

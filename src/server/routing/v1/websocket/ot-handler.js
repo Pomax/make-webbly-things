@@ -11,9 +11,10 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { getFileHistory } from "../../../git/git-utils.js";
+import { FILE_TREE_PREFIX } from "custom-file-tree";
 
-// Scope all events to the file tree
-export const FILETREE_PREFIX = `file-tree:`;
+export { FILE_TREE_PREFIX };
 
 /**
  * An "operational transform" handler for file system operations.
@@ -39,7 +40,7 @@ export class OTHandler {
   }
 
   send(type, detail) {
-    type = FILETREE_PREFIX + type;
+    type = FILE_TREE_PREFIX + type;
     try {
       this.socket.send(JSON.stringify({ type, detail }));
     } catch (e) {
@@ -121,7 +122,6 @@ export class OTHandler {
     // console.log(`on delete in ${this.basePath}:`, { path });
     const fullPath = this.getFullPath(path);
     if (!fullPath) return;
-    console.log(`removing:`, fullPath);
     rmSync(fullPath, { recursive: true, force: true });
     comms.addAction(this, { action: `delete`, path });
   }
@@ -137,6 +137,18 @@ export class OTHandler {
     comms.addAction(this, { action: `move`, isFile, oldPath, newPath });
   }
 
+  async onupdate({ path, type, update }) {
+    if (!this.writeAccess) return;
+    // console.log(`on update in ${this.basePath}:`, { path, update });
+    const fullPath = this.getFullPath(path);
+    if (!fullPath) return;
+    if (this.updateHandler(fullPath, type, update)) {
+      comms.addAction(this, { action: `update`, type, path, update });
+    }
+  }
+
+  // ==========================================================================
+
   // This is not a transform, and so does not require
   // recording or broadcasting to other subscribers.
   async onread({ path }) {
@@ -147,14 +159,10 @@ export class OTHandler {
     this.send(`read`, { path, data });
   }
 
-  async onupdate({ path, type, update }) {
-    if (!this.writeAccess) return;
-    // console.log(`on update in ${this.basePath}:`, { path, update });
-    const fullPath = this.getFullPath(path);
-    if (!fullPath) return;
-    if (this.updateHandler(fullPath, type, update)) {
-      comms.addAction(this, { action: `update`, type, path, update });
-    }
+  // This is also not a transform.
+  async onfilehistory({ path }) {
+    const history = getFileHistory(this.basePath, path);
+    this.send(`filehistory`, { path, history });
   }
 
   // ==========================================================================

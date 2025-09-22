@@ -1,0 +1,22 @@
+html {
+  body {
+    .history {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2em;
+      background: red;
+
+      .point {
+        cursor: pointer;
+        padding: 0 0.5em;
+        background: white;
+        border-radius: 0.5em;
+        & + .point {
+          margin-left: 2em;
+        }
+      }
+    }
+  }
+}

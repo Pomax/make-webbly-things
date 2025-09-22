@@ -1,11 +1,13 @@
 import { API } from "../utils/api.js";
-import { ErrorNotice, Warning } from "../utils/notifications.js";
+import { create } from "../utils/utils.js";
+import { Warning } from "../utils/notifications.js";
 import { getMimeType } from "./content-types.js";
 import { updatePreview } from "../preview/preview.js";
 import { getOrCreateFileEditTab } from "../editor/editor-components.js";
 import { DEFAULT_FILES } from "./default-files.js";
-
+import { WebSocketInterface } from "custom-file-tree";
 import { unzip } from "/vendor/unzipit.module.js";
+import { applyPatch, reversePatch } from "../../../public/vendor/diff.js";
 
 const USE_WEBSOCKETS = !!document.body.dataset.useWebsockets;
 let setupAlready = false;
@@ -14,6 +16,69 @@ const { defaultCollapse, defaultFile, projectMember, projectSlug } =
   document.body.dataset;
 
 const fileTree = document.getElementById(`filetree`);
+
+// Our websocket interface needs some functions that are not
+// offered as part of the standard file tree ws interface:
+class CustomWebsocketInterface extends WebSocketInterface {
+  constructor(...args) {
+    super(...args);
+    this.bypassSync.push(`filehistory`);
+  }
+
+  async getFileHistory(path) {
+    this.send(`filehistory`, { path });
+  }
+
+  async onfilehistory({ path, history }) {
+    // TEST TEST TEST TEST TEST TEST
+    console.log(`git history for ${path}:`, history);
+
+    const fileEntry = document.querySelector(`file-entry[path="${path}"]`);
+    let { content } = fileEntry.state;
+    let pos = 0;
+
+    const rollBack = () => {
+      if (pos === history.length - 1) return;
+      const { reverse } = history[pos];
+      const newContent = applyPatch(content, reverse);
+      console.log(newContent);
+      content = newContent;
+      pos += 1;
+    };
+
+    const fastForward = () => {
+      if (pos === 0) return;
+      pos -= 1;
+      const { forward } = history[pos];
+      const newContent = applyPatch(content, forward);
+      console.log(newContent);
+      content = newContent;
+    };
+
+    const div = create(`div`, { class: `history` });
+    history.forEach(({ timestamp }, i) => {
+      const point = create(
+        `span`,
+        {
+          class: `point`,
+          textContent: new Date(timestamp).toLocaleString(),
+        },
+        {
+          click: () => {
+            if (pos === i) return;
+            if (pos < i) while (pos < i) rollBack();
+            if (pos > i) while (pos > i) fastForward();
+          },
+        },
+      );
+      point.dataset.index = i;
+      div.append(point);
+    });
+    document.body.append(div);
+
+    // TEST TEST TEST TEST TEST TEST
+  }
+}
 
 /**
  * When the file tree is ready, make sure to collapse anything
@@ -69,12 +134,22 @@ export async function setupFileTree() {
     const url = `wss://${location.host}`;
     console.log(`connecting wss:`, url, projectSlug);
     (async function connect() {
-      const socket = await fileTree.connectViaWebSocket(url, projectSlug);
+      const OT = await fileTree.connectViaWebSocket(
+        url,
+        projectSlug,
+        60_000,
+        CustomWebsocketInterface,
+      );
+
       // auto-reconnect when we get booted.
-      socket.addEventListener(`close`, () => {
+      OT.socket.addEventListener(`close`, () => {
         console.log(`connection lost. Reconnecting...`);
-        connect();
+        setTimeout(() => connect(), 1000);
       });
+
+      // TEST TEST TEST TEST TEST TEST
+      window.testHistory = () => OT.getFileHistory(`index.html`);
+      // TEST TEST TEST TEST TEST TEST
     })();
   } else {
     fileTree.setContent(dirData);

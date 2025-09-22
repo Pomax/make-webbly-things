@@ -1,9 +1,6 @@
-// src/client/entry-point.js
-import "/vendor/file-tree.esm.min.js";
-
 // src/client/utils/api.js
 var PREFIX = `/v1`;
-var fetch = (...args) => globalThis.fetch(`${PREFIX}/${args.shift()}`, ...args);
+var fetch2 = (...args) => globalThis.fetch(`${PREFIX}/${args.shift()}`, ...args);
 var API = {
   // Project related calls, such as getting project health,
   // restarting the container, updating settings, etc.
@@ -16,35 +13,35 @@ var API = {
     remix: async (projectSlug4) => {
       location = `${PREFIX}/projects/remix/${projectSlug4}`;
     },
-    health: async (projectSlug4) => fetch(`projects/health/${projectSlug4}?v=${Date.now()}`).then(
+    health: async (projectSlug4) => fetch2(`projects/health/${projectSlug4}?v=${Date.now()}`).then(
       (r) => r.text()
     ),
-    restart: async (projectSlug4) => fetch(`projects/restart/${projectSlug4}`, {
+    restart: async (projectSlug4) => fetch2(`projects/restart/${projectSlug4}`, {
       method: `POST`
     })
   },
   // File related calls, which are mostly "CRUD"
   // (create/read/update/delete) operations.
   files: {
-    dir: async (projectSlug4) => fetch(`files/dir/${projectSlug4}`).then((r) => r.json()),
-    create: async (projectSlug4, fileName) => fetch(`files/create/${projectSlug4}/${fileName}`, { method: `post` }),
-    upload: async (projectSlug4, fileName, form) => fetch(`files/upload/${projectSlug4}/${fileName}`, {
+    dir: async (projectSlug4) => fetch2(`files/dir/${projectSlug4}`).then((r) => r.json()),
+    create: async (projectSlug4, fileName) => fetch2(`files/create/${projectSlug4}/${fileName}`, { method: `post` }),
+    upload: async (projectSlug4, fileName, form) => fetch2(`files/upload/${projectSlug4}/${fileName}`, {
       method: `post`,
       body: form
     }),
-    get: async (projectSlug4, fileName) => fetch(`files/content/${projectSlug4}/${fileName}`),
-    rename: async (projectSlug4, oldPath, newPath) => fetch(`files/rename/${projectSlug4}/${oldPath}:${newPath}`, {
+    get: async (projectSlug4, fileName) => fetch2(`files/content/${projectSlug4}/${fileName}`),
+    rename: async (projectSlug4, oldPath, newPath) => fetch2(`files/rename/${projectSlug4}/${oldPath}:${newPath}`, {
       method: `post`
     }),
-    format: async (projectSlug4, fileName) => fetch(`files/format/${projectSlug4}/${fileName}`, {
+    format: async (projectSlug4, fileName) => fetch2(`files/format/${projectSlug4}/${fileName}`, {
       method: `post`
     }),
-    sync: async (projectSlug4, fileName, changes) => fetch(`files/sync/${projectSlug4}/${fileName}`, {
+    sync: async (projectSlug4, fileName, changes) => fetch2(`files/sync/${projectSlug4}/${fileName}`, {
       headers: { "Content-Type": `text/plain` },
       method: `post`,
       body: changes
     }),
-    delete: async (projectSlug4, fileName) => fetch(`files/delete/${projectSlug4}/${fileName}`, {
+    delete: async (projectSlug4, fileName) => fetch2(`files/delete/${projectSlug4}/${fileName}`, {
       method: `delete`
     })
     // NOTE: there is no separate delete-dir, the delete route should just "do what needs to be done".
@@ -52,9 +49,14 @@ var API = {
 };
 
 // src/client/utils/utils.js
-function create(tag, attributes = {}) {
+function create(tag, attributes = {}, evts = {}) {
   const e2 = document.createElement(tag);
+  if (attributes.textContent) {
+    e2.textContent = attributes.textContent;
+    delete attributes.textContent;
+  }
   Object.entries(attributes).forEach(([k, v]) => e2.setAttribute(k, v));
+  Object.entries(evts).forEach(([t2, fn]) => e2.addEventListener(t2, fn));
   return e2;
 }
 async function fetchFileContents(projectSlug4, fileName, type = `text/plain`) {
@@ -1985,8 +1987,8 @@ var StateField = class _StateField {
   way it is initialized. Can be useful when you need to provide a
   non-default starting value for the field.
   */
-  init(create2) {
-    return [this, initField.of({ field: this, create: create2 })];
+  init(create3) {
+    return [this, initField.of({ field: this, create: create3 })];
   }
   /**
   State field instances can be used as
@@ -2941,10 +2943,10 @@ var Chunk = class _Chunk {
       if (lo == hi)
         return lo;
       let mid = lo + hi >> 1;
-      let diff = arr[mid] - pos || (end ? this.value[mid].endSide : this.value[mid].startSide) - side;
+      let diff2 = arr[mid] - pos || (end ? this.value[mid].endSide : this.value[mid].startSide) - side;
       if (mid == lo)
-        return diff >= 0 ? lo : hi;
-      if (diff >= 0)
+        return diff2 >= 0 ? lo : hi;
+      if (diff2 >= 0)
         hi = mid;
       else
         lo = mid + 1;
@@ -3270,10 +3272,10 @@ var RangeSetBuilder = class _RangeSetBuilder {
   @internal
   */
   addInner(from, to, value) {
-    let diff = from - this.lastTo || value.startSide - this.last.endSide;
-    if (diff <= 0 && (from - this.lastFrom || value.startSide - this.last.startSide) < 0)
+    let diff2 = from - this.lastTo || value.startSide - this.last.endSide;
+    if (diff2 <= 0 && (from - this.lastFrom || value.startSide - this.last.startSide) < 0)
       throw new Error("Ranges must be added sorted by `from` position and `startSide`");
-    if (diff < 0)
+    if (diff2 < 0)
       return false;
     if (this.from.length == 250)
       this.finishChunk(true);
@@ -3605,8 +3607,8 @@ function compare(a, startA, b, startB, length, comparator) {
   let endB = startB + length;
   let pos = startB, dPos = startB - startA;
   for (; ; ) {
-    let dEnd = a.to + dPos - b.to, diff = dEnd || a.endSide - b.endSide;
-    let end = diff < 0 ? a.to + dPos : b.to, clipEnd = Math.min(end, endB);
+    let dEnd = a.to + dPos - b.to, diff2 = dEnd || a.endSide - b.endSide;
+    let end = diff2 < 0 ? a.to + dPos : b.to, clipEnd = Math.min(end, endB);
     if (a.point || b.point) {
       if (!(a.point && b.point && (a.point == b.point || a.point.eq(b.point)) && sameValues(a.activeForPoint(a.to), b.activeForPoint(b.to))))
         comparator.comparePoint(pos, clipEnd, a.point, b.point);
@@ -3619,9 +3621,9 @@ function compare(a, startA, b, startB, length, comparator) {
     if ((dEnd || a.openEnd != b.openEnd) && comparator.boundChange)
       comparator.boundChange(end);
     pos = end;
-    if (diff <= 0)
+    if (diff2 <= 0)
       a.next();
-    if (diff >= 0)
+    if (diff2 >= 0)
       b.next();
   }
 }
@@ -6198,9 +6200,9 @@ var viewPlugin = /* @__PURE__ */ Facet.define({
   }
 });
 var ViewPlugin = class _ViewPlugin {
-  constructor(id2, create2, domEventHandlers, domEventObservers, buildExtensions) {
+  constructor(id2, create3, domEventHandlers, domEventObservers, buildExtensions) {
     this.id = id2;
-    this.create = create2;
+    this.create = create3;
     this.domEventHandlers = domEventHandlers;
     this.domEventObservers = domEventObservers;
     this.baseExtensions = buildExtensions(this);
@@ -6216,9 +6218,9 @@ var ViewPlugin = class _ViewPlugin {
   Define a plugin from a constructor function that creates the
   plugin's value, given an editor view.
   */
-  static define(create2, spec) {
+  static define(create3, spec) {
     const { eventHandlers, eventObservers, provide, decorations: deco } = spec || {};
-    return new _ViewPlugin(nextPluginID++, create2, eventHandlers, eventObservers, (plugin) => {
+    return new _ViewPlugin(nextPluginID++, create3, eventHandlers, eventObservers, (plugin) => {
       let ext = [];
       if (deco)
         ext.push(decorations.of((view) => {
@@ -6368,12 +6370,12 @@ var ChangedRange = class _ChangedRange {
     set.splice(i, 0, me);
     return set;
   }
-  static extendWithRanges(diff, ranges) {
+  static extendWithRanges(diff2, ranges) {
     if (ranges.length == 0)
-      return diff;
+      return diff2;
     let result = [];
     for (let dI = 0, rI = 0, posA = 0, posB = 0; ; dI++) {
-      let next = dI == diff.length ? null : diff[dI], off = posA - posB;
+      let next = dI == diff2.length ? null : diff2[dI], off = posA - posB;
       let end = next ? next.fromB : 1e9;
       while (rI < ranges.length && ranges[rI] < end) {
         let from = ranges[rI], to = ranges[rI + 1];
@@ -7046,9 +7048,9 @@ var DecorationComparator$1 = class DecorationComparator {
     addRange(pos, pos, this.changes);
   }
 };
-function findChangedDeco(a, b, diff) {
+function findChangedDeco(a, b, diff2) {
   let comp = new DecorationComparator$1();
-  RangeSet.compare(a, b, diff, comp);
+  RangeSet.compare(a, b, diff2, comp);
   return comp.changes;
 }
 function inUneditable(node, inside2) {
@@ -7595,14 +7597,14 @@ function applyDOMChange(view, domChange) {
       preferredPos = sel.to;
       preferredSide = "end";
     }
-    let diff = findDiff(view.state.doc.sliceString(from, to, LineBreakPlaceholder), domChange.text, preferredPos - from, preferredSide);
-    if (diff) {
-      if (browser.chrome && lastKey == 13 && diff.toB == diff.from + 2 && domChange.text.slice(diff.from, diff.toB) == LineBreakPlaceholder + LineBreakPlaceholder)
-        diff.toB--;
+    let diff2 = findDiff(view.state.doc.sliceString(from, to, LineBreakPlaceholder), domChange.text, preferredPos - from, preferredSide);
+    if (diff2) {
+      if (browser.chrome && lastKey == 13 && diff2.toB == diff2.from + 2 && domChange.text.slice(diff2.from, diff2.toB) == LineBreakPlaceholder + LineBreakPlaceholder)
+        diff2.toB--;
       change = {
-        from: from + diff.from,
-        to: from + diff.toA,
-        insert: Text.of(domChange.text.slice(diff.from, diff.toB).split(LineBreakPlaceholder))
+        from: from + diff2.from,
+        to: from + diff2.toA,
+        insert: Text.of(domChange.text.slice(diff2.from, diff2.toB).split(LineBreakPlaceholder))
       };
     }
   } else if (newSel && (!view.hasFocus && view.state.facet(editable) || newSel.main.eq(sel))) {
@@ -9198,9 +9200,9 @@ var NodeBuilder = class _NodeBuilder {
     return builder.finish(from);
   }
 };
-function heightRelevantDecoChanges(a, b, diff) {
+function heightRelevantDecoChanges(a, b, diff2) {
   let comp = new DecorationComparator2();
-  RangeSet.compare(a, b, diff, comp, 0);
+  RangeSet.compare(a, b, diff2, comp, 0);
   return comp.changes;
 }
 var DecorationComparator2 = class {
@@ -11141,9 +11143,9 @@ var EditorView = class _EditorView {
               continue;
             } else {
               let newAnchorHeight = scrollAnchorPos < 0 ? this.viewState.heightMap.height : this.viewState.lineBlockAt(scrollAnchorPos).top;
-              let diff = newAnchorHeight - scrollAnchorHeight;
-              if (diff > 1 || diff < -1) {
-                scrollTop = scrollTop + diff;
+              let diff2 = newAnchorHeight - scrollAnchorHeight;
+              if (diff2 > 1 || diff2 < -1) {
+                scrollTop = scrollTop + diff2;
                 sDOM.scrollTop = scrollTop / this.scaleY;
                 scrollAnchorHeight = -1;
                 continue;
@@ -29774,24 +29776,24 @@ function createUpdateListener(entry) {
   };
 }
 async function syncContent(projectSlug4, fileEntry) {
-  const { path } = fileEntry;
+  const { path: path2 } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;
   const currentContent = entry.content;
   const newContent = entry.view.state.doc.toString();
-  const patch = createPatch(path, currentContent, newContent);
+  const patch = createPatch(path2, currentContent, newContent);
   if (fileEntry.root.OT) {
     entry.content = newContent;
     fileEntry.updateContent(`diff`, patch);
   } else {
-    const response = await API.files.sync(projectSlug4, path, patch);
+    const response = await API.files.sync(projectSlug4, path2, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
       entry.content = newContent;
       updatePreview();
     } else {
       if (document.body.dataset.projectMember) {
-        entry.content = await fetchFileContents(projectSlug4, path);
+        entry.content = await fetchFileContents(projectSlug4, path2);
       }
       entry.contentReset = true;
       entry.view.dispatch({
@@ -29879,8 +29881,8 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
     }
     return tab2.click();
   } else {
-    const { path } = fileEntry;
-    if (document.querySelector(`[title="${path}"]`)) {
+    const { path: path2 } = fileEntry;
+    if (document.querySelector(`[title="${path2}"]`)) {
       console.log(`reload?`);
       return;
     }
@@ -29966,12 +29968,1911 @@ var DEFAULT_FILES = [
   `main.py`
 ];
 
+// node_modules/custom-file-tree/src/utils/utils.js
+var create2 = (tag) => document.createElement(tag);
+var registry = globalThis.customElements ?? { define: () => {
+} };
+function getFileContent(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = ({ target }) => resolve(target.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// node_modules/custom-file-tree/src/classes/file-tree-element.js
+var HTMLElement = globalThis.HTMLElement ?? class {
+};
+var FileTreeElement = class extends HTMLElement {
+  state = {};
+  eventControllers = [];
+  constructor() {
+    super();
+    this.icon = this.find(`& > .icon`);
+    if (!this.icon) {
+      const icon = this.icon = create2(`span`);
+      icon.classList.add(`icon`);
+      this.appendChild(icon);
+    }
+    this.heading = this.find(`& > entry-heading`);
+    if (!this.heading) {
+      const heading2 = this.heading = create2(`entry-heading`);
+      this.appendChild(heading2);
+    }
+    this.buttons = this.find(`& > span.buttons`);
+    if (!this.buttons) {
+      const buttons = this.buttons = create2(`span`);
+      buttons.classList.add(`buttons`);
+      this.appendChild(buttons);
+    }
+  }
+  addExternalListener(target, eventName, handler, options = {}) {
+    const abortController = new AbortController();
+    options.signal = abortController.signal;
+    target.addEventListener(eventName, handler, options);
+    this.addAbortController(abortController);
+  }
+  addListener(eventName, handler, options = {}) {
+    this.addExternalListener(this, eventName, handler, options);
+  }
+  addAbortController(controller) {
+    this.eventControllers.push(controller);
+  }
+  disconnectedCallback() {
+    const { eventControllers } = this;
+    while (eventControllers.length) {
+      eventControllers.shift().abort();
+    }
+  }
+  get removeEmptyDir() {
+    return this.root.removeEmptyDir;
+  }
+  get name() {
+    return this.getAttribute(`name`);
+  }
+  set name(name2) {
+    this.setAttribute(`name`, name2);
+  }
+  get path() {
+    return this.getAttribute(`path`);
+  }
+  set path(path2) {
+    if (!path2) return;
+    const pos = path2.endsWith(`/`) ? -2 : -1;
+    this.name = path2.split(`/`).at(pos).replace(/#.*/, ``);
+    if (!this.name && path2) {
+      throw Error(`why? path is ${path2}`);
+    }
+    const heading2 = this.find(`& > entry-heading`);
+    heading2.textContent = this.name;
+    this.setAttribute(`path`, path2);
+  }
+  updatePath(isFile, oldPath, newPath) {
+    if (this.path === oldPath) {
+      this.path = newPath;
+      return true;
+    }
+    if (isFile) return false;
+    const regex = new RegExp(`^${oldPath}`);
+    this.path = this.path.replace(regex, newPath);
+    return true;
+  }
+  get dirPath() {
+    let { path: path2, name: name2 } = this;
+    if (this.isFile) return path2.replace(name2, ``);
+    if (this.isDir) return path2.substring(0, path2.lastIndexOf(name2));
+    throw Error(`entry is file nor dir.`);
+  }
+  get root() {
+    return this.closest(`file-tree`);
+  }
+  get parentDir() {
+    let element = this;
+    if (element.tagName === `DIR-ENTRY`) {
+      element = element.parentNode;
+    }
+    return element.closest(`dir-entry`);
+  }
+  emit(eventType, detail = {}, grant = () => {
+  }) {
+    detail.grant = grant;
+    this.root.dispatchEvent(new CustomEvent(eventType, { detail }));
+  }
+  find(qs) {
+    return this.querySelector(qs);
+  }
+  findInTree(qs) {
+    return this.root.querySelector(qs);
+  }
+  findAll(qs) {
+    return Array.from(this.querySelectorAll(qs));
+  }
+  findAllInTree(qs) {
+    return Array.from(this.root.querySelectorAll(qs));
+  }
+  hasButton(className) {
+    return this.find(`& > .buttons .${className}`);
+  }
+  select() {
+    this.root.unselect();
+    this.classList.add(`selected`);
+  }
+  setState(stateUpdate) {
+    Object.assign(this.state, stateUpdate);
+  }
+};
+var EntryHeading = class extends HTMLElement {
+};
+registry.define(`entry-heading`, EntryHeading);
+
+// node_modules/custom-file-tree/src/classes/websocket-interface.js
+var FILE_TREE_PREFIX = `file-tree:`;
+var WebSocketInterface = class {
+  // Class extensions can push additional event
+  // types into this array in order to bypass
+  // the sync check (e.g. for things that just
+  // need "an answer" rather than needing to
+  // be sequentially ordered)
+  bypassSync = [`load`, `read`];
+  // A list used to await content responses
+  // from the server, so that users can just
+  // "await" entry.load() calls.
+  waitList = {};
+  // An "optimistically applied" list of
+  // pending actions that have been sent
+  // off to the server, and have hopefully
+  // been accepted, but may need undoing.
+  pending = [];
+  /**
+   * Set up a websocket connection to a secure
+   * endpoint for a given file tree element.
+   */
+  constructor(fileTree3, url, basePath = `.`, keepAliveInterval = 6e4) {
+    Object.assign(this, { fileTree: fileTree3, url, basePath, keepAliveInterval });
+    this.connect();
+  }
+  /**
+   * Connect to a websocket server and let it know which
+   * base path this file tree wants to be linked to, so
+   * that it can be joined up with every other file tree
+   * that's looking at/working with the same base path.
+   *
+   * @param {*} url
+   * @param {*} basePath
+   */
+  async connect(url = this.url, basePath = this.basePath) {
+    url = url.replace(`https://`, `wss://`);
+    if (!url.startsWith(`wss://`)) {
+      throw new Error(`Only secure URLs are supported.`);
+    }
+    const socket = this.socket = new WebSocket(url);
+    socket.addEventListener(`message`, ({ data: data3 }) => {
+      data3 = JSON.parse(data3);
+      let { type, detail } = data3;
+      if (!type.startsWith(FILE_TREE_PREFIX)) return;
+      type = type.replace(FILE_TREE_PREFIX, ``);
+      const handlerName = `on${type}`;
+      const handler = this[handlerName].bind(this);
+      if (!handler) {
+        throw new Error(`Missing implementation for ${handlerName}.`);
+      }
+      if (this.checkSync(type, detail.seqnum)) handler(detail);
+    });
+    let keepAliveTimer;
+    const keepAlive = () => {
+      this.send(`keepalive`, { basePath });
+      keepAliveTimer = setTimeout(keepAlive, this.keepAliveInterval);
+    };
+    socket.addEventListener(`close`, () => {
+      clearTimeout(keepAliveTimer);
+    });
+    socket.addEventListener(`open`, () => {
+      this.send(`load`, { basePath });
+      keepAlive();
+    });
+  }
+  /**
+   * Mark a specific path as awaiting a "read" result.
+   */
+  async markWaiting(path2, resolve) {
+    this.waitList[path2] = resolve;
+  }
+  /**
+   * Send a message to the server
+   */
+  async send(type, detail = {}) {
+    const action = { type: `${FILE_TREE_PREFIX}${type}`, detail };
+    this.pending.push(action);
+    this.socket.send(JSON.stringify(action));
+  }
+  /**
+   * Verify that we're (a) in sync with respect to the
+   * sequence numbering for this folder, and (b) in sync
+   * with respect to which operation we thought we were
+   * going to see (if we're expecting our own operation(s)
+   * as next one(s) in the sequence).
+   * @param {*} type
+   * @param {*} seqnum
+   * @returns
+   */
+  checkSync(type, seqnum) {
+    if (this.bypassSync.includes(type)) return true;
+    if (seqnum === this.seqnum + 1) {
+      const { pending } = this;
+      if (pending.length) {
+        if (pending[0].type === type) {
+          pending.shift();
+        } else {
+          this.rollback(pending.reverse());
+        }
+      }
+      return this.seqnum = seqnum;
+    }
+    this.send(`sync`, { seqnum: this.seqnum });
+  }
+  /**
+   * Do we need to roll back any optimistic changes?
+   */
+  rollback(latestToOldest) {
+    this.pending = [];
+    for (const { type, detail } of latestToOldest) {
+      if (type === `create`) {
+        this.fileTree.__delete(detail.path);
+      }
+      if (type === `delete`) {
+        this.fileTree.__create(detail.path, detail.isFile);
+        this.read(path);
+      }
+      if (type === `move`) {
+        this.fileTree.__move(detail.isFile, detail.newPath, detail.oldPath);
+      }
+      if (type === `update`) {
+        this.read(path);
+      }
+    }
+  }
+  // ==========================================================================
+  /**
+   * OT operation from file tree: inform the server of a file or dir creation.
+   */
+  async create(path2, isFile, content2) {
+    this.send(`create`, { path: path2, isFile, content: content2 });
+  }
+  /**
+   * OT operation from file tree: inform the server of a deletion.
+   */
+  async delete(path2) {
+    this.send(`delete`, { path: path2 });
+  }
+  /**
+   * OT operation from file tree: inform the server of a path change.
+   */
+  async move(isFile, oldPath, newPath) {
+    this.send(`move`, { isFile, oldPath, newPath });
+  }
+  /**
+   * This is a special one time (well, ideally) operation for
+   * getting file content via websockets rather than via a
+   * REST API.
+   *
+   * The response will either be a string for textual data,
+   * or an array of ints for binary data, where each array
+   * element represents a byte value.
+   */
+  async read(path2) {
+    return new Promise((resolve) => {
+      this.markWaiting(path2, resolve);
+      this.send(`read`, { path: path2 });
+    });
+  }
+  /**
+   * OT operation from file tree: inform the server of a content update.
+   */
+  async update(path2, type, update) {
+    this.send(`update`, { path: path2, type, update });
+  }
+  // ==========================================================================
+  /**
+   * Build a tree off of a set of paths. This happens in
+   * response to a message of the form:
+   *
+   * {
+   *    "type": "file-tree:load",
+   *    "detail": {
+   *       "paths": []
+   *    }
+   * }
+   *
+   * where the `paths` payload is an array of strings.
+   */
+  async onload({ id: id2, dirs, files, seqnum }) {
+    this.id = id2;
+    this.seqnum = seqnum;
+    this.fileTree.setContent({ dirs, files }, true);
+  }
+  /**
+   * Something has gone horribly wrong, and we need to
+   * terminate this connection. If `reconnect` is true
+   * we are allowed to reconnect so that we're back
+   * in a good state.
+   */
+  async onterminate({ id: id2, reconnect }) {
+    if (this.id !== id2) return;
+    this.socket.close();
+    if (reconnect) this.connect();
+  }
+  /**
+   * Handle a create notification, which will tell us which
+   * path got created, and when that creation happened.
+   *
+   * This happens in response to a message of the form:
+   *
+   * {
+   *    "type": "file-tree:create",
+   *    "detail": {
+   *       "path": a path string
+   *       "isFile": a bool
+   *       "when": a server-side datetime int
+   *       "by": a uuid string
+   *    }
+   * }
+   */
+  async oncreate({ path: path2, isFile, from }) {
+    const { id: id2, fileTree: fileTree3 } = this;
+    if (from === id2) return;
+    const entry = fileTree3.__create(path2, isFile);
+    fileTree3.dispatchEvent(
+      new CustomEvent(`ot:created`, { detail: { entry, path: path2, isFile } })
+    );
+  }
+  /**
+   * Handle a delete notification, which will tell us
+   * which path got deleted, and when that delete happened.
+   *
+   * This happens in response to a message of the form:
+   *
+   * {
+   *    "type": "file-tree:delete",
+   *    "detail": {
+   *       "path": a path string
+   *       "isFile": a bool
+   *       "when": a server-side datetime int
+   *       "by": a uuid string
+   *    }
+   * }
+   */
+  async ondelete({ path: path2, from }) {
+    const { id: id2, fileTree: fileTree3 } = this;
+    if (from === id2) return;
+    const entries = fileTree3.__delete(path2);
+    fileTree3.dispatchEvent(
+      new CustomEvent(`ot:deleted`, { detail: { entries, path: path2 } })
+    );
+  }
+  /**
+   * Handle a move notification, which will tell us
+   * which path to rename, and when that rename happened.
+   *
+   * This happens in response to a message of the form:
+   *
+   * {
+   *    "type": "file-tree:move",
+   *    "detail": {
+   *       "oldPath": a path string
+   *       "newPath": a path string
+   *       "when": a server-side datetime int
+   *       "by": a uuid string
+   *    }
+   * }
+   */
+  async onmove({ isFile, oldPath, newPath, from }) {
+    const { id: id2, fileTree: fileTree3 } = this;
+    if (from === id2) return;
+    const entry = fileTree3.__move(isFile, oldPath, newPath);
+    fileTree3.dispatchEvent(
+      new CustomEvent(`ot:moved`, {
+        detail: { entry, isFile, oldPath, newPath }
+      })
+    );
+  }
+  /**
+   * This is a special file content handler that
+   * lets the `read` function resolve with the
+   * content of the requested file.
+   */
+  async onread({ path: path2, data: data3 }) {
+    const { waitList } = this;
+    waitList[path2]?.({ data: data3 });
+    delete waitList[path2];
+  }
+  /**
+   * Handle a content update notification, which will tell
+   * us which file to update, and when that update happened.
+   *
+   * This happens in response to a message of the form:
+   *
+   * {
+   *    "type": "file-tree:update",
+   *    "detail": {
+   *       "path": a path string
+   *       "update": an update payload
+   *       "when": a server-side datetime int
+   *       "by": a uuid string
+   *    }
+   * }
+   */
+  async onupdate({ path: path2, type, update, from }) {
+    const { id: id2, fileTree: fileTree3 } = this;
+    fileTree3.__update(path2, type, update, from === id2);
+  }
+};
+
+// node_modules/custom-file-tree/src/utils/strings.js
+var LOCALE_STRINGS = {
+  "en-GB": {
+    CREATE_FILE: `Create new file`,
+    CREATE_FILE_PROMPT: `Please specify a filename.`,
+    CREATE_FILE_NO_DIRS: `Just add new files directly to the directory where they should live.`,
+    RENAME_FILE: `Rename file`,
+    RENAME_FILE_PROMPT: `New file name?`,
+    RENAME_FILE_MOVE_INSTEAD: `If you want to relocate a file, just move it.`,
+    DELETE_FILE: `Delete file`,
+    DELETE_FILE_PROMPT: (path2) => `Are you sure you want to delete ${path2}?`,
+    CREATE_DIRECTORY: `Add new directory`,
+    CREATE_DIRECTORY_PROMPT: `Please specify a directory name.`,
+    CREATE_DIRECTORY_NO_NESTING: `You'll have to create nested directories one at a time.`,
+    RENAME_DIRECTORY: `Rename directory`,
+    RENAME_DIRECTORY_PROMPT: `Choose a new directory name`,
+    RENAME_DIRECTORY_MOVE_INSTEAD: `If you want to relocate a directory, just move it.`,
+    DELETE_DIRECTORY: `Delete directory`,
+    DELETE_DIRECTORY_PROMPT: (path2) => `Are you *sure* you want to delete ${path2} and everything in it?`,
+    UPLOAD_FILES: `Upload files from your device`,
+    PATH_EXISTS: (path2) => `${path2} already exists.`,
+    PATH_DOES_NOT_EXIST: (path2) => `${path2} does not exist.`,
+    PATH_INSIDE_ITSELF: (path2) => `Cannot nest ${path2} inside its own subdirectory.`,
+    INVALID_UPLOAD_TYPE: (type) => `Unfortunately, a ${type} is not a file or folder.`
+  }
+};
+var defaultLocale = `en-GB`;
+var userLocale = globalThis.navigator?.language;
+var localeStrings = LOCALE_STRINGS[userLocale] || LOCALE_STRINGS[defaultLocale];
+
+// node_modules/custom-file-tree/src/utils/upload-file.js
+function uploadFilesFromDevice({ root, path: path2 }) {
+  const upload = create2(`input`);
+  upload.type = `file`;
+  upload.multiple = true;
+  const uploadFiles = confirm(
+    `To upload one or more files, press "OK". To upload an entire folder, press "Cancel".`
+  );
+  if (!uploadFiles) upload.webkitdirectory = true;
+  upload.addEventListener(`change`, () => {
+    const { files } = upload;
+    if (!files) return;
+    processUpload(root, files, path2);
+  });
+  upload.click();
+}
+async function processUpload(root, items, dirPath = ``) {
+  let bulkUpload = items.length > 1;
+  async function iterate(item, path2 = ``) {
+    if (item instanceof File && !item.isDirectory) {
+      const content2 = await getFileContent(item);
+      const filePath = path2 + (item.webkitRelativePath || item.name);
+      const entryPath = (dirPath === `.` ? `` : dirPath) + filePath;
+      root.createEntry(entryPath, true, content2, bulkUpload);
+    } else if (item.isFile) {
+      item.file(async (file) => {
+        const content2 = await getFileContent(file);
+        const filePath = path2 + file.name;
+        const entryPath = (dirPath === `.` ? `` : dirPath) + filePath;
+        root.createEntry(entryPath, true, content2, bulkUpload);
+      });
+    } else if (item.isDirectory) {
+      bulkUpload = true;
+      const updatedPath = path2 + item.name + "/";
+      root.createEntry(updatedPath, false, false, bulkUpload);
+      item.createReader().readEntries(async (entries) => {
+        for (let entry of entries) await iterate(entry, updatedPath);
+      });
+    }
+  }
+  for (let item of items) {
+    try {
+      let entry;
+      if (!entry && item instanceof File) {
+        entry = item;
+      }
+      if (!entry && item.webkitGetAsEntry) {
+        entry = item.webkitGetAsEntry() ?? entry;
+      }
+      if (!entry && item.getAsFile) {
+        entry = item.getAsFile();
+      }
+      await iterate(entry);
+    } catch (e2) {
+      return alert(localeStrings.INVALID_UPLOAD_TYPE(item.kind));
+    }
+  }
+}
+
+// node_modules/custom-file-tree/src/utils/make-drop-zone.js
+function makeDropZone(dirEntry) {
+  const abortController = new AbortController();
+  dirEntry.draggable = true;
+  const unmark = () => {
+    dirEntry.findAllInTree(`.drop-target`).forEach((d) => d.classList.remove(`drop-target`));
+  };
+  dirEntry.addEventListener(
+    `dragstart`,
+    (evt) => {
+      evt.stopPropagation();
+      dirEntry.classList.add(`dragging`);
+      dirEntry.dataset.id = `${Date.now()}-${Math.random()}`;
+      evt.dataTransfer.setData("id", dirEntry.dataset.id);
+    },
+    { signal: abortController.signal }
+  );
+  dirEntry.addEventListener(
+    `dragenter`,
+    (evt) => {
+      evt.preventDefault();
+      unmark();
+      dirEntry.classList.add(`drop-target`);
+    },
+    { signal: abortController.signal }
+  );
+  dirEntry.addEventListener(
+    `dragover`,
+    (evt) => {
+      const el = evt.target;
+      if (inThisDir(dirEntry, el)) {
+        evt.preventDefault();
+        unmark();
+        dirEntry.classList.add(`drop-target`);
+      }
+    },
+    { signal: abortController.signal }
+  );
+  dirEntry.addEventListener(
+    `dragleave`,
+    (evt) => {
+      evt.preventDefault();
+      unmark();
+    },
+    { signal: abortController.signal }
+  );
+  dirEntry.addEventListener(
+    `drop`,
+    async (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      unmark();
+      const entryId = evt.dataTransfer.getData(`id`);
+      if (entryId) return processDragMove(dirEntry, entryId);
+      await processUpload(dirEntry.root, evt.dataTransfer.items, dirEntry.path);
+    },
+    { signal: abortController.signal }
+  );
+  if (dirEntry.path === `.`) {
+    return dirEntry.draggable = false;
+  }
+  return abortController;
+}
+function inThisDir(dir, entry) {
+  if (entry === dir) return true;
+  return entry.closest(`dir-entry`) === dir;
+}
+function processDragMove(dirEntry, entryId) {
+  const entry = dirEntry.findInTree(`[data-id="${entryId}"]`);
+  delete entry.dataset.id;
+  entry.classList.remove(`dragging`);
+  if (entry === dirEntry) return;
+  const oldPath = entry.path;
+  let dirPath = dirEntry.path;
+  let newPath = (dirPath !== `.` ? dirPath : ``) + entry.name;
+  if (entry.isDir) newPath += `/`;
+  dirEntry.root.moveEntry(entry, oldPath, newPath);
+}
+
+// node_modules/custom-file-tree/src/classes/dir-entry.js
+var DirEntry = class extends FileTreeElement {
+  isDir = true;
+  constructor(rootDir = false) {
+    super();
+    this.addButtons(rootDir);
+  }
+  get path() {
+    return super.path;
+  }
+  set path(v) {
+    super.path = v;
+    if (v === `.`) {
+      this.find(`& > .rename-dir`)?.remove();
+      this.find(`& > .delete-dir`)?.remove();
+    }
+  }
+  connectedCallback() {
+    this.addListener(`click`, (evt) => this.selectListener(evt));
+    this.addExternalListener(
+      this.icon,
+      `click`,
+      (evt) => this.foldListener(evt)
+    );
+    const controller = makeDropZone(this);
+    if (controller) this.addAbortController(controller);
+  }
+  selectListener(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    if (this.path === `.`) return;
+    const tag = evt.target.tagName;
+    if (tag !== `DIR-ENTRY` && tag !== `ENTRY-HEADING`) return;
+    this.root.selectEntry(this);
+    if (this.classList.contains(`closed`)) {
+      this.foldListener(evt);
+    }
+  }
+  foldListener(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    if (this.path === `.`) return;
+    const closed = this.classList.contains(`closed`);
+    this.root.toggleDirectory(this, {
+      currentState: closed ? `closed` : `open`
+    });
+  }
+  addButtons(rootDir) {
+    this.createFileButton();
+    this.createDirButton();
+    this.addUploadButton();
+    if (!rootDir) {
+      this.addRenameButton();
+      this.addDeleteButton();
+    }
+  }
+  /**
+   * New file in this directory
+   */
+  createFileButton() {
+    if (this.hasButton(`create-file`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`create-file`);
+    btn.title = localeStrings.CREATE_FILE;
+    btn.textContent = `\u{1F4C4}`;
+    btn.addEventListener(`click`, () => this.#createFile());
+    this.buttons.appendChild(btn);
+  }
+  #createFile() {
+    let fileName = prompt(localeStrings.CREATE_FILE_PROMPT)?.trim();
+    if (fileName) {
+      if (fileName.includes(`/`)) {
+        return alert(localeStrings.CREATE_FILE_NO_DIRS);
+      }
+      if (this.path !== `.`) {
+        fileName = this.path + fileName;
+      }
+      this.root.createEntry(fileName, true);
+    }
+  }
+  /**
+   * New directory in this directory
+   */
+  createDirButton() {
+    if (this.hasButton(`create-dir`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`create-dir`);
+    btn.title = localeStrings.CREATE_DIRECTORY;
+    btn.textContent = `\u{1F4C1}`;
+    btn.addEventListener(`click`, () => this.#createDir());
+    this.buttons.appendChild(btn);
+  }
+  #createDir() {
+    let dirName = prompt(String.CREATE_DIRECTORY_PROMPT)?.trim();
+    if (dirName) {
+      if (dirName.includes(`/`)) {
+        return alert(localeStrings.CREATE_DIRECTORY_NO_NESTING);
+      }
+      let path2 = (this.path !== `.` ? this.path : ``) + dirName + `/`;
+      this.root.createEntry(path2, false);
+    }
+  }
+  /**
+   * Upload files or an entire directory from your device
+   */
+  addUploadButton() {
+    if (this.hasButton(`upload`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`upload`);
+    btn.title = localeStrings.UPLOAD_FILES;
+    btn.textContent = `\u{1F4BB}`;
+    btn.addEventListener(`click`, () => uploadFilesFromDevice(this));
+    this.buttons.appendChild(btn);
+  }
+  /**
+   * rename this dir.
+   */
+  addRenameButton() {
+    if (this.path === `.`) return;
+    if (this.hasButton(`rename-dir`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`rename-dir`);
+    btn.title = localeStrings.RENAME_DIRECTORY;
+    btn.textContent = `\u270F\uFE0F`;
+    this.buttons.appendChild(btn);
+    btn.addEventListener(`click`, () => this.#rename());
+  }
+  #rename() {
+    const newName = prompt(localeStrings.RENAME_DIRECTORY_PROMPT, this.name)?.trim();
+    if (newName) {
+      if (newName.includes(`/`)) {
+        return alert(localeStrings.RENAME_DIRECTORY_MOVE_INSTEAD);
+      }
+      this.root.renameEntry(this, newName);
+    }
+  }
+  /**
+   * Remove this dir and everything in it
+   */
+  addDeleteButton() {
+    if (this.path === `.`) return;
+    if (this.hasButton(`delete-dir`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`delete-dir`);
+    btn.title = localeStrings.DELETE_DIRECTORY;
+    btn.textContent = `\u{1F5D1}\uFE0F`;
+    this.buttons.appendChild(btn);
+    btn.addEventListener(`click`, () => this.#deleteDir());
+  }
+  #deleteDir() {
+    const msg = localeStrings.DELETE_DIRECTORY_PROMPT(this.path);
+    if (confirm(msg)) {
+      this.root.removeEntry(this);
+    }
+  }
+  /**
+   * Because the file-tree has a master list of directories, we should
+   * never need to do any recursion: if there's an addEntry, that entry
+   * goes here.
+   */
+  addEntry(entry) {
+    this.appendChild(entry);
+    this.sort();
+  }
+  /**
+   * If the file tree has the `remove-empty` attribute, deleting the
+   * last bit of content from a dir should trigger its own deletion.
+   * @returns
+   */
+  checkEmpty() {
+    if (!this.removeEmptyDir) return;
+    if (this.find(`dir-entry, file-entry`)) return;
+    this.root.removeEntry(this);
+  }
+  // File tree sorting, with dirs at the top
+  sort(recursive = true, separateDirs = true) {
+    const children = [...this.children];
+    children.sort((a, b) => {
+      if (a.tagName === `SPAN` && a.classList.contains(`icon`)) return -1;
+      if (b.tagName === `SPAN` && b.classList.contains(`icon`)) return 1;
+      if (a.tagName === `ENTRY-HEADING`) return -1;
+      if (b.tagName === `ENTRY-HEADING`) return 1;
+      if (a.tagName === `SPAN` && b.tagName === `SPAN`) return 0;
+      else if (a.tagName === `SPAN`) return -1;
+      else if (b.tagName === `SPAN`) return 1;
+      if (separateDirs) {
+        if (a.tagName === `DIR-ENTRY` && b.tagName === `DIR-ENTRY`) {
+          a = a.path;
+          b = b.path;
+          return a < b ? -1 : 1;
+        } else if (a.tagName === `DIR-ENTRY`) {
+          return -1;
+        } else if (b.tagName === `DIR-ENTRY`) {
+          return 1;
+        }
+      }
+      a = a.path;
+      b = b.path;
+      return a < b ? -1 : 1;
+    });
+    children.forEach((c) => this.appendChild(c));
+    if (recursive) {
+      this.findAll(`& > dir-entry`).forEach((d) => d.sort(recursive));
+    }
+  }
+  toggle(state) {
+    this.classList.toggle(`closed`, state);
+  }
+  toJSON() {
+    return JSON.stringify(this.toValue());
+  }
+  toString() {
+    return this.toJSON();
+  }
+  toValue() {
+    return this.root.toValue().filter((v) => v.startsWith(this.path));
+  }
+};
+registry.define(`dir-entry`, DirEntry);
+
+// node_modules/custom-file-tree/src/classes/file-entry.js
+var FileEntry = class extends FileTreeElement {
+  isFile = true;
+  constructor(fileName, fullPath) {
+    super(fileName, fullPath);
+    this.addRenameButton();
+    this.addDeleteButton();
+    this.addEventHandling();
+  }
+  addRenameButton() {
+    if (this.hasButton(`rename-file`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`rename-file`);
+    btn.title = localeStrings.RENAME_FILE;
+    btn.textContent = `\u270F\uFE0F`;
+    this.buttons.appendChild(btn);
+    btn.addEventListener(`click`, (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const newFileName = prompt(
+        localeStrings.RENAME_FILE_PROMPT,
+        this.heading.textContent
+      )?.trim();
+      if (newFileName) {
+        if (newFileName.includes(`/`)) {
+          return alert(localeStrings.RENAME_FILE_MOVE_INSTEAD);
+        }
+        this.root.renameEntry(this, newFileName);
+      }
+    });
+  }
+  addDeleteButton() {
+    if (this.hasButton(`delete-file`)) return;
+    const btn = create2(`button`);
+    btn.classList.add(`delete-file`);
+    btn.title = localeStrings.DELETE_FILE;
+    btn.textContent = `\u{1F5D1}\uFE0F`;
+    this.buttons.appendChild(btn);
+    btn.addEventListener(`click`, (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (confirm(localeStrings.DELETE_FILE_PROMPT(this.path))) {
+        this.root.removeEntry(this);
+      }
+    });
+  }
+  addEventHandling() {
+    this.addEventListener(`click`, (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.root.selectEntry(this);
+    });
+    this.draggable = true;
+    this.addEventListener(`dragstart`, (evt) => {
+      evt.stopPropagation();
+      this.classList.add(`dragging`);
+      this.dataset.id = `${Date.now()}-${Math.random()}`;
+      evt.dataTransfer.setData("id", this.dataset.id);
+    });
+  }
+  // This function only works when connected through
+  // a websocket. Note that we do NOT store the data
+  // here, that's up to whoever is using this file-tree.
+  //
+  // The return type is { data: string|int[], when:datetime }
+  async load() {
+    return this.root.loadEntry(this.path);
+  }
+  // This function only works when connected through
+  // a websocket. Note that we do NOT store the data
+  // here, that's up to whoever is using this file-tree.
+  async updateContent(type, update) {
+    this.root.updateEntry(this.path, type, update);
+  }
+  toJSON() {
+    return JSON.stringify(this.toValue());
+  }
+  toString() {
+    return this.path;
+  }
+  toValue() {
+    return [this.toString()];
+  }
+};
+registry.define(`file-entry`, FileEntry);
+
+// node_modules/custom-file-tree/src/file-tree.js
+var FileTree = class extends FileTreeElement {
+  static observedAttributes = ["src"];
+  ready = false;
+  isTree = true;
+  entries = {};
+  constructor() {
+    super();
+    this.heading.textContent = `File tree`;
+  }
+  get root() {
+    return this;
+  }
+  get parentDir() {
+    return this.rootDir;
+  }
+  get removeEmptyDir() {
+    return !!this.getAttribute(`remove-empty-dir`);
+  }
+  clear() {
+    this.ready = false;
+    this.emit(`tree:clear`);
+    Object.keys(this.entries).forEach((key) => delete this.entries[key]);
+    if (this.rootDir) this.removeChild(this.rootDir);
+    const rootDir = this.rootDir = new DirEntry(true);
+    rootDir.path = `.`;
+    this.appendChild(rootDir);
+  }
+  connectedCallback() {
+    this.addExternalListener(
+      document,
+      `dragend`,
+      () => this.findAll(`.dragging`).forEach((e2) => e2.classList.remove(`dragging`))
+    );
+  }
+  attributeChangedCallback(name2, _, value) {
+    if (name2 === `src` && value) {
+      this.#loadSource(value);
+    }
+  }
+  /**
+   * Connect to a websocket server. You can provide
+   * a custom websocket interface class, but then
+   * you better know what you're doing =)
+   *
+   * @param {*} url
+   * @param {*} basePath
+   * @param {*} ConnectorClass
+   */
+  async connectViaWebSocket(url, basePath = `.`, keepAliveInterval = 6e4, ConnectorClass = WebSocketInterface) {
+    this.OT = new ConnectorClass(this, url, basePath, keepAliveInterval);
+    return this.OT;
+  }
+  /**
+   * Setting files is a destructive operation, clearing whatever is already
+   * in this tree in favour of new tree content.
+   */
+  setContent({ dirs, files }, bypassOT = false) {
+    this.clear();
+    dirs?.forEach(
+      (path2) => this.#addPath(
+        `${path2}/`,
+        false,
+        // isFile
+        void 0,
+        // content
+        true,
+        // bulk
+        `tree:add:dir`,
+        true,
+        //immediately create the entry
+        bypassOT
+      )
+    );
+    files?.forEach(
+      (path2) => this.#addPath(
+        path2,
+        true,
+        // isFile
+        void 0,
+        // content
+        true,
+        // bulk
+        `tree:add:file`,
+        true,
+        // immediately create the entry
+        bypassOT
+      )
+    );
+    this.ready = true;
+    return this.emit(`tree:ready`);
+  }
+  // create or upload
+  createEntry(path2, isFile, content2 = void 0, bulk = false) {
+    let eventType = (isFile ? `file` : `dir`) + `:create`;
+    this.#addPath(path2, isFile, content2, bulk, eventType);
+  }
+  // get the file contents for an entry via a websocket connection
+  async loadEntry(path2) {
+    return this.OT?.read(path2);
+  }
+  // notify the server of a file content change
+  async updateEntry(path2, type, update) {
+    return this.OT?.update(path2, type, update);
+  }
+  // A rename is a relocation where only the last part of the path changed.
+  renameEntry(entry, newName) {
+    const isFile = !!entry.isFile;
+    const oldPath = entry.path;
+    const pos = oldPath.lastIndexOf(entry.name);
+    let newPath = oldPath.substring(0, pos) + newName;
+    if (entry.isDir) newPath += `/`;
+    const eventType = (entry.isFile ? `file` : `dir`) + `:rename`;
+    this.#relocateEntry(isFile, oldPath, newPath, eventType);
+  }
+  // A move is a relocation where everything *but* the last part of the path may have changed.
+  moveEntry(entry, oldPath, newPath) {
+    const isFile = !!entry.isFile;
+    const eventType = (entry.isFile ? `file` : `dir`) + `:move`;
+    this.#relocateEntry(isFile, oldPath, newPath, eventType);
+  }
+  // Deletes are a DOM removal of the entry itself, and a pruning
+  // of the path -> entry map for any entry that started with the
+  // same path, so we don't end up with any orphans.
+  removeEntry(entry) {
+    const { path: path2, isFile, parentDir } = entry;
+    const eventType = (isFile ? `file` : `dir`) + `:delete`;
+    const detail = { path: path2, emptyDir: this.removeEmptyDir };
+    this.emit(eventType, detail, () => {
+      const removed = this.__delete(path2, isFile);
+      this.OT?.delete(path2);
+      detail.removed = removed;
+      setTimeout(() => parentDir.checkEmpty(), 10);
+      return removed;
+    });
+  }
+  // ================================================================================================
+  async #loadSource(url) {
+    const response = await fetch(url);
+    const data3 = await response.json();
+    if (data3) {
+      const { dirs, files } = data3;
+      this.setContent({ dirs, files });
+    }
+  }
+  // private function for initiating <file-entry> or <dir-entry> creation
+  #addPath(path2, isFile, content2 = void 0, bulk = false, eventType, immediate = false, bypassOT = false) {
+    const { entries } = this;
+    if (entries[path2]) {
+      return this.emit(`${eventType}:error`, {
+        error: localeStrings.PATH_EXISTS(path2)
+      });
+    }
+    const detail = { path: path2, content: content2, bulk };
+    const grant = (processedContent = content2) => {
+      const entry = this.__create(path2, isFile);
+      if (!bypassOT) this.OT?.create(path2, isFile, processedContent);
+      detail.entry = entry;
+      return entry;
+    };
+    if (immediate) return grant();
+    this.emit(eventType, detail, grant);
+  }
+  // Ensure that a dir exists (recursively).
+  #mkdir({ dirPath }) {
+    const { entries } = this;
+    if (!dirPath) return this.rootDir;
+    let dir = this.find(`[path="${dirPath}"`);
+    if (dir) return dir;
+    dir = this.rootDir;
+    dirPath.split(`/`).forEach((fragment) => {
+      if (!fragment) return;
+      const subDirPath = (dir.path === `.` ? `` : dir.path) + fragment + `/`;
+      let subDir = this.find(`[path="${subDirPath}"`);
+      if (!subDir) {
+        subDir = new DirEntry();
+        subDir.path = subDirPath;
+        dir.addEntry(subDir);
+        entries[subDirPath] = subDir;
+      }
+      dir = subDir;
+    });
+    return dir;
+  }
+  // private function for initiating <file-entry> or <dir-entry> path changes
+  #relocateEntry(isFile, oldPath, newPath, eventType) {
+    const { entries } = this;
+    if (oldPath === newPath) return;
+    if (newPath.startsWith(oldPath)) {
+      const reduced = newPath.replace(oldPath, ``);
+      if (reduced.includes(`/`)) {
+        return this.emit(`${eventType}:error`, {
+          oldPath,
+          newPath,
+          error: localeStrings.PATH_INSIDE_ITSELF(oldPath)
+        });
+      }
+    }
+    if (entries[newPath]) {
+      return this.emit(`${eventType}:error`, {
+        oldPath,
+        newPath,
+        error: localeStrings.PATH_EXISTS(newPath)
+      });
+    }
+    const detail = { oldPath, newPath };
+    this.emit(eventType, detail, () => {
+      const entry = this.__move(isFile, oldPath, newPath);
+      this.OT?.move(isFile, oldPath, newPath);
+      detail.entry = entry;
+      return entry;
+    });
+  }
+  // ================================================================================================
+  // create notification via websocket or immediate code path:
+  __create(path2, isFile) {
+    const { entries } = this;
+    const EntryType = isFile ? FileEntry : DirEntry;
+    const entry = entries[path2] = new EntryType();
+    entry.path = path2;
+    this.#mkdir(entry).addEntry(entry);
+    return entry;
+  }
+  // move notification via websocket or immediate code path:
+  __move(isFile, oldPath, newPath, when) {
+    const { entries } = this;
+    const entry = entries[oldPath];
+    Object.keys(entries).forEach((key) => {
+      if (key.startsWith(oldPath)) {
+        const entry2 = entries[key];
+        const updated = entry2.updatePath(isFile, oldPath, newPath);
+        if (updated) {
+          entries[entry2.path] = entry2;
+          delete entries[key];
+        }
+      }
+    });
+    const { dirPath } = entries[newPath] = entry;
+    let dir = dirPath ? entries[dirPath] : this.rootDir;
+    dir.addEntry(entry);
+    return entry;
+  }
+  // update notification via websocket or immediate code path:
+  __update(path2, type, update, ours) {
+    this.entries[path2]?.dispatchEvent(
+      new CustomEvent(`content:update`, { detail: { type, update, ours } })
+    );
+  }
+  // delete notification via websocket or immediate code path:
+  __delete(path2, isFile, when) {
+    const { entries } = this;
+    const entry = entries[path2];
+    const removed = [entry];
+    if (isFile) {
+      entry.remove();
+      delete entries[path2];
+    } else {
+      Object.entries(entries).forEach(([key, entry2]) => {
+        if (key.startsWith(path2)) {
+          removed.push(entry2);
+          entry2.remove();
+          delete entries[key];
+        }
+      });
+    }
+    return removed;
+  }
+  // ================================================================================================
+  // Select an entry by its path
+  select(path2) {
+    const entry = this.entries[path2];
+    if (!entry) throw new Error(localeStrings.PATH_DOES_NOT_EXIST(path2));
+    entry.select();
+  }
+  // Counterpart to select()
+  unselect() {
+    this.find(`.selected`)?.classList.remove(`selected`);
+  }
+  // Entry selection depends on the element, so we hand that
+  // off to the entry itself once granted. (if granted)
+  selectEntry(entry, detail = {}) {
+    const eventType = (entry.isFile ? `file` : `dir`) + `:click`;
+    detail.path = entry.path;
+    this.emit(eventType, detail, () => {
+      entry.select();
+      detail.entry = entry;
+      return entry;
+    });
+  }
+  toggleDirectory(entry, detail = {}) {
+    const eventType = `dir:toggle`;
+    detail.path = entry.path;
+    this.emit(eventType, detail, () => {
+      detail.entry = entry;
+      entry.toggle();
+    });
+  }
+  sort() {
+    this.rootDir.sort();
+  }
+  // ================================================================================================
+  toJSON() {
+    return JSON.stringify(Object.keys(this.entries).sort());
+  }
+  toString() {
+    return this.toJSON();
+  }
+  toValue() {
+    return this;
+  }
+};
+registry.define(`file-tree`, FileTree);
+
 // src/client/files/file-tree-utils.js
 import { unzip } from "/vendor/unzipit.module.js";
+
+// public/vendor/diff.js
+function Diff() {
+}
+Diff.prototype = {
+  diff: function diff(oldString, newString) {
+    var _options$timeout;
+    var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
+    var callback = options.callback;
+    if (typeof options === "function") {
+      callback = options;
+      options = {};
+    }
+    this.options = options;
+    var self = this;
+    function done(value) {
+      if (callback) {
+        setTimeout(function() {
+          callback(void 0, value);
+        }, 0);
+        return true;
+      } else {
+        return value;
+      }
+    }
+    oldString = this.castInput(oldString);
+    newString = this.castInput(newString);
+    oldString = this.removeEmpty(this.tokenize(oldString));
+    newString = this.removeEmpty(this.tokenize(newString));
+    var newLen = newString.length, oldLen = oldString.length;
+    var editLength = 1;
+    var maxEditLength = newLen + oldLen;
+    if (options.maxEditLength) {
+      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
+    }
+    var maxExecutionTime = (_options$timeout = options.timeout) !== null && _options$timeout !== void 0 ? _options$timeout : Infinity;
+    var abortAfterTimestamp = Date.now() + maxExecutionTime;
+    var bestPath = [
+      {
+        oldPos: -1,
+        lastComponent: void 0
+      }
+    ];
+    var newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+      return done([
+        {
+          value: this.join(newString),
+          count: newString.length
+        }
+      ]);
+    }
+    var minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+    function execEditLength() {
+      for (var diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
+        var basePath = void 0;
+        var removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
+        if (removePath) {
+          bestPath[diagonalPath - 1] = void 0;
+        }
+        var canAdd = false;
+        if (addPath) {
+          var addPathNewPos = addPath.oldPos - diagonalPath;
+          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
+        }
+        var canRemove = removePath && removePath.oldPos + 1 < oldLen;
+        if (!canAdd && !canRemove) {
+          bestPath[diagonalPath] = void 0;
+          continue;
+        }
+        if (!canRemove || canAdd && removePath.oldPos + 1 < addPath.oldPos) {
+          basePath = self.addToPath(addPath, true, void 0, 0);
+        } else {
+          basePath = self.addToPath(removePath, void 0, true, 1);
+        }
+        newPos = self.extractCommon(
+          basePath,
+          newString,
+          oldString,
+          diagonalPath
+        );
+        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+          return done(
+            buildValues(
+              self,
+              basePath.lastComponent,
+              newString,
+              oldString,
+              self.useLongestToken
+            )
+          );
+        } else {
+          bestPath[diagonalPath] = basePath;
+          if (basePath.oldPos + 1 >= oldLen) {
+            maxDiagonalToConsider = Math.min(
+              maxDiagonalToConsider,
+              diagonalPath - 1
+            );
+          }
+          if (newPos + 1 >= newLen) {
+            minDiagonalToConsider = Math.max(
+              minDiagonalToConsider,
+              diagonalPath + 1
+            );
+          }
+        }
+      }
+      editLength++;
+    }
+    if (callback) {
+      (function exec() {
+        setTimeout(function() {
+          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
+            return callback();
+          }
+          if (!execEditLength()) {
+            exec();
+          }
+        }, 0);
+      })();
+    } else {
+      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
+        var ret = execEditLength();
+        if (ret) {
+          return ret;
+        }
+      }
+    }
+  },
+  addToPath: function addToPath(path2, added, removed, oldPosInc) {
+    var last = path2.lastComponent;
+    if (last && last.added === added && last.removed === removed) {
+      return {
+        oldPos: path2.oldPos + oldPosInc,
+        lastComponent: {
+          count: last.count + 1,
+          added,
+          removed,
+          previousComponent: last.previousComponent
+        }
+      };
+    } else {
+      return {
+        oldPos: path2.oldPos + oldPosInc,
+        lastComponent: {
+          count: 1,
+          added,
+          removed,
+          previousComponent: last
+        }
+      };
+    }
+  },
+  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
+    var newLen = newString.length, oldLen = oldString.length, oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
+      newPos++;
+      oldPos++;
+      commonCount++;
+    }
+    if (commonCount) {
+      basePath.lastComponent = {
+        count: commonCount,
+        previousComponent: basePath.lastComponent
+      };
+    }
+    basePath.oldPos = oldPos;
+    return newPos;
+  },
+  equals: function equals(left2, right2) {
+    if (this.options.comparator) {
+      return this.options.comparator(left2, right2);
+    } else {
+      return left2 === right2 || this.options.ignoreCase && left2.toLowerCase() === right2.toLowerCase();
+    }
+  },
+  removeEmpty: function removeEmpty(array) {
+    var ret = [];
+    for (var i = 0; i < array.length; i++) {
+      if (array[i]) {
+        ret.push(array[i]);
+      }
+    }
+    return ret;
+  },
+  castInput: function castInput(value) {
+    return value;
+  },
+  tokenize: function tokenize(value) {
+    return value.split("");
+  },
+  join: function join(chars) {
+    return chars.join("");
+  }
+};
+function buildValues(diff2, lastComponent, newString, oldString, useLongestToken) {
+  var components = [];
+  var nextComponent;
+  while (lastComponent) {
+    components.push(lastComponent);
+    nextComponent = lastComponent.previousComponent;
+    delete lastComponent.previousComponent;
+    lastComponent = nextComponent;
+  }
+  components.reverse();
+  var componentPos = 0, componentLen = components.length, newPos = 0, oldPos = 0;
+  for (; componentPos < componentLen; componentPos++) {
+    var component = components[componentPos];
+    if (!component.removed) {
+      if (!component.added && useLongestToken) {
+        var value = newString.slice(newPos, newPos + component.count);
+        value = value.map(function(value2, i) {
+          var oldValue = oldString[oldPos + i];
+          return oldValue.length > value2.length ? oldValue : value2;
+        });
+        component.value = diff2.join(value);
+      } else {
+        component.value = diff2.join(
+          newString.slice(newPos, newPos + component.count)
+        );
+      }
+      newPos += component.count;
+      if (!component.added) {
+        oldPos += component.count;
+      }
+    } else {
+      component.value = diff2.join(
+        oldString.slice(oldPos, oldPos + component.count)
+      );
+      oldPos += component.count;
+      if (componentPos && components[componentPos - 1].added) {
+        var tmp = components[componentPos - 1];
+        components[componentPos - 1] = components[componentPos];
+        components[componentPos] = tmp;
+      }
+    }
+  }
+  var finalComponent = components[componentLen - 1];
+  if (componentLen > 1 && typeof finalComponent.value === "string" && (finalComponent.added || finalComponent.removed) && diff2.equals("", finalComponent.value)) {
+    components[componentLen - 2].value += finalComponent.value;
+    components.pop();
+  }
+  return components;
+}
+var characterDiff = new Diff();
+var extendedWordChars = /^[A-Za-z\xC0-\u02C6\u02C8-\u02D7\u02DE-\u02FF\u1E00-\u1EFF]+$/;
+var reWhitespace = /\S/;
+var wordDiff = new Diff();
+wordDiff.equals = function(left2, right2) {
+  if (this.options.ignoreCase) {
+    left2 = left2.toLowerCase();
+    right2 = right2.toLowerCase();
+  }
+  return left2 === right2 || this.options.ignoreWhitespace && !reWhitespace.test(left2) && !reWhitespace.test(right2);
+};
+wordDiff.tokenize = function(value) {
+  var tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
+  for (var i = 0; i < tokens.length - 1; i++) {
+    if (!tokens[i + 1] && tokens[i + 2] && extendedWordChars.test(tokens[i]) && extendedWordChars.test(tokens[i + 2])) {
+      tokens[i] += tokens[i + 2];
+      tokens.splice(i + 1, 2);
+      i--;
+    }
+  }
+  return tokens;
+};
+var lineDiff = new Diff();
+lineDiff.tokenize = function(value) {
+  if (this.options.stripTrailingCr) {
+    value = value.replace(/\r\n/g, "\n");
+  }
+  var retLines = [], linesAndNewlines = value.split(/(\n|\r\n)/);
+  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+    linesAndNewlines.pop();
+  }
+  for (var i = 0; i < linesAndNewlines.length; i++) {
+    var line = linesAndNewlines[i];
+    if (i % 2 && !this.options.newlineIsToken) {
+      retLines[retLines.length - 1] += line;
+    } else {
+      if (this.options.ignoreWhitespace) {
+        line = line.trim();
+      }
+      retLines.push(line);
+    }
+  }
+  return retLines;
+};
+var sentenceDiff = new Diff();
+sentenceDiff.tokenize = function(value) {
+  return value.split(/(\S.+?[.!?])(?=\s+|$)/);
+};
+var cssDiff = new Diff();
+cssDiff.tokenize = function(value) {
+  return value.split(/([{}:;,]|\s+)/);
+};
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function(obj2) {
+      return typeof obj2;
+    };
+  } else {
+    _typeof = function(obj2) {
+      return obj2 && typeof Symbol === "function" && obj2.constructor === Symbol && obj2 !== Symbol.prototype ? "symbol" : typeof obj2;
+    };
+  }
+  return _typeof(obj);
+}
+var objectPrototypeToString = Object.prototype.toString;
+var jsonDiff = new Diff();
+jsonDiff.useLongestToken = true;
+jsonDiff.tokenize = lineDiff.tokenize;
+jsonDiff.castInput = function(value) {
+  var _this$options = this.options, undefinedReplacement = _this$options.undefinedReplacement, _this$options$stringi = _this$options.stringifyReplacer, stringifyReplacer = _this$options$stringi === void 0 ? function(k, v) {
+    return typeof v === "undefined" ? undefinedReplacement : v;
+  } : _this$options$stringi;
+  return typeof value === "string" ? value : JSON.stringify(
+    canonicalize(value, null, null, stringifyReplacer),
+    stringifyReplacer,
+    "  "
+  );
+};
+jsonDiff.equals = function(left2, right2) {
+  return Diff.prototype.equals.call(
+    jsonDiff,
+    left2.replace(/,([\r\n])/g, "$1"),
+    right2.replace(/,([\r\n])/g, "$1")
+  );
+};
+function canonicalize(obj, stack, replacementStack, replacer, key) {
+  stack = stack || [];
+  replacementStack = replacementStack || [];
+  if (replacer) {
+    obj = replacer(key, obj);
+  }
+  var i;
+  for (i = 0; i < stack.length; i += 1) {
+    if (stack[i] === obj) {
+      return replacementStack[i];
+    }
+  }
+  var canonicalizedObj;
+  if ("[object Array]" === objectPrototypeToString.call(obj)) {
+    stack.push(obj);
+    canonicalizedObj = new Array(obj.length);
+    replacementStack.push(canonicalizedObj);
+    for (i = 0; i < obj.length; i += 1) {
+      canonicalizedObj[i] = canonicalize(
+        obj[i],
+        stack,
+        replacementStack,
+        replacer,
+        key
+      );
+    }
+    stack.pop();
+    replacementStack.pop();
+    return canonicalizedObj;
+  }
+  if (obj && obj.toJSON) {
+    obj = obj.toJSON();
+  }
+  if (_typeof(obj) === "object" && obj !== null) {
+    stack.push(obj);
+    canonicalizedObj = {};
+    replacementStack.push(canonicalizedObj);
+    var sortedKeys = [], _key;
+    for (_key in obj) {
+      if (obj.hasOwnProperty(_key)) {
+        sortedKeys.push(_key);
+      }
+    }
+    sortedKeys.sort();
+    for (i = 0; i < sortedKeys.length; i += 1) {
+      _key = sortedKeys[i];
+      canonicalizedObj[_key] = canonicalize(
+        obj[_key],
+        stack,
+        replacementStack,
+        replacer,
+        _key
+      );
+    }
+    stack.pop();
+    replacementStack.pop();
+  } else {
+    canonicalizedObj = obj;
+  }
+  return canonicalizedObj;
+}
+var arrayDiff = new Diff();
+arrayDiff.tokenize = function(value) {
+  return value.slice();
+};
+arrayDiff.join = arrayDiff.removeEmpty = function(value) {
+  return value;
+};
+function parsePatch(uniDiff) {
+  var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+  var diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85]/), delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85]/g) || [], list = [], i = 0;
+  function parseIndex() {
+    var index = {};
+    list.push(index);
+    while (i < diffstr.length) {
+      var line = diffstr[i];
+      if (/^(\-\-\-|\+\+\+|@@)\s/.test(line)) {
+        break;
+      }
+      var header = /^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/.exec(line);
+      if (header) {
+        index.index = header[1];
+      }
+      i++;
+    }
+    parseFileHeader(index);
+    parseFileHeader(index);
+    index.hunks = [];
+    while (i < diffstr.length) {
+      var _line = diffstr[i];
+      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(_line)) {
+        break;
+      } else if (/^@@/.test(_line)) {
+        index.hunks.push(parseHunk());
+      } else if (_line && options.strict) {
+        throw new Error(
+          "Unknown line " + (i + 1) + " " + JSON.stringify(_line)
+        );
+      } else {
+        i++;
+      }
+    }
+  }
+  function parseFileHeader(index) {
+    var fileHeader = /^(---|\+\+\+)\s+(.*)$/.exec(diffstr[i]);
+    if (fileHeader) {
+      var keyPrefix = fileHeader[1] === "---" ? "old" : "new";
+      var data3 = fileHeader[2].split("	", 2);
+      var fileName = data3[0].replace(/\\\\/g, "\\");
+      if (/^".*"$/.test(fileName)) {
+        fileName = fileName.substr(1, fileName.length - 2);
+      }
+      index[keyPrefix + "FileName"] = fileName;
+      index[keyPrefix + "Header"] = (data3[1] || "").trim();
+      i++;
+    }
+  }
+  function parseHunk() {
+    var chunkHeaderIndex = i, chunkHeaderLine = diffstr[i++], chunkHeader = chunkHeaderLine.split(
+      /@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
+    );
+    var hunk = {
+      oldStart: +chunkHeader[1],
+      oldLines: typeof chunkHeader[2] === "undefined" ? 1 : +chunkHeader[2],
+      newStart: +chunkHeader[3],
+      newLines: typeof chunkHeader[4] === "undefined" ? 1 : +chunkHeader[4],
+      lines: [],
+      linedelimiters: []
+    };
+    if (hunk.oldLines === 0) {
+      hunk.oldStart += 1;
+    }
+    if (hunk.newLines === 0) {
+      hunk.newStart += 1;
+    }
+    var addCount = 0, removeCount = 0;
+    for (; i < diffstr.length; i++) {
+      if (diffstr[i].indexOf("--- ") === 0 && i + 2 < diffstr.length && diffstr[i + 1].indexOf("+++ ") === 0 && diffstr[i + 2].indexOf("@@") === 0) {
+        break;
+      }
+      var operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? " " : diffstr[i][0];
+      if (operation === "+" || operation === "-" || operation === " " || operation === "\\") {
+        hunk.lines.push(diffstr[i]);
+        hunk.linedelimiters.push(delimiters[i] || "\n");
+        if (operation === "+") {
+          addCount++;
+        } else if (operation === "-") {
+          removeCount++;
+        } else if (operation === " ") {
+          addCount++;
+          removeCount++;
+        }
+      } else {
+        break;
+      }
+    }
+    if (!addCount && hunk.newLines === 1) {
+      hunk.newLines = 0;
+    }
+    if (!removeCount && hunk.oldLines === 1) {
+      hunk.oldLines = 0;
+    }
+    if (options.strict) {
+      if (addCount !== hunk.newLines) {
+        throw new Error(
+          "Added line count did not match for hunk at line " + (chunkHeaderIndex + 1)
+        );
+      }
+      if (removeCount !== hunk.oldLines) {
+        throw new Error(
+          "Removed line count did not match for hunk at line " + (chunkHeaderIndex + 1)
+        );
+      }
+    }
+    return hunk;
+  }
+  while (i < diffstr.length) {
+    parseIndex();
+  }
+  return list;
+}
+function distanceIterator(start, minLine, maxLine) {
+  var wantForward = true, backwardExhausted = false, forwardExhausted = false, localOffset = 1;
+  return function iterator() {
+    if (wantForward && !forwardExhausted) {
+      if (backwardExhausted) {
+        localOffset++;
+      } else {
+        wantForward = false;
+      }
+      if (start + localOffset <= maxLine) {
+        return localOffset;
+      }
+      forwardExhausted = true;
+    }
+    if (!backwardExhausted) {
+      if (!forwardExhausted) {
+        wantForward = true;
+      }
+      if (minLine <= start - localOffset) {
+        return -localOffset++;
+      }
+      backwardExhausted = true;
+      return iterator();
+    }
+  };
+}
+function applyPatch2(source, uniDiff) {
+  var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
+  if (typeof uniDiff === "string") {
+    uniDiff = parsePatch(uniDiff);
+  }
+  if (Array.isArray(uniDiff)) {
+    if (uniDiff.length > 1) {
+      throw new Error("applyPatch only works with a single input.");
+    }
+    uniDiff = uniDiff[0];
+  }
+  var lines = source.split(/\r\n|[\n\v\f\r\x85]/), delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [], hunks = uniDiff.hunks, compareLine = options.compareLine || function(lineNumber, line2, operation2, patchContent) {
+    return line2 === patchContent;
+  }, errorCount = 0, fuzzFactor = options.fuzzFactor || 0, minLine = 0, offset = 0, removeEOFNL, addEOFNL;
+  function hunkFits(hunk2, toPos2) {
+    for (var j2 = 0; j2 < hunk2.lines.length; j2++) {
+      var line2 = hunk2.lines[j2], operation2 = line2.length > 0 ? line2[0] : " ", content3 = line2.length > 0 ? line2.substr(1) : line2;
+      if (operation2 === " " || operation2 === "-") {
+        if (!compareLine(toPos2 + 1, lines[toPos2], operation2, content3)) {
+          errorCount++;
+          if (errorCount > fuzzFactor) {
+            return false;
+          }
+        }
+        toPos2++;
+      }
+    }
+    return true;
+  }
+  for (var i = 0; i < hunks.length; i++) {
+    var hunk = hunks[i], maxLine = lines.length - hunk.oldLines, localOffset = 0, toPos = offset + hunk.oldStart - 1;
+    var iterator = distanceIterator(toPos, minLine, maxLine);
+    for (; localOffset !== void 0; localOffset = iterator()) {
+      if (hunkFits(hunk, toPos + localOffset)) {
+        hunk.offset = offset += localOffset;
+        break;
+      }
+    }
+    if (localOffset === void 0) {
+      return false;
+    }
+    minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
+  }
+  var diffOffset = 0;
+  for (var _i = 0; _i < hunks.length; _i++) {
+    var _hunk = hunks[_i], _toPos = _hunk.oldStart + _hunk.offset + diffOffset - 1;
+    diffOffset += _hunk.newLines - _hunk.oldLines;
+    for (var j = 0; j < _hunk.lines.length; j++) {
+      var line = _hunk.lines[j], operation = line.length > 0 ? line[0] : " ", content2 = line.length > 0 ? line.substr(1) : line, delimiter = _hunk.linedelimiters && _hunk.linedelimiters[j] || "\n";
+      if (operation === " ") {
+        _toPos++;
+      } else if (operation === "-") {
+        lines.splice(_toPos, 1);
+        delimiters.splice(_toPos, 1);
+      } else if (operation === "+") {
+        lines.splice(_toPos, 0, content2);
+        delimiters.splice(_toPos, 0, delimiter);
+        _toPos++;
+      } else if (operation === "\\") {
+        var previousOperation = _hunk.lines[j - 1] ? _hunk.lines[j - 1][0] : null;
+        if (previousOperation === "+") {
+          removeEOFNL = true;
+        } else if (previousOperation === "-") {
+          addEOFNL = true;
+        }
+      }
+    }
+  }
+  if (removeEOFNL) {
+    while (!lines[lines.length - 1]) {
+      lines.pop();
+      delimiters.pop();
+    }
+  } else if (addEOFNL) {
+    lines.push("");
+    delimiters.push("\n");
+  }
+  for (var _k = 0; _k < lines.length - 1; _k++) {
+    lines[_k] = lines[_k] + delimiters[_k];
+  }
+  return lines.join("");
+}
+
+// src/client/files/file-tree-utils.js
 var USE_WEBSOCKETS = !!document.body.dataset.useWebsockets;
 var setupAlready = false;
 var { defaultCollapse, defaultFile, projectMember, projectSlug: projectSlug2 } = document.body.dataset;
 var fileTree2 = document.getElementById(`filetree`);
+var CustomWebsocketInterface = class extends WebSocketInterface {
+  constructor(...args) {
+    super(...args);
+    this.bypassSync.push(`filehistory`);
+  }
+  async getFileHistory(path2) {
+    this.send(`filehistory`, { path: path2 });
+  }
+  async onfilehistory({ path: path2, history: history3 }) {
+    console.log(`git history for ${path2}:`, history3);
+    const fileEntry = document.querySelector(`file-entry[path="${path2}"]`);
+    let { content: content2 } = fileEntry.state;
+    let pos = 0;
+    const rollBack = () => {
+      if (pos === history3.length - 1) return;
+      const { reverse } = history3[pos];
+      const newContent = applyPatch2(content2, reverse);
+      console.log(newContent);
+      content2 = newContent;
+      pos += 1;
+    };
+    const fastForward = () => {
+      if (pos === 0) return;
+      pos -= 1;
+      const { forward } = history3[pos];
+      const newContent = applyPatch2(content2, forward);
+      console.log(newContent);
+      content2 = newContent;
+    };
+    const div = create(`div`, { class: `history` });
+    history3.forEach(({ timestamp }, i) => {
+      const point = create(
+        `span`,
+        {
+          class: `point`,
+          textContent: new Date(timestamp).toLocaleString()
+        },
+        {
+          click: () => {
+            if (pos === i) return;
+            if (pos < i) while (pos < i) rollBack();
+            if (pos > i) while (pos > i) fastForward();
+          }
+        }
+      );
+      point.dataset.index = i;
+      div.append(point);
+    });
+    document.body.append(div);
+  }
+};
 fileTree2.addEventListener(`tree:ready`, async () => {
   let fileEntry;
   if (defaultFile) {
@@ -29992,8 +31893,8 @@ fileTree2.addEventListener(`tree:ready`, async () => {
   if (defaultCollapse.trim()) {
     const entries = defaultCollapse.split(`
 `).map((v) => v.trim()).filter(Boolean);
-    entries.forEach((path) => {
-      let entry = fileTree2.querySelector(`dir-entry[path="${path}/"]`);
+    entries.forEach((path2) => {
+      let entry = fileTree2.querySelector(`dir-entry[path="${path2}/"]`);
       entry?.toggle(true);
     });
   }
@@ -30009,11 +31910,17 @@ async function setupFileTree() {
     const url = `wss://${location.host}`;
     console.log(`connecting wss:`, url, projectSlug2);
     (async function connect() {
-      const socket = await fileTree2.connectViaWebSocket(url, projectSlug2);
-      socket.addEventListener(`close`, () => {
+      const OT = await fileTree2.connectViaWebSocket(
+        url,
+        projectSlug2,
+        6e4,
+        CustomWebsocketInterface
+      );
+      OT.socket.addEventListener(`close`, () => {
         console.log(`connection lost. Reconnecting...`);
-        connect();
+        setTimeout(() => connect(), 1e3);
       });
+      window.testHistory = () => OT.getFileHistory(`index.html`);
     })();
   } else {
     fileTree2.setContent(dirData);
@@ -30068,11 +31975,11 @@ async function uploadFile(fileTree3, fileName, content2, grant) {
     console.warn(`${msg} (status:${response.status})`);
   }
 }
-async function uploadArchive(path, content2, bulkUploadPaths) {
-  const basePath = path.substring(0, path.lastIndexOf(`/`) + 1);
+async function uploadArchive(path2, content2, bulkUploadPaths) {
+  const basePath = path2.substring(0, path2.lastIndexOf(`/`) + 1);
   let { entries } = await unzip(new Uint8Array(content2).buffer);
-  entries = Object.entries(entries).map(([path2, entry]) => ({
-    path: path2,
+  entries = Object.entries(entries).map(([path3, entry]) => ({
+    path: path3,
     entry
   }));
   const prefix = (function findPrefix() {
@@ -30088,44 +31995,44 @@ async function uploadArchive(path, content2, bulkUploadPaths) {
     }
   }
   bulkUploadPaths.push(...entries.map((e2) => e2.path));
-  for await (let { path: path2, entry } of entries) {
-    path2 = basePath + path2;
+  for await (let { path: path3, entry } of entries) {
+    path3 = basePath + path3;
     const arrayBuffer = await entry.arrayBuffer();
     const isFile = !entry.isDirectory;
     let content3 = void 0;
     if (isFile && arrayBuffer.byteLength > 0) {
       content3 = new TextDecoder().decode(arrayBuffer);
     }
-    fileTree2.createEntry(path2, isFile, content3);
+    fileTree2.createEntry(path3, isFile, content3);
   }
 }
 async function addFileCreate(fileTree3, projectSlug4) {
   const bulkUploadPaths = [];
   fileTree3.addEventListener(`file:create`, async (evt) => {
-    const { path, content: content2, bulk, grant } = evt.detail;
+    const { path: path2, content: content2, bulk, grant } = evt.detail;
     if (content2) {
-      if (path.endsWith(`.zip`) && confirm(`Unpack zip file?`)) {
+      if (path2.endsWith(`.zip`) && confirm(`Unpack zip file?`)) {
         bulkUploadPaths.splice(0, bulkUploadPaths.length);
-        uploadArchive(path, content2, bulkUploadPaths);
+        uploadArchive(path2, content2, bulkUploadPaths);
       } else {
-        const entry = await uploadFile(fileTree3, path, content2, grant);
-        if (!bulk && !bulkUploadPaths.includes(path)) {
-          getOrCreateFileEditTab(entry, projectSlug4, path);
+        const entry = await uploadFile(fileTree3, path2, content2, grant);
+        if (!bulk && !bulkUploadPaths.includes(path2)) {
+          getOrCreateFileEditTab(entry, projectSlug4, path2);
         }
       }
       updatePreview();
     } else {
       const runCreate = () => {
         const fileEntry = grant();
-        getOrCreateFileEditTab(fileEntry, projectSlug4, path);
+        getOrCreateFileEditTab(fileEntry, projectSlug4, path2);
       };
       if (fileTree3.OT) return runCreate();
-      const response = await API.files.create(projectSlug4, path);
+      const response = await API.files.create(projectSlug4, path2);
       if (response instanceof Error) return;
       if (response.status === 200) {
         runCreate();
       } else {
-        const msg = `Could not create ${path}`;
+        const msg = `Could not create ${path2}`;
         new Warning(msg);
         console.warn(`${msg}} (status:${response.status})`);
       }
@@ -30135,15 +32042,15 @@ async function addFileCreate(fileTree3, projectSlug4) {
   });
 }
 function updateEditorBindings(fileTreeEntry) {
-  const { path, state: entry } = fileTreeEntry;
+  const { path: path2, state: entry } = fileTreeEntry;
   if (!entry) return;
-  let key = path;
+  let key = path2;
   if (key.includes(`/`)) {
     key = key.substring(key.lastIndexOf(`/`) + 1);
   }
   const { tab, panel } = entry;
   if (tab) {
-    tab.title = path;
+    tab.title = path2;
     tab.childNodes.forEach((n) => {
       if (n.nodeName === `#text`) {
         n.textContent = key;
@@ -30151,7 +32058,7 @@ function updateEditorBindings(fileTreeEntry) {
     });
   }
   if (panel) {
-    panel.title = panel.id = path;
+    panel.title = panel.id = path2;
   }
   fileTreeEntry.setState(entry);
 }
@@ -30184,7 +32091,7 @@ async function addFileMove(fileTree3, projectSlug4) {
 }
 async function addFileDelete(fileTree3, projectSlug4) {
   fileTree3.addEventListener(`file:delete`, async (evt) => {
-    const { path, grant } = evt.detail;
+    const { path: path2, grant } = evt.detail;
     const runDelete = () => {
       const [entry] = grant();
       const { close } = entry.state ?? {};
@@ -30193,14 +32100,14 @@ async function addFileDelete(fileTree3, projectSlug4) {
     if (fileTree3.OT) {
       return runDelete();
     }
-    if (path) {
+    if (path2) {
       try {
-        const response = await API.files.delete(projectSlug4, path);
+        const response = await API.files.delete(projectSlug4, path2);
         if (response instanceof Error) return;
         if (response.status === 200) {
           runDelete();
         } else {
-          const msg = `Could not delete ${path}`;
+          const msg = `Could not delete ${path2}`;
           new Warning(msg);
           console.warn(`${msg} (status:${response.status})`);
         }
@@ -30229,14 +32136,14 @@ async function addDirToggle(fileTree3, projectSlug4) {
 }
 async function addDirCreate(fileTree3, projectSlug4) {
   fileTree3.addEventListener(`dir:create`, async (evt) => {
-    const { path, grant } = evt.detail;
+    const { path: path2, grant } = evt.detail;
     if (fileTree3.OT) return grant();
-    const response = await API.files.create(projectSlug4, path);
+    const response = await API.files.create(projectSlug4, path2);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
     } else {
-      const msg = `Could not create ${path}`;
+      const msg = `Could not create ${path2}`;
       new Warning(msg);
       console.warn(`${msg} (status:${response.status})`);
     }
@@ -30262,14 +32169,14 @@ async function addDirMove(fileTree3, projectSlug4) {
 }
 async function addDirDelete(fileTree3, projectSlug4) {
   fileTree3.addEventListener(`dir:delete`, async (evt) => {
-    const { path, grant } = evt.detail;
+    const { path: path2, grant } = evt.detail;
     if (fileTree3.OT) return grant();
-    const response = await API.files.delete(projectSlug4, path);
+    const response = await API.files.delete(projectSlug4, path2);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
     } else {
-      const msg = `Could not delete ${path}`;
+      const msg = `Could not delete ${path2}`;
       new Warning(msg);
       console.warn(`${msg} (status:${response.status})`);
     }

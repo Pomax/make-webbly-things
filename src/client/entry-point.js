@@ -1,4 +1,3 @@
-import "/vendor/file-tree.esm.min.js";
 import { setupFileTree } from "./files/file-tree-utils.js";
 import { addEventHandling } from "./editor/event-handling.js";
 import { updatePreview } from "./preview/preview.js";
