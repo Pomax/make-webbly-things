@@ -5,16 +5,48 @@ html {
       left: 0;
       right: 0;
       bottom: 0;
-      height: 2em;
-      background: red;
+      height: 1.7em;
+      background: #00abff;
+      display: flex;
+      align-content: center;
+      align-items: center;
+      justify-content: flex-start;
 
       .point {
         cursor: pointer;
         padding: 0 0.5em;
         background: white;
-        border-radius: 0.5em;
-        & + .point {
-          margin-left: 2em;
+        border-radius: 100%;
+        margin-right: 4em;
+        border: 1.5px solid black;
+        box-sizing: content-box;
+        display: inline-block;
+        width: 0em;
+        height: 1em;
+
+        &.selected {
+          background: #ff00cb;
+          &:before {
+            background: #ff00b3;
+            color: white;
+            text-shadow: 0 0 3px black;
+          }
+        }
+
+        &:before {
+          content: attr(data-time);
+          position: absolute;
+          transform: rotate(-22deg) translate(0.5em, -1em);
+          transform-origin: top left;
+          background: #44ffd8;
+          padding: 0.2em 0.5em;
+          border-radius: 0.8em;
+          border: 1px solid #3b3b3c;
+          color: black;
+          text-shadow: 0 0 3px white;
+          font-family: Arial;
+          font-weight: bold;
+          box-shadow: 0px 5px 0px 0px white;
         }
       }
     }

@@ -13,8 +13,10 @@ export function createUpdateListener(entry) {
         const oldContent = entry.content;
         const newContent = applyPatch(oldContent, update);
 
+        // FIXME: this is not the only place we set the scrollpostion followed
+        //        by a view update dispatch, so we probably want to unify that.
+        //        Search for RPL1423 to find the other spot(s) we do this.
         entry.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
-
         entry.content = newContent;
         entry.contentReset = true;
         view.dispatch({
@@ -40,12 +42,20 @@ export function createUpdateListener(entry) {
  * the same value based on the current editor content.
  */
 export async function syncContent(projectSlug, fileEntry) {
+  // No syncing if we're in rewind mode:
+  const history = document.querySelector(`div.history`);
+  if (history) return;
+
   const { path } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;
 
+  // Do we even have something to sync, here?
   const currentContent = entry.content;
   const newContent = entry.view.state.doc.toString();
+  if (newContent === currentContent) return;
+
+  // We do!
   const patch = createPatch(path, currentContent, newContent);
 
   // sync via websocket or REST?

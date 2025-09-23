@@ -1,8 +1,12 @@
 import { join, dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { comms } from "./comms.js";
-import { CONTENT_DIR, readContentDir } from "../../../../helpers.js";
-import { hasAccessToProject } from "../../../database/index.js";
+import {
+  CONTENT_DIR,
+  createRewindPoint,
+  readContentDir,
+} from "../../../../helpers.js";
+import { getProject, hasAccessToProject } from "../../../database/index.js";
 import { applyPatch } from "../../../../../public/vendor/diff.js";
 import {
   mkdirSync,
@@ -72,7 +76,9 @@ export class OTHandler {
 
   async onload({ basePath, reconnect }) {
     const { user, id } = this;
+    // save the path and associated project
     this.basePath = basePath;
+    this.project = getProject(basePath);
     // does this user have write-access to this project?
     this.writeAccess = hasAccessToProject(user, basePath);
     comms.addHandler(this);
@@ -176,6 +182,7 @@ export class OTHandler {
       if (newContent) {
         try {
           writeFileSync(fullPath, newContent.toString());
+          createRewindPoint(this.project);
           return true;
         } catch (e) {
           exception = e;

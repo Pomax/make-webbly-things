@@ -5,8 +5,8 @@ import { EditorState } from "@codemirror/state";
 // Language-specific features:
 import { css } from "@codemirror/lang-css";
 import { html } from "@codemirror/lang-html";
-import { javascript } from "@codemirror/lang-javascript";
 import { markdown } from "@codemirror/lang-markdown";
+import { javascript } from "@codemirror/lang-javascript";
 // See https://github.com/orgs/codemirror/repositories?q=lang for more options
 
 /**

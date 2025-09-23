@@ -7,11 +7,16 @@ export const noop = () => {};
  */
 export function create(tag, attributes = {}, evts = {}) {
   const e = document.createElement(tag);
-  if (attributes.textContent) {
-    e.textContent = attributes.textContent;
-    delete attributes.textContent;
-  }
-  Object.entries(attributes).forEach(([k, v]) => e.setAttribute(k, v));
+  Object.entries(attributes).forEach(([k, v]) => {
+    if (k === `textContent`) {
+      e.textContent = attributes.textContent;
+      return;
+    }
+    if (k.startsWith(`data`)) {
+      k = k.replace(/([A-Z])/g, (_, l) => `-${l.toLowerCase()}`);
+    }
+    e.setAttribute(k, v);
+  });
   Object.entries(evts).forEach(([t, fn]) => e.addEventListener(t, fn));
   return e;
 }

@@ -11,6 +11,7 @@ const right = document.getElementById(`right`);
 // These may not always exist:
 const download = document.getElementById(`download`);
 const format = document.getElementById(`format`);
+const rewind = document.getElementById(`rewind`);
 
 /**
  * Hook up the "Add new file" and "Format this file" buttons
@@ -52,6 +53,17 @@ export function addEventHandling(projectSlug) {
         insert: content,
       },
     });
+  });
+
+  rewind?.addEventListener(`click`, async () => {
+    rewind.blur();
+    const path = document.querySelector(`.active.tab`).title;
+    const history = document.querySelector(`div.history`);
+    if (history) {
+      return history.dispatchEvent(new CustomEvent(`close`));
+    }
+    const fileTree = document.querySelector(`file-tree`);
+    if (path) fileTree.OT?.getFileHistory(path);
   });
 
   addTabScrollHandling();
