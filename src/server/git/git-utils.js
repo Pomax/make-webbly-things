@@ -1,6 +1,9 @@
 import { execSync } from "node:child_process";
 import { join } from "node:path";
-import { CONTENT_DIR } from "../../helpers.js";
+import * as Helpers from "../../helpers.js";
+
+const { TESTING } = Helpers;
+const CONTENT_DIR = TESTING ? `.` : Helpers.CONTENT_DIR;
 
 function cwd(projectSlug) {
   return {

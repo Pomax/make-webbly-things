@@ -17,6 +17,17 @@ const rewind = document.getElementById(`rewind`);
  * Hook up the "Add new file" and "Format this file" buttons
  */
 export function addEventHandling(projectSlug) {
+  disableSaveHotkey();
+  enableDownloadButton(projectSlug);
+  connectPrettierButton(projectSlug);
+  enableRewindFunctions();
+  addTabScrollHandling();
+}
+
+/**
+ * ...docs go here...
+ */
+function disableSaveHotkey() {
   // disable the "Save page" shortcut because it's meaningless in this context.
   document.addEventListener(`keydown`, (evt) => {
     const { key, ctrlKey, metaKey } = evt;
@@ -27,11 +38,21 @@ export function addEventHandling(projectSlug) {
       }
     }
   });
+}
 
+/**
+ * ...docs go here...
+ */
+function enableDownloadButton(projectSlug) {
   download?.addEventListener(`click`, async () => {
     API.projects.download(projectSlug);
   });
+}
 
+/**
+ * ...docs go here...
+ */
+function connectPrettierButton(projectSlug) {
   format?.addEventListener(`click`, async () => {
     const tab = document.querySelector(`.active`);
     const fileEntry = document.querySelector(`file-entry.selected`);
@@ -54,7 +75,12 @@ export function addEventHandling(projectSlug) {
       },
     });
   });
+}
 
+/**
+ * ...docs go here...
+ */
+function enableRewindFunctions() {
   rewind?.addEventListener(`click`, async () => {
     rewind.blur();
     const path = document.querySelector(`.active.tab`).title;
@@ -65,8 +91,6 @@ export function addEventHandling(projectSlug) {
     const fileTree = document.querySelector(`file-tree`);
     if (path) fileTree.OT?.getFileHistory(path);
   });
-
-  addTabScrollHandling();
 }
 
 /**

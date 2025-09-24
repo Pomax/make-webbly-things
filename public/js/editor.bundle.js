@@ -32250,6 +32250,13 @@ var download = document.getElementById(`download`);
 var format = document.getElementById(`format`);
 var rewind = document.getElementById(`rewind`);
 function addEventHandling(projectSlug5) {
+  disableSaveHotkey();
+  enableDownloadButton(projectSlug5);
+  connectPrettierButton(projectSlug5);
+  enableRewindFunctions();
+  addTabScrollHandling();
+}
+function disableSaveHotkey() {
   document.addEventListener(`keydown`, (evt) => {
     const { key, ctrlKey, metaKey } = evt;
     if (key === `s`) {
@@ -32259,9 +32266,13 @@ function addEventHandling(projectSlug5) {
       }
     }
   });
+}
+function enableDownloadButton(projectSlug5) {
   download?.addEventListener(`click`, async () => {
     API.projects.download(projectSlug5);
   });
+}
+function connectPrettierButton(projectSlug5) {
   format?.addEventListener(`click`, async () => {
     const tab = document.querySelector(`.active`);
     const fileEntry = document.querySelector(`file-entry.selected`);
@@ -32284,6 +32295,8 @@ function addEventHandling(projectSlug5) {
       }
     });
   });
+}
+function enableRewindFunctions() {
   rewind?.addEventListener(`click`, async () => {
     rewind.blur();
     const path2 = document.querySelector(`.active.tab`).title;
@@ -32294,7 +32307,6 @@ function addEventHandling(projectSlug5) {
     const fileTree3 = document.querySelector(`file-tree`);
     if (path2) fileTree3.OT?.getFileHistory(path2);
   });
-  addTabScrollHandling();
 }
 function addTabScrollHandling() {
   let scrolling = false;

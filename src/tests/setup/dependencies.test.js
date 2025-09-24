@@ -1,5 +1,5 @@
 import test, { after, describe } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import { checkDependencies } from "../../setup/dependencies.js";
 import { closeReader } from "../../setup/utils.js";
 

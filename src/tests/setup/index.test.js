@@ -1,6 +1,6 @@
 import sqlite3 from "better-sqlite3";
 import test, { after, describe, before } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import * as Utils from "../../setup/utils.js";
 import { cpSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";

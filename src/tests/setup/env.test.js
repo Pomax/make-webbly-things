@@ -1,5 +1,5 @@
 import test, { after, describe } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import { setupEnv } from "../../setup/env.js";
 
 import { answer } from "../test-helpers.js";
