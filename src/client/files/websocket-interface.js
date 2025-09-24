@@ -21,6 +21,7 @@ export class CustomWebsocketInterface extends WebSocketInterface {
   async onfilehistory({ path, history }) {
     if (history.length === 0) return;
 
+    const { basePath } = this;
     const fileEntry = document.querySelector(`file-entry[path="${path}"]`);
     const div = create(`div`, { class: `history` });
     let { view, content } = fileEntry.state;
@@ -106,11 +107,11 @@ export class CustomWebsocketInterface extends WebSocketInterface {
     // make sure we select the current rewind point.
     points[0].classList.add(`selected`);
 
-    // mutation observer should not be necessary for an
+    // mutation observers should not be necessary for an
     // "I got removed from the DOM" event, but here we are.
     div.addEventListener(`close`, () => {
       div.remove();
-      syncContent(projectSlug, fileEntry);
+      syncContent(basePath, fileEntry);
     });
 
     // Add key handling for navigating/commiting rewinds.
