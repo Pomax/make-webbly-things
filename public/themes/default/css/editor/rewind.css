@@ -24,9 +24,14 @@ html {
       }
     }
 
-    &:has(file-tree.rewinding) #editors {
-      .cm-editor {
-        background: #f001;
+    &:has(file-tree.rewinding) {
+      #rewind {
+        background: #00ffcf;
+      }
+      #editors {
+        .cm-editor {
+          background: #f001;
+        }
       }
     }
 

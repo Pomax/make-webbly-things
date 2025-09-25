@@ -89,11 +89,11 @@ function connectPrettierButton(projectSlug) {
  * ...docs go here...
  */
 function enableRewindFunctions() {
-  const rewind = document.getElementById(`rewind`);
-  if (!rewind) return;
+  const rewindBtn = document.getElementById(`rewind`);
+  if (!rewindBtn) return;
 
-  rewind.addEventListener(`click`, async () => {
-    rewind.blur();
+  rewindBtn.addEventListener(`click`, async () => {
+    rewindBtn.blur();
     const path = document.querySelector(`.active.tab`).title;
     const fileTree = document.querySelector(`file-tree`);
     if (path) {

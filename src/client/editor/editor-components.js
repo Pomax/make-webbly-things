@@ -162,7 +162,7 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
   // Plain text?
   if (viewType.text || viewType.unknown) {
     if (data.map) {
-      data = data.map((v) => String.fromCharCode(v)).join(``);
+      data = new TextDecoder().decode(Uint8Array.from(data));
     }
     const initialState = getInitialState(fileEntry, filename, data);
     view = setupView(panel, initialState);

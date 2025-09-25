@@ -30719,7 +30719,7 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
   let view;
   if (viewType.text || viewType.unknown) {
     if (data3.map) {
-      data3 = data3.map((v) => String.fromCharCode(v)).join(``);
+      data3 = new TextDecoder().decode(Uint8Array.from(data3));
     }
     const initialState = getInitialState(fileEntry, filename, data3);
     view = setupView(panel, initialState);
@@ -32408,17 +32408,17 @@ function connectPrettierButton(projectSlug4) {
   });
 }
 function enableRewindFunctions() {
-  const rewind = document.getElementById(`rewind`);
-  if (!rewind) return;
-  rewind.addEventListener(`click`, async () => {
-    rewind.blur();
+  const rewindBtn = document.getElementById(`rewind`);
+  if (!rewindBtn) return;
+  rewindBtn.addEventListener(`click`, async () => {
+    rewindBtn.blur();
     const path2 = document.querySelector(`.active.tab`).title;
     const fileTree3 = document.querySelector(`file-tree`);
     if (path2) {
       const fileEntry = document.querySelector(`file-entry[path="${path2}"]`);
       if (fileEntry) {
-        const { rewind: rewind2 } = fileEntry.state ?? {};
-        if (rewind2 && rewind2.open) {
+        const { rewind } = fileEntry.state ?? {};
+        if (rewind && rewind.open) {
           fileTree3.classList.remove(`rewinding`);
           Rewinder.close();
         } else {
