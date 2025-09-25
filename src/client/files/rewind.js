@@ -115,7 +115,7 @@ export class Rewinder {
         class: `point`,
         dataTime: new Date(timestamp).toLocaleString(),
       },
-      { click }
+      { click },
     );
     point.dataset.index = i;
     point.center = () => {
@@ -125,7 +125,7 @@ export class Rewinder {
       const diff = midpoint - left;
       if (diff !== 0) {
         let value = parseFloat(
-          getComputedStyle(this.ui).getPropertyValue(`--x`)
+          getComputedStyle(this.ui).getPropertyValue(`--x`),
         );
         value += diff;
         this.ui.style.setProperty(`--x`, `${value}px`);

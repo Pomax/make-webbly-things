@@ -80,12 +80,12 @@ export function updateViewMaintainScroll(
   view.dispatch({
     changes: {
       from: 0,
-      to: doc.length,
+      to: doc.length ?? 0,
       insert: content,
     },
     selection: {
-      anchor: min(content.length, line.from),
-      head: min(content.length, line.from),
+      anchor: min(content.length, line.from ?? 0),
+      head: min(content.length, line.from ?? 0),
     },
     scrollIntoView: true,
   });

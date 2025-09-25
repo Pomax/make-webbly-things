@@ -32,7 +32,7 @@ export function createUpdateListener(entry) {
  */
 export async function syncContent(projectSlug, fileEntry, forced = false) {
   if (Rewinder.active && !forced) return;
-  
+
   const { path } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;

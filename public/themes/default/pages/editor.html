@@ -24,25 +24,41 @@
     data-use-websockets="{{ USE_WEBSOCKETS }}"
   >
     <main>
-      <span id="buttons">
-        <a class="link-back" href="https://{{ WEB_EDITOR_HOSTNAME }}">home</a>
-        <span class="projectname">{{ project.name }}</span>
-        {% if user and user.enabled_at %}
-          <button id="download" title="Download project files">💾</button>
-          <a
-            title="Remix this project!"
-            href="/v1/projects/remix/{{ project.slug }}"
-            >✨</a
+      <div id="buttons">
+        <div>
+          <a class="link-back" href="https://{{ WEB_EDITOR_HOSTNAME }}">home</a>
+          <span class="projectname" title="{{ project.name }}"
+            >{{ project.name }}</span
           >
-        {% endif %}
-        {% if user and (user.admin or projectOwner) %}
-          <button class="project-settings">settings</button>
-        {% endif %}
-        {% if user and (user.admin or projectMember) %}
-          <button id="format" title="Make my code pretty!">🤩</button>
-          <button id="rewind" title="Go back in time">🔄</button>
-        {% endif %}
-      </span>
+          {% if user and user.enabled_at %}
+            <a
+              class="link-remix"
+              title="Remix this project!"
+              href="/v1/projects/remix/{{ project.slug }}"
+              >✨</a
+            >
+          {% endif %}
+        </div>
+        <div>
+          {% if user and (user.admin or projectOwner) %}
+            <button
+              class="project-settings"
+              title="change your project settings"
+            >
+              settings
+            </button>
+          {% endif %}
+          {% if user and user.enabled_at %}
+            <button id="download" title="Download this project as a .zip">
+              💾
+            </button>
+          {% endif %}
+          {% if user and (user.admin or projectMember) %}
+            <button id="format" title="Make my code pretty!">🤩</button>
+            <button id="rewind" title="Use the time machine!">🔄</button>
+          {% endif %}
+        </div>
+      </div>
 
       <file-tree id="filetree"></file-tree>
 

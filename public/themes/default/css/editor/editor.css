@@ -17,12 +17,6 @@ html {
       height: 100%;
       overflow: hidden;
 
-      .link-back {
-        background-color: white;
-        color: black;
-        padding: 0 0.5em;
-      }
-
       #filetree {
         border: 1px solid #444;
         font-family: Arial;
@@ -61,22 +55,62 @@ html {
 
       #buttons {
         display: flex;
-        flex-direction: row;
-        background: #999;
-        white-space: nowrap;
-        align-items: center;
+        flex-direction: column;
+        background: #8a149b;
 
-        .project-slug {
-          background: #222;
-          color: white;
-          padding: 1px 5px 3px;
-          border-radius: 4px;
-          margin-left: 0.25em;
-        }
+        div {
+          position: relative;
+          display: flex;
+          flex-direction: row;
+          white-space: nowrap;
+          align-items: center;
 
-        button {
-          height: 1.75em;
-          cursor: pointer;
+          &:nth-child(2) {
+            padding: 0.2em 0;
+          }
+
+          .link-remix {
+            text-decoration: none;
+            height: 100%;
+            background: white;
+            color: black;
+            padding: 0 0.5em;
+            text-shadow: 0 0 0.5px black;
+          }
+
+          .link-back {
+            align-self: flex-end;
+            height: 100%;
+            background: white;
+            color: black;
+            padding: 0 0.5em;
+          }
+
+          .projectname {
+            flex-grow: 1;
+            color: white;
+            padding: 1px 5px 3px;
+            border-radius: 4px;
+            margin-left: 0.25em;
+            padding: 0 0.5em;
+            font-weight: bold;
+            text-shadow: 0 0 2px black;
+            text-align: center;
+            text-overflow: ellipsis;
+          }
+
+          .project-settings {
+            flex-grow: 1;
+          }
+
+          button {
+            height: 1.75em;
+            cursor: pointer;
+            border: 1px solid #30ae97;
+            background: white;
+            border-radius: 0.5em;
+            box-shadow: 1px 2px 0px 0px #00ffcf;
+          }
         }
       }
 

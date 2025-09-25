@@ -119,13 +119,10 @@ export async function getOrCreateFileEditTab(fileEntry, projectSlug, filename) {
     }
     return tab.click();
   } else {
-    // edge case: reloading the page will
-    // reconnect the websockt, which will
-    // try to load a tab that may already
-    // exist...
+    // edge case: reconnecting the websocket when the server
+    // has a blip may try to load a tab that already exists.
     const { path } = fileEntry;
     if (document.querySelector(`[title="${path}"]`)) {
-      console.log(`reload?`);
       return;
     }
   }

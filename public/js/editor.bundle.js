@@ -88,12 +88,12 @@ function updateViewMaintainScroll(entry, content2 = entry.content, editable3 = t
   view.dispatch({
     changes: {
       from: 0,
-      to: doc2.length,
+      to: doc2.length ?? 0,
       insert: content2
     },
     selection: {
-      anchor: min(content2.length, line.from),
-      head: min(content2.length, line.from)
+      anchor: min(content2.length, line.from ?? 0),
+      head: min(content2.length, line.from ?? 0)
     },
     scrollIntoView: true
   });
@@ -30691,7 +30691,6 @@ async function getOrCreateFileEditTab(fileEntry, projectSlug4, filename) {
   } else {
     const { path: path2 } = fileEntry;
     if (document.querySelector(`[title="${path2}"]`)) {
-      console.log(`reload?`);
       return;
     }
   }
@@ -32070,7 +32069,6 @@ async function setupFileTree() {
   if (dirData instanceof Error) return;
   if (USE_WEBSOCKETS && projectMember) {
     const url = `wss://${location.host}`;
-    console.log(`connecting wss:`, url, projectSlug2);
     (async function connect() {
       const OT = await fileTree2.connectViaWebSocket(
         url,
@@ -32079,10 +32077,12 @@ async function setupFileTree() {
         CustomWebsocketInterface
       );
       OT.socket.addEventListener(`close`, () => {
-        console.log(`connection lost. Reconnecting...`);
-        setTimeout(() => connect(), 1e3);
+        setTimeout(() => {
+          if (globalThis.__shutdown) return;
+          console.log(`connection lost. Reconnecting...`);
+          connect();
+        }, 3e3);
       });
-      window.testHistory = () => OT.getFileHistory(`index.html`);
     })();
   } else {
     fileTree2.setContent(dirData);
@@ -32359,6 +32359,9 @@ function addEventHandling(projectSlug4) {
   connectPrettierButton(projectSlug4);
   enableRewindFunctions();
   addTabScrollHandling();
+  globalThis.addEventListener("beforeunload", () => {
+    globalThis.__shutdown = true;
+  });
 }
 function disableSaveHotkey() {
   document.addEventListener(`keydown`, (evt) => {

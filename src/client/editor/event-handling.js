@@ -18,6 +18,12 @@ export function addEventHandling(projectSlug) {
   connectPrettierButton(projectSlug);
   enableRewindFunctions();
   addTabScrollHandling();
+
+  // Lastly: make sure we can tell whether or not this
+  // document is "dead" and about to get cleaned up.
+  globalThis.addEventListener("beforeunload", () => {
+    globalThis.__shutdown = true;
+  });
 }
 
 /**
