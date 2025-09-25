@@ -2,6 +2,8 @@ import { API } from "./api.js";
 
 export const noop = () => {};
 
+const { min } = Math;
+
 /**
  * nicer than always typing document.createElement
  */
@@ -53,4 +55,38 @@ export function getFileSum(data) {
 export function listEquals(a1, a2) {
   if (a1.length !== a2.length) return false;
   return a1.every((v, i) => a2[i] === v);
+}
+
+/**
+ * Update the editor text while maintaining the
+ * scroll position. In a janky fashion, but
+ * janky is better than "not at all".
+ *
+ * TODO: ideally we can preserve scroll position cleanly? https://github.com/Pomax/make-webbly-things/issues/105
+ *
+ * @param {*} entry
+ * @param {*} content
+ */
+export function updateViewMaintainScroll(
+  entry,
+  content = entry.content,
+  editable = true,
+) {
+  const { view } = entry;
+  entry.setEditable(editable);
+  const { doc, selection } = view.state;
+  const cursor = doc.lineAt(selection.main.head);
+  const line = doc.line(cursor.number);
+  view.dispatch({
+    changes: {
+      from: 0,
+      to: doc.length,
+      insert: content,
+    },
+    selection: {
+      anchor: min(content.length, line.from),
+      head: min(content.length, line.from),
+    },
+    scrollIntoView: true,
+  });
 }

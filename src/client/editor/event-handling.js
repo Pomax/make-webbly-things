@@ -1,17 +1,13 @@
 import { fetchFileContents } from "../utils/utils.js";
 import { API } from "../utils/api.js";
 import { Notice } from "../utils/notifications.js";
+import { Rewinder } from "../files/rewind.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
 
 // These always exist
 const left = document.getElementById(`left`);
 const right = document.getElementById(`right`);
-
-// These may not always exist:
-const download = document.getElementById(`download`);
-const format = document.getElementById(`format`);
-const rewind = document.getElementById(`rewind`);
 
 /**
  * Hook up the "Add new file" and "Format this file" buttons
@@ -44,7 +40,10 @@ function disableSaveHotkey() {
  * ...docs go here...
  */
 function enableDownloadButton(projectSlug) {
-  download?.addEventListener(`click`, async () => {
+  const download = document.getElementById(`download`);
+  if (!download) return;
+
+  download.addEventListener(`click`, async () => {
     API.projects.download(projectSlug);
   });
 }
@@ -53,7 +52,10 @@ function enableDownloadButton(projectSlug) {
  * ...docs go here...
  */
 function connectPrettierButton(projectSlug) {
-  format?.addEventListener(`click`, async () => {
+  const format = document.getElementById(`format`);
+  if (!format) return;
+
+  format.addEventListener(`click`, async () => {
     const tab = document.querySelector(`.active`);
     const fileEntry = document.querySelector(`file-entry.selected`);
     if (fileEntry.state?.tab !== tab) {
@@ -81,15 +83,27 @@ function connectPrettierButton(projectSlug) {
  * ...docs go here...
  */
 function enableRewindFunctions() {
-  rewind?.addEventListener(`click`, async () => {
+  const rewind = document.getElementById(`rewind`);
+  if (!rewind) return;
+
+  rewind.addEventListener(`click`, async () => {
     rewind.blur();
     const path = document.querySelector(`.active.tab`).title;
-    const history = document.querySelector(`div.history`);
-    if (history) {
-      return history.dispatchEvent(new CustomEvent(`close`));
-    }
     const fileTree = document.querySelector(`file-tree`);
-    if (path) fileTree.OT?.getFileHistory(path);
+    if (path) {
+      const fileEntry = document.querySelector(`file-entry[path="${path}"]`);
+      if (fileEntry) {
+        const { rewind } = fileEntry.state ?? {};
+        if (rewind && rewind.open) {
+          fileTree.classList.remove(`rewinding`);
+          Rewinder.close();
+        } else {
+          Rewinder.enable();
+          fileTree.classList.add(`rewinding`);
+          fileTree.OT?.getFileHistory(path);
+        }
+      }
+    }
   });
 }
 

@@ -1,33 +1,22 @@
 import { createPatch, applyPatch } from "/vendor/diff.js";
-import { fetchFileContents, getFileSum } from "../utils/utils.js";
+import {
+  fetchFileContents,
+  getFileSum,
+  updateViewMaintainScroll,
+} from "../utils/utils.js";
 import { updatePreview } from "../preview/preview.js";
 import { API } from "../utils/api.js";
+import { Rewinder } from "./rewind.js";
 
 export function createUpdateListener(entry) {
-  const { view } = entry;
-
   return async (evt) => {
     const { type, update, ours } = evt.detail;
     if (type === `diff`) {
       if (!ours) {
         const oldContent = entry.content;
         const newContent = applyPatch(oldContent, update);
-
-        // FIXME: this is not the only place we set the scrollpostion followed
-        //        by a view update dispatch, so we probably want to unify that.
-        //        Search for RPL1423 to find the other spot(s) we do this.
-        entry.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
         entry.content = newContent;
-        entry.contentReset = true;
-        view.dispatch({
-          changes: {
-            from: 0,
-            to: oldContent.length,
-            insert: entry.content,
-          },
-        });
-
-        // TODO: ideally we can preserve scroll position cleanly? https://github.com/Pomax/make-webbly-things/issues/105
+        updateViewMaintainScroll(entry);
       }
       updatePreview();
     }
@@ -41,11 +30,9 @@ export function createUpdateListener(entry) {
  * made was correct by comparing the on-disk "hash" value with
  * the same value based on the current editor content.
  */
-export async function syncContent(projectSlug, fileEntry) {
-  // No syncing if we're in rewind mode:
-  const history = document.querySelector(`div.history`);
-  if (history) return;
-
+export async function syncContent(projectSlug, fileEntry, forced = false) {
+  if (Rewinder.active && !forced) return;
+  
   const { path } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;
@@ -83,15 +70,8 @@ export async function syncContent(projectSlug, fileEntry) {
       if (document.body.dataset.projectMember) {
         entry.content = await fetchFileContents(projectSlug, path);
       }
-
       entry.contentReset = true;
-      entry.view.dispatch({
-        changes: {
-          from: 0,
-          to: entry.view.state.doc.length,
-          insert: entry.content,
-        },
-      });
+      updateViewMaintainScroll(entry);
     }
   }
 

@@ -6,6 +6,7 @@ import { getOrCreateFileEditTab } from "../editor/editor-components.js";
 import { DEFAULT_FILES } from "./default-files.js";
 import { unzip } from "/vendor/unzipit.module.js";
 import { CustomWebsocketInterface } from "./websocket-interface.js";
+import { Rewinder } from "./rewind.js";
 
 const USE_WEBSOCKETS = !!document.body.dataset.useWebsockets;
 let setupAlready = false;
@@ -122,6 +123,9 @@ async function addFileClick(fileTree, projectSlug) {
     );
     // note: we handle "selection" in the file tree as part of editor
     // reveals, so we do not call the event's own grant() function.
+    if (Rewinder.active) {
+      fileTree.OT?.getFileHistory(fileEntry.path);
+    }
   });
 }
 

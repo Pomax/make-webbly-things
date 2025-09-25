@@ -34,7 +34,7 @@ html {
           --highlight-background-bw: #44ffd8;
           dir-entry[path="."] {
             & > .buttons {
-              width: calc(100% + 0.75em);
+              width: calc(100% + 1em);
               padding-bottom: 0.25em;
               button {
                 opacity: 1;
@@ -50,6 +50,12 @@ html {
 
         file-entry {
           white-space: nowrap;
+          &.revision {
+            color: red;
+            &:before {
+              content: attr(data-revision);
+            }
+          }
         }
       }
 

@@ -49,6 +49,7 @@ var API = {
 };
 
 // src/client/utils/utils.js
+var { min } = Math;
 function create(tag, attributes = {}, evts = {}) {
   const e2 = document.createElement(tag);
   Object.entries(attributes).forEach(([k, v]) => {
@@ -77,6 +78,25 @@ function getFileSum(data3) {
 function listEquals(a1, a2) {
   if (a1.length !== a2.length) return false;
   return a1.every((v, i) => a2[i] === v);
+}
+function updateViewMaintainScroll(entry, content2 = entry.content, editable3 = true) {
+  const { view } = entry;
+  entry.setEditable(editable3);
+  const { doc: doc2, selection } = view.state;
+  const cursor = doc2.lineAt(selection.main.head);
+  const line = doc2.line(cursor.number);
+  view.dispatch({
+    changes: {
+      from: 0,
+      to: doc2.length,
+      insert: content2
+    },
+    selection: {
+      anchor: min(content2.length, line.from),
+      head: min(content2.length, line.from)
+    },
+    scrollIntoView: true
+  });
 }
 
 // src/client/utils/notifications.js
@@ -10631,10 +10651,10 @@ var EditContextManager = class {
     };
     this.handlers.textformatupdate = (e2) => {
       let deco = [];
-      for (let format2 of e2.getTextFormats()) {
-        let lineStyle = format2.underlineStyle, thickness = format2.underlineThickness;
+      for (let format of e2.getTextFormats()) {
+        let lineStyle = format.underlineStyle, thickness = format.underlineThickness;
         if (lineStyle != "None" && thickness != "None") {
-          let from = this.toEditorPos(format2.rangeStart), to = this.toEditorPos(format2.rangeEnd);
+          let from = this.toEditorPos(format.rangeStart), to = this.toEditorPos(format.rangeEnd);
           if (from < to) {
             let style = `text-decoration: underline ${lineStyle == "Dashed" ? "dashed " : lineStyle == "Squiggle" ? "wavy " : ""}${thickness == "Thin" ? 1 : 2}px`;
             deco.push(Decoration.mark({ attributes: { style } }).range(from, to));
@@ -13630,10 +13650,10 @@ var gutterView = /* @__PURE__ */ ViewPlugin.fromClass(class {
       this.syncGutters(vpOverlap < (vpB.to - vpB.from) * 0.8);
     }
     if (update.geometryChanged) {
-      let min = this.view.contentHeight / this.view.scaleY + "px";
-      this.dom.style.minHeight = min;
+      let min2 = this.view.contentHeight / this.view.scaleY + "px";
+      this.dom.style.minHeight = min2;
       if (this.domAfter)
-        this.domAfter.style.minHeight = min;
+        this.domAfter.style.minHeight = min2;
     }
     if (this.view.state.facet(unfixGutters) != !this.fixed) {
       this.fixed = !this.fixed;
@@ -29706,12 +29726,19 @@ function htmlTagCompletions() {
 }
 
 // src/client/editor/code-mirror-6.js
+var editable2 = !!document.body.dataset.projectMember;
 function getInitialState(fileEntry, filename, data3) {
+  const entry = fileEntry.state;
   const doc2 = data3.toString();
-  const extensions = [
-    basicSetup,
-    EditorState.readOnly.of(!document.body.dataset.projectMember)
-  ];
+  const extensions = [basicSetup, EditorView.lineWrapping];
+  const readOnly2 = EditorState.readOnly;
+  const readOnlyCompartment = new Compartment();
+  extensions.push(readOnlyCompartment.of(readOnly2.of(!editable2)));
+  entry.setEditable = (b) => {
+    const newValue = readOnly2.of(!b);
+    const update = readOnlyCompartment.reconfigure(newValue);
+    entry.view.dispatch({ effects: update });
+  };
   const ext = filename.substring(filename.lastIndexOf(`.`) + 1);
   const syntax = {
     css,
@@ -29721,26 +29748,18 @@ function getInitialState(fileEntry, filename, data3) {
   }[ext];
   if (syntax) extensions.push(syntax());
   extensions.push(
-    EditorView.lineWrapping,
     EditorView.updateListener.of((e2) => {
       const tab = e2.view.tabElement;
       if (tab && e2.docChanged) {
-        const entry = fileEntry.state;
-        const reset = entry.contentReset;
-        if (entry.debounce || reset) {
-          clearTimeout(entry.debounce);
+        const entry2 = fileEntry.state;
+        const reset = entry2.contentReset;
+        if (entry2.debounce || reset) {
+          clearTimeout(entry2.debounce);
         }
         if (!reset) {
-          entry.debounce = setTimeout(entry.sync, 1e3);
+          entry2.debounce = setTimeout(entry2.sync, 1e3);
         }
-        entry.contentReset = false;
-        const { scrollPosition } = entry;
-        if (scrollPosition) {
-          setTimeout(() => {
-            entry.view.dom.querySelector(`.cm-scroller`).scrollTop = scrollPosition;
-          }, 0);
-          delete entry.scrollPosition;
-        }
+        entry2.contentReset = false;
       }
     })
   );
@@ -29756,33 +29775,820 @@ function setupView(parent, state) {
 }
 
 // src/client/files/sync.js
-import { createPatch, applyPatch } from "/vendor/diff.js";
+import { createPatch, applyPatch as applyPatch2 } from "/vendor/diff.js";
+
+// public/vendor/diff.js
+function Diff() {
+}
+Diff.prototype = {
+  diff: function diff(oldString, newString) {
+    var _options$timeout;
+    var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
+    var callback = options.callback;
+    if (typeof options === "function") {
+      callback = options;
+      options = {};
+    }
+    this.options = options;
+    var self = this;
+    function done(value) {
+      if (callback) {
+        setTimeout(function() {
+          callback(void 0, value);
+        }, 0);
+        return true;
+      } else {
+        return value;
+      }
+    }
+    oldString = this.castInput(oldString);
+    newString = this.castInput(newString);
+    oldString = this.removeEmpty(this.tokenize(oldString));
+    newString = this.removeEmpty(this.tokenize(newString));
+    var newLen = newString.length, oldLen = oldString.length;
+    var editLength = 1;
+    var maxEditLength = newLen + oldLen;
+    if (options.maxEditLength) {
+      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
+    }
+    var maxExecutionTime = (_options$timeout = options.timeout) !== null && _options$timeout !== void 0 ? _options$timeout : Infinity;
+    var abortAfterTimestamp = Date.now() + maxExecutionTime;
+    var bestPath = [
+      {
+        oldPos: -1,
+        lastComponent: void 0
+      }
+    ];
+    var newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+      return done([
+        {
+          value: this.join(newString),
+          count: newString.length
+        }
+      ]);
+    }
+    var minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+    function execEditLength() {
+      for (var diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
+        var basePath = void 0;
+        var removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
+        if (removePath) {
+          bestPath[diagonalPath - 1] = void 0;
+        }
+        var canAdd = false;
+        if (addPath) {
+          var addPathNewPos = addPath.oldPos - diagonalPath;
+          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
+        }
+        var canRemove = removePath && removePath.oldPos + 1 < oldLen;
+        if (!canAdd && !canRemove) {
+          bestPath[diagonalPath] = void 0;
+          continue;
+        }
+        if (!canRemove || canAdd && removePath.oldPos + 1 < addPath.oldPos) {
+          basePath = self.addToPath(addPath, true, void 0, 0);
+        } else {
+          basePath = self.addToPath(removePath, void 0, true, 1);
+        }
+        newPos = self.extractCommon(
+          basePath,
+          newString,
+          oldString,
+          diagonalPath
+        );
+        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+          return done(
+            buildValues(
+              self,
+              basePath.lastComponent,
+              newString,
+              oldString,
+              self.useLongestToken
+            )
+          );
+        } else {
+          bestPath[diagonalPath] = basePath;
+          if (basePath.oldPos + 1 >= oldLen) {
+            maxDiagonalToConsider = Math.min(
+              maxDiagonalToConsider,
+              diagonalPath - 1
+            );
+          }
+          if (newPos + 1 >= newLen) {
+            minDiagonalToConsider = Math.max(
+              minDiagonalToConsider,
+              diagonalPath + 1
+            );
+          }
+        }
+      }
+      editLength++;
+    }
+    if (callback) {
+      (function exec() {
+        setTimeout(function() {
+          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
+            return callback();
+          }
+          if (!execEditLength()) {
+            exec();
+          }
+        }, 0);
+      })();
+    } else {
+      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
+        var ret = execEditLength();
+        if (ret) {
+          return ret;
+        }
+      }
+    }
+  },
+  addToPath: function addToPath(path2, added, removed, oldPosInc) {
+    var last = path2.lastComponent;
+    if (last && last.added === added && last.removed === removed) {
+      return {
+        oldPos: path2.oldPos + oldPosInc,
+        lastComponent: {
+          count: last.count + 1,
+          added,
+          removed,
+          previousComponent: last.previousComponent
+        }
+      };
+    } else {
+      return {
+        oldPos: path2.oldPos + oldPosInc,
+        lastComponent: {
+          count: 1,
+          added,
+          removed,
+          previousComponent: last
+        }
+      };
+    }
+  },
+  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
+    var newLen = newString.length, oldLen = oldString.length, oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
+      newPos++;
+      oldPos++;
+      commonCount++;
+    }
+    if (commonCount) {
+      basePath.lastComponent = {
+        count: commonCount,
+        previousComponent: basePath.lastComponent
+      };
+    }
+    basePath.oldPos = oldPos;
+    return newPos;
+  },
+  equals: function equals(left2, right2) {
+    if (this.options.comparator) {
+      return this.options.comparator(left2, right2);
+    } else {
+      return left2 === right2 || this.options.ignoreCase && left2.toLowerCase() === right2.toLowerCase();
+    }
+  },
+  removeEmpty: function removeEmpty(array) {
+    var ret = [];
+    for (var i = 0; i < array.length; i++) {
+      if (array[i]) {
+        ret.push(array[i]);
+      }
+    }
+    return ret;
+  },
+  castInput: function castInput(value) {
+    return value;
+  },
+  tokenize: function tokenize(value) {
+    return value.split("");
+  },
+  join: function join(chars) {
+    return chars.join("");
+  }
+};
+function buildValues(diff2, lastComponent, newString, oldString, useLongestToken) {
+  var components = [];
+  var nextComponent;
+  while (lastComponent) {
+    components.push(lastComponent);
+    nextComponent = lastComponent.previousComponent;
+    delete lastComponent.previousComponent;
+    lastComponent = nextComponent;
+  }
+  components.reverse();
+  var componentPos = 0, componentLen = components.length, newPos = 0, oldPos = 0;
+  for (; componentPos < componentLen; componentPos++) {
+    var component = components[componentPos];
+    if (!component.removed) {
+      if (!component.added && useLongestToken) {
+        var value = newString.slice(newPos, newPos + component.count);
+        value = value.map(function(value2, i) {
+          var oldValue = oldString[oldPos + i];
+          return oldValue.length > value2.length ? oldValue : value2;
+        });
+        component.value = diff2.join(value);
+      } else {
+        component.value = diff2.join(
+          newString.slice(newPos, newPos + component.count)
+        );
+      }
+      newPos += component.count;
+      if (!component.added) {
+        oldPos += component.count;
+      }
+    } else {
+      component.value = diff2.join(
+        oldString.slice(oldPos, oldPos + component.count)
+      );
+      oldPos += component.count;
+      if (componentPos && components[componentPos - 1].added) {
+        var tmp = components[componentPos - 1];
+        components[componentPos - 1] = components[componentPos];
+        components[componentPos] = tmp;
+      }
+    }
+  }
+  var finalComponent = components[componentLen - 1];
+  if (componentLen > 1 && typeof finalComponent.value === "string" && (finalComponent.added || finalComponent.removed) && diff2.equals("", finalComponent.value)) {
+    components[componentLen - 2].value += finalComponent.value;
+    components.pop();
+  }
+  return components;
+}
+var characterDiff = new Diff();
+var extendedWordChars = /^[A-Za-z\xC0-\u02C6\u02C8-\u02D7\u02DE-\u02FF\u1E00-\u1EFF]+$/;
+var reWhitespace = /\S/;
+var wordDiff = new Diff();
+wordDiff.equals = function(left2, right2) {
+  if (this.options.ignoreCase) {
+    left2 = left2.toLowerCase();
+    right2 = right2.toLowerCase();
+  }
+  return left2 === right2 || this.options.ignoreWhitespace && !reWhitespace.test(left2) && !reWhitespace.test(right2);
+};
+wordDiff.tokenize = function(value) {
+  var tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
+  for (var i = 0; i < tokens.length - 1; i++) {
+    if (!tokens[i + 1] && tokens[i + 2] && extendedWordChars.test(tokens[i]) && extendedWordChars.test(tokens[i + 2])) {
+      tokens[i] += tokens[i + 2];
+      tokens.splice(i + 1, 2);
+      i--;
+    }
+  }
+  return tokens;
+};
+var lineDiff = new Diff();
+lineDiff.tokenize = function(value) {
+  if (this.options.stripTrailingCr) {
+    value = value.replace(/\r\n/g, "\n");
+  }
+  var retLines = [], linesAndNewlines = value.split(/(\n|\r\n)/);
+  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+    linesAndNewlines.pop();
+  }
+  for (var i = 0; i < linesAndNewlines.length; i++) {
+    var line = linesAndNewlines[i];
+    if (i % 2 && !this.options.newlineIsToken) {
+      retLines[retLines.length - 1] += line;
+    } else {
+      if (this.options.ignoreWhitespace) {
+        line = line.trim();
+      }
+      retLines.push(line);
+    }
+  }
+  return retLines;
+};
+var sentenceDiff = new Diff();
+sentenceDiff.tokenize = function(value) {
+  return value.split(/(\S.+?[.!?])(?=\s+|$)/);
+};
+var cssDiff = new Diff();
+cssDiff.tokenize = function(value) {
+  return value.split(/([{}:;,]|\s+)/);
+};
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function(obj2) {
+      return typeof obj2;
+    };
+  } else {
+    _typeof = function(obj2) {
+      return obj2 && typeof Symbol === "function" && obj2.constructor === Symbol && obj2 !== Symbol.prototype ? "symbol" : typeof obj2;
+    };
+  }
+  return _typeof(obj);
+}
+var objectPrototypeToString = Object.prototype.toString;
+var jsonDiff = new Diff();
+jsonDiff.useLongestToken = true;
+jsonDiff.tokenize = lineDiff.tokenize;
+jsonDiff.castInput = function(value) {
+  var _this$options = this.options, undefinedReplacement = _this$options.undefinedReplacement, _this$options$stringi = _this$options.stringifyReplacer, stringifyReplacer = _this$options$stringi === void 0 ? function(k, v) {
+    return typeof v === "undefined" ? undefinedReplacement : v;
+  } : _this$options$stringi;
+  return typeof value === "string" ? value : JSON.stringify(
+    canonicalize(value, null, null, stringifyReplacer),
+    stringifyReplacer,
+    "  "
+  );
+};
+jsonDiff.equals = function(left2, right2) {
+  return Diff.prototype.equals.call(
+    jsonDiff,
+    left2.replace(/,([\r\n])/g, "$1"),
+    right2.replace(/,([\r\n])/g, "$1")
+  );
+};
+function canonicalize(obj, stack, replacementStack, replacer, key) {
+  stack = stack || [];
+  replacementStack = replacementStack || [];
+  if (replacer) {
+    obj = replacer(key, obj);
+  }
+  var i;
+  for (i = 0; i < stack.length; i += 1) {
+    if (stack[i] === obj) {
+      return replacementStack[i];
+    }
+  }
+  var canonicalizedObj;
+  if ("[object Array]" === objectPrototypeToString.call(obj)) {
+    stack.push(obj);
+    canonicalizedObj = new Array(obj.length);
+    replacementStack.push(canonicalizedObj);
+    for (i = 0; i < obj.length; i += 1) {
+      canonicalizedObj[i] = canonicalize(
+        obj[i],
+        stack,
+        replacementStack,
+        replacer,
+        key
+      );
+    }
+    stack.pop();
+    replacementStack.pop();
+    return canonicalizedObj;
+  }
+  if (obj && obj.toJSON) {
+    obj = obj.toJSON();
+  }
+  if (_typeof(obj) === "object" && obj !== null) {
+    stack.push(obj);
+    canonicalizedObj = {};
+    replacementStack.push(canonicalizedObj);
+    var sortedKeys = [], _key;
+    for (_key in obj) {
+      if (obj.hasOwnProperty(_key)) {
+        sortedKeys.push(_key);
+      }
+    }
+    sortedKeys.sort();
+    for (i = 0; i < sortedKeys.length; i += 1) {
+      _key = sortedKeys[i];
+      canonicalizedObj[_key] = canonicalize(
+        obj[_key],
+        stack,
+        replacementStack,
+        replacer,
+        _key
+      );
+    }
+    stack.pop();
+    replacementStack.pop();
+  } else {
+    canonicalizedObj = obj;
+  }
+  return canonicalizedObj;
+}
+var arrayDiff = new Diff();
+arrayDiff.tokenize = function(value) {
+  return value.slice();
+};
+arrayDiff.join = arrayDiff.removeEmpty = function(value) {
+  return value;
+};
+function parsePatch(uniDiff) {
+  var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+  var diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85]/), delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85]/g) || [], list = [], i = 0;
+  function parseIndex() {
+    var index = {};
+    list.push(index);
+    while (i < diffstr.length) {
+      var line = diffstr[i];
+      if (/^(\-\-\-|\+\+\+|@@)\s/.test(line)) {
+        break;
+      }
+      var header = /^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/.exec(line);
+      if (header) {
+        index.index = header[1];
+      }
+      i++;
+    }
+    parseFileHeader(index);
+    parseFileHeader(index);
+    index.hunks = [];
+    while (i < diffstr.length) {
+      var _line = diffstr[i];
+      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(_line)) {
+        break;
+      } else if (/^@@/.test(_line)) {
+        index.hunks.push(parseHunk());
+      } else if (_line && options.strict) {
+        throw new Error(
+          "Unknown line " + (i + 1) + " " + JSON.stringify(_line)
+        );
+      } else {
+        i++;
+      }
+    }
+  }
+  function parseFileHeader(index) {
+    var fileHeader = /^(---|\+\+\+)\s+(.*)$/.exec(diffstr[i]);
+    if (fileHeader) {
+      var keyPrefix = fileHeader[1] === "---" ? "old" : "new";
+      var data3 = fileHeader[2].split("	", 2);
+      var fileName = data3[0].replace(/\\\\/g, "\\");
+      if (/^".*"$/.test(fileName)) {
+        fileName = fileName.substr(1, fileName.length - 2);
+      }
+      index[keyPrefix + "FileName"] = fileName;
+      index[keyPrefix + "Header"] = (data3[1] || "").trim();
+      i++;
+    }
+  }
+  function parseHunk() {
+    var chunkHeaderIndex = i, chunkHeaderLine = diffstr[i++], chunkHeader = chunkHeaderLine.split(
+      /@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
+    );
+    var hunk = {
+      oldStart: +chunkHeader[1],
+      oldLines: typeof chunkHeader[2] === "undefined" ? 1 : +chunkHeader[2],
+      newStart: +chunkHeader[3],
+      newLines: typeof chunkHeader[4] === "undefined" ? 1 : +chunkHeader[4],
+      lines: [],
+      linedelimiters: []
+    };
+    if (hunk.oldLines === 0) {
+      hunk.oldStart += 1;
+    }
+    if (hunk.newLines === 0) {
+      hunk.newStart += 1;
+    }
+    var addCount = 0, removeCount = 0;
+    for (; i < diffstr.length; i++) {
+      if (diffstr[i].indexOf("--- ") === 0 && i + 2 < diffstr.length && diffstr[i + 1].indexOf("+++ ") === 0 && diffstr[i + 2].indexOf("@@") === 0) {
+        break;
+      }
+      var operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? " " : diffstr[i][0];
+      if (operation === "+" || operation === "-" || operation === " " || operation === "\\") {
+        hunk.lines.push(diffstr[i]);
+        hunk.linedelimiters.push(delimiters[i] || "\n");
+        if (operation === "+") {
+          addCount++;
+        } else if (operation === "-") {
+          removeCount++;
+        } else if (operation === " ") {
+          addCount++;
+          removeCount++;
+        }
+      } else {
+        break;
+      }
+    }
+    if (!addCount && hunk.newLines === 1) {
+      hunk.newLines = 0;
+    }
+    if (!removeCount && hunk.oldLines === 1) {
+      hunk.oldLines = 0;
+    }
+    if (options.strict) {
+      if (addCount !== hunk.newLines) {
+        throw new Error(
+          "Added line count did not match for hunk at line " + (chunkHeaderIndex + 1)
+        );
+      }
+      if (removeCount !== hunk.oldLines) {
+        throw new Error(
+          "Removed line count did not match for hunk at line " + (chunkHeaderIndex + 1)
+        );
+      }
+    }
+    return hunk;
+  }
+  while (i < diffstr.length) {
+    parseIndex();
+  }
+  return list;
+}
+function distanceIterator(start, minLine, maxLine) {
+  var wantForward = true, backwardExhausted = false, forwardExhausted = false, localOffset = 1;
+  return function iterator() {
+    if (wantForward && !forwardExhausted) {
+      if (backwardExhausted) {
+        localOffset++;
+      } else {
+        wantForward = false;
+      }
+      if (start + localOffset <= maxLine) {
+        return localOffset;
+      }
+      forwardExhausted = true;
+    }
+    if (!backwardExhausted) {
+      if (!forwardExhausted) {
+        wantForward = true;
+      }
+      if (minLine <= start - localOffset) {
+        return -localOffset++;
+      }
+      backwardExhausted = true;
+      return iterator();
+    }
+  };
+}
+function applyPatch(source, uniDiff) {
+  var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
+  if (typeof uniDiff === "string") {
+    uniDiff = parsePatch(uniDiff);
+  }
+  if (Array.isArray(uniDiff)) {
+    if (uniDiff.length > 1) {
+      throw new Error("applyPatch only works with a single input.");
+    }
+    uniDiff = uniDiff[0];
+  }
+  var lines = source.split(/\r\n|[\n\v\f\r\x85]/), delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [], hunks = uniDiff.hunks, compareLine = options.compareLine || function(lineNumber, line2, operation2, patchContent) {
+    return line2 === patchContent;
+  }, errorCount = 0, fuzzFactor = options.fuzzFactor || 0, minLine = 0, offset = 0, removeEOFNL, addEOFNL;
+  function hunkFits(hunk2, toPos2) {
+    for (var j2 = 0; j2 < hunk2.lines.length; j2++) {
+      var line2 = hunk2.lines[j2], operation2 = line2.length > 0 ? line2[0] : " ", content3 = line2.length > 0 ? line2.substr(1) : line2;
+      if (operation2 === " " || operation2 === "-") {
+        if (!compareLine(toPos2 + 1, lines[toPos2], operation2, content3)) {
+          errorCount++;
+          if (errorCount > fuzzFactor) {
+            return false;
+          }
+        }
+        toPos2++;
+      }
+    }
+    return true;
+  }
+  for (var i = 0; i < hunks.length; i++) {
+    var hunk = hunks[i], maxLine = lines.length - hunk.oldLines, localOffset = 0, toPos = offset + hunk.oldStart - 1;
+    var iterator = distanceIterator(toPos, minLine, maxLine);
+    for (; localOffset !== void 0; localOffset = iterator()) {
+      if (hunkFits(hunk, toPos + localOffset)) {
+        hunk.offset = offset += localOffset;
+        break;
+      }
+    }
+    if (localOffset === void 0) {
+      return false;
+    }
+    minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
+  }
+  var diffOffset = 0;
+  for (var _i = 0; _i < hunks.length; _i++) {
+    var _hunk = hunks[_i], _toPos = _hunk.oldStart + _hunk.offset + diffOffset - 1;
+    diffOffset += _hunk.newLines - _hunk.oldLines;
+    for (var j = 0; j < _hunk.lines.length; j++) {
+      var line = _hunk.lines[j], operation = line.length > 0 ? line[0] : " ", content2 = line.length > 0 ? line.substr(1) : line, delimiter = _hunk.linedelimiters && _hunk.linedelimiters[j] || "\n";
+      if (operation === " ") {
+        _toPos++;
+      } else if (operation === "-") {
+        lines.splice(_toPos, 1);
+        delimiters.splice(_toPos, 1);
+      } else if (operation === "+") {
+        lines.splice(_toPos, 0, content2);
+        delimiters.splice(_toPos, 0, delimiter);
+        _toPos++;
+      } else if (operation === "\\") {
+        var previousOperation = _hunk.lines[j - 1] ? _hunk.lines[j - 1][0] : null;
+        if (previousOperation === "+") {
+          removeEOFNL = true;
+        } else if (previousOperation === "-") {
+          addEOFNL = true;
+        }
+      }
+    }
+  }
+  if (removeEOFNL) {
+    while (!lines[lines.length - 1]) {
+      lines.pop();
+      delimiters.pop();
+    }
+  } else if (addEOFNL) {
+    lines.push("");
+    delimiters.push("\n");
+  }
+  for (var _k = 0; _k < lines.length - 1; _k++) {
+    lines[_k] = lines[_k] + delimiters[_k];
+  }
+  return lines.join("");
+}
+
+// src/client/files/rewind.js
+var FORCE_SYNC = true;
+var Rewinder = class _Rewinder {
+  static rewinders = [];
+  static enable() {
+    this.active = true;
+  }
+  static close() {
+    const { rewinders } = this;
+    for (const r of rewinders) {
+      r.close();
+    }
+    this.active = false;
+  }
+  open = false;
+  pos = 0;
+  points = [];
+  constructor(basePath, fileEntry) {
+    _Rewinder.rewinders.push(this);
+    Object.assign(this, {
+      basePath,
+      fileEntry,
+      content: fileEntry.state.content
+    });
+  }
+  hide() {
+    this.open = false;
+    this.ui.classList.toggle(`hidden`, true);
+    this.fileEntry.state.setEditable(true);
+  }
+  show() {
+    const { fileEntry, points, ui } = this;
+    _Rewinder.rewinders.forEach((r) => r.hide());
+    fileEntry.state.setEditable(false);
+    ui.classList.toggle(`hidden`, false);
+    points[this.pos]?.click();
+    this.open = true;
+  }
+  close() {
+    const { basePath, fileEntry } = this;
+    this.pos = 0;
+    this.hide();
+    fileEntry.classList.remove(`revision`);
+    delete fileEntry.dataset.revision;
+    syncContent(basePath, fileEntry, FORCE_SYNC);
+  }
+  setHistory(history3 = []) {
+    this.history = history3;
+    this.setupUI();
+  }
+  /**
+   * Set up, or rebuild, our rewind UI
+   */
+  setupUI() {
+    const { history: history3, points } = this;
+    const ui = this.ui ??= create(`div`, { class: `history` });
+    ui.innerHTML = ``;
+    ui.classList.add(`hidden`);
+    const midpoint = globalThis.innerWidth / 3;
+    ui.style.setProperty(`--x`, `${midpoint}px`);
+    points.splice(0, points.length);
+    history3.forEach(({ timestamp }, i) => this.createPoint(timestamp, i));
+    if (!ui.parentNode) {
+      this.setupKeyListeners(ui, points);
+      document.body.append(ui);
+    }
+  }
+  /**
+   * Create a "station" on our rewind "train track":
+   */
+  createPoint(timestamp, i) {
+    const { points, ui } = this;
+    const click = (evt) => {
+      const point2 = evt.target;
+      if (this.pos === i) {
+        point2.classList.add(`selected`);
+        point2.center();
+        return;
+      }
+      points[this.pos]?.classList.remove(`selected`);
+      if (this.pos < i) while (this.pos < i) this.back();
+      if (this.pos > i) while (this.pos > i) this.forward();
+      points[this.pos]?.classList.add(`selected`);
+      point2.center();
+    };
+    const point = create(
+      `span`,
+      {
+        class: `point`,
+        dataTime: new Date(timestamp).toLocaleString()
+      },
+      { click }
+    );
+    point.dataset.index = i;
+    point.center = () => {
+      const { left: left2 } = point.getBoundingClientRect();
+      const midpoint = globalThis.innerWidth / 3;
+      const diff2 = midpoint - left2;
+      if (diff2 !== 0) {
+        let value = parseFloat(
+          getComputedStyle(this.ui).getPropertyValue(`--x`)
+        );
+        value += diff2;
+        this.ui.style.setProperty(`--x`, `${value}px`);
+      }
+    };
+    points.push(point);
+    ui.append(point);
+  }
+  /**
+   * Add left/right navigation and commit
+   * via esc/enter keys.
+   */
+  setupKeyListeners(ui, points) {
+    const { fileEntry } = this;
+    const { tab } = fileEntry.state;
+    const handleKeyInput = ({ key }) => {
+      const { pos } = this;
+      if (!tab.classList.contains(`active`)) {
+        return;
+      }
+      if (key === `ArrowLeft`) {
+        points[pos - 1]?.click();
+      }
+      if (key === `ArrowRight`) {
+        points[pos + 1]?.click();
+      }
+      if (key === `Enter`) {
+        this.close();
+      }
+      if (key === `Escape`) {
+        this.close();
+      }
+    };
+    document.addEventListener(`keydown`, handleKeyInput);
+  }
+  back() {
+    const { fileEntry, history: history3, pos } = this;
+    if (pos === history3.length - 1) return;
+    const { reverse } = history3[pos];
+    let { content: content2 } = this;
+    if (!content2) content2 = `
+`;
+    const newContent = applyPatch(content2, reverse);
+    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    this.content = newContent;
+    this.pos = this.pos + 1;
+    fileEntry.classList.add(`revision`);
+    fileEntry.dataset.revision = -this.pos;
+  }
+  forward() {
+    const { fileEntry, history: history3 } = this;
+    let { pos, content: content2 } = this;
+    if (pos === 0) return;
+    this.pos = pos = pos - 1;
+    if (this.pos === 0) {
+      fileEntry.classList.remove(`revision`);
+      delete fileEntry.dataset.revision;
+    } else {
+      fileEntry.classList.add(`revision`);
+      fileEntry.dataset.revision = -this.pos;
+    }
+    const { forward } = history3[pos];
+    if (!content2) content2 = `
+`;
+    const newContent = applyPatch(content2, forward);
+    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    this.content = newContent;
+  }
+  go(steps = 0) {
+    if (steps === 0) return;
+    if (steps > 0) while (steps-- !== 0) this.back();
+    if (steps < 0) while (steps++ !== 0) this.forward();
+  }
+};
+
+// src/client/files/sync.js
 function createUpdateListener(entry) {
-  const { view } = entry;
   return async (evt) => {
     const { type, update, ours } = evt.detail;
     if (type === `diff`) {
       if (!ours) {
         const oldContent = entry.content;
-        const newContent = applyPatch(oldContent, update);
-        entry.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
+        const newContent = applyPatch2(oldContent, update);
         entry.content = newContent;
-        entry.contentReset = true;
-        view.dispatch({
-          changes: {
-            from: 0,
-            to: oldContent.length,
-            insert: entry.content
-          }
-        });
+        updateViewMaintainScroll(entry);
       }
       updatePreview();
     }
   };
 }
-async function syncContent(projectSlug4, fileEntry) {
-  const history3 = document.querySelector(`div.history`);
-  if (history3) return;
+async function syncContent(projectSlug4, fileEntry, forced = false) {
+  if (Rewinder.active && !forced) return;
   const { path: path2 } = fileEntry;
   const entry = fileEntry.state;
   if (entry.noSync) return;
@@ -29804,13 +30610,7 @@ async function syncContent(projectSlug4, fileEntry) {
         entry.content = await fetchFileContents(projectSlug4, path2);
       }
       entry.contentReset = true;
-      entry.view.dispatch({
-        changes: {
-          from: 0,
-          to: entry.view.state.doc.length,
-          insert: entry.content
-        }
-      });
+      updateViewMaintainScroll(entry);
     }
   }
   entry.debounce = false;
@@ -31206,625 +32006,6 @@ var FileTree = class extends FileTreeElement {
 };
 registry.define(`file-tree`, FileTree);
 
-// public/vendor/diff.js
-function Diff() {
-}
-Diff.prototype = {
-  diff: function diff(oldString, newString) {
-    var _options$timeout;
-    var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
-    var callback = options.callback;
-    if (typeof options === "function") {
-      callback = options;
-      options = {};
-    }
-    this.options = options;
-    var self = this;
-    function done(value) {
-      if (callback) {
-        setTimeout(function() {
-          callback(void 0, value);
-        }, 0);
-        return true;
-      } else {
-        return value;
-      }
-    }
-    oldString = this.castInput(oldString);
-    newString = this.castInput(newString);
-    oldString = this.removeEmpty(this.tokenize(oldString));
-    newString = this.removeEmpty(this.tokenize(newString));
-    var newLen = newString.length, oldLen = oldString.length;
-    var editLength = 1;
-    var maxEditLength = newLen + oldLen;
-    if (options.maxEditLength) {
-      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
-    }
-    var maxExecutionTime = (_options$timeout = options.timeout) !== null && _options$timeout !== void 0 ? _options$timeout : Infinity;
-    var abortAfterTimestamp = Date.now() + maxExecutionTime;
-    var bestPath = [
-      {
-        oldPos: -1,
-        lastComponent: void 0
-      }
-    ];
-    var newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
-    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-      return done([
-        {
-          value: this.join(newString),
-          count: newString.length
-        }
-      ]);
-    }
-    var minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    function execEditLength() {
-      for (var diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
-        var basePath = void 0;
-        var removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
-        if (removePath) {
-          bestPath[diagonalPath - 1] = void 0;
-        }
-        var canAdd = false;
-        if (addPath) {
-          var addPathNewPos = addPath.oldPos - diagonalPath;
-          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
-        }
-        var canRemove = removePath && removePath.oldPos + 1 < oldLen;
-        if (!canAdd && !canRemove) {
-          bestPath[diagonalPath] = void 0;
-          continue;
-        }
-        if (!canRemove || canAdd && removePath.oldPos + 1 < addPath.oldPos) {
-          basePath = self.addToPath(addPath, true, void 0, 0);
-        } else {
-          basePath = self.addToPath(removePath, void 0, true, 1);
-        }
-        newPos = self.extractCommon(
-          basePath,
-          newString,
-          oldString,
-          diagonalPath
-        );
-        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-          return done(
-            buildValues(
-              self,
-              basePath.lastComponent,
-              newString,
-              oldString,
-              self.useLongestToken
-            )
-          );
-        } else {
-          bestPath[diagonalPath] = basePath;
-          if (basePath.oldPos + 1 >= oldLen) {
-            maxDiagonalToConsider = Math.min(
-              maxDiagonalToConsider,
-              diagonalPath - 1
-            );
-          }
-          if (newPos + 1 >= newLen) {
-            minDiagonalToConsider = Math.max(
-              minDiagonalToConsider,
-              diagonalPath + 1
-            );
-          }
-        }
-      }
-      editLength++;
-    }
-    if (callback) {
-      (function exec() {
-        setTimeout(function() {
-          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-            return callback();
-          }
-          if (!execEditLength()) {
-            exec();
-          }
-        }, 0);
-      })();
-    } else {
-      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
-        var ret = execEditLength();
-        if (ret) {
-          return ret;
-        }
-      }
-    }
-  },
-  addToPath: function addToPath(path2, added, removed, oldPosInc) {
-    var last = path2.lastComponent;
-    if (last && last.added === added && last.removed === removed) {
-      return {
-        oldPos: path2.oldPos + oldPosInc,
-        lastComponent: {
-          count: last.count + 1,
-          added,
-          removed,
-          previousComponent: last.previousComponent
-        }
-      };
-    } else {
-      return {
-        oldPos: path2.oldPos + oldPosInc,
-        lastComponent: {
-          count: 1,
-          added,
-          removed,
-          previousComponent: last
-        }
-      };
-    }
-  },
-  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
-    var newLen = newString.length, oldLen = oldString.length, oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
-      newPos++;
-      oldPos++;
-      commonCount++;
-    }
-    if (commonCount) {
-      basePath.lastComponent = {
-        count: commonCount,
-        previousComponent: basePath.lastComponent
-      };
-    }
-    basePath.oldPos = oldPos;
-    return newPos;
-  },
-  equals: function equals(left2, right2) {
-    if (this.options.comparator) {
-      return this.options.comparator(left2, right2);
-    } else {
-      return left2 === right2 || this.options.ignoreCase && left2.toLowerCase() === right2.toLowerCase();
-    }
-  },
-  removeEmpty: function removeEmpty(array) {
-    var ret = [];
-    for (var i = 0; i < array.length; i++) {
-      if (array[i]) {
-        ret.push(array[i]);
-      }
-    }
-    return ret;
-  },
-  castInput: function castInput(value) {
-    return value;
-  },
-  tokenize: function tokenize(value) {
-    return value.split("");
-  },
-  join: function join(chars) {
-    return chars.join("");
-  }
-};
-function buildValues(diff2, lastComponent, newString, oldString, useLongestToken) {
-  var components = [];
-  var nextComponent;
-  while (lastComponent) {
-    components.push(lastComponent);
-    nextComponent = lastComponent.previousComponent;
-    delete lastComponent.previousComponent;
-    lastComponent = nextComponent;
-  }
-  components.reverse();
-  var componentPos = 0, componentLen = components.length, newPos = 0, oldPos = 0;
-  for (; componentPos < componentLen; componentPos++) {
-    var component = components[componentPos];
-    if (!component.removed) {
-      if (!component.added && useLongestToken) {
-        var value = newString.slice(newPos, newPos + component.count);
-        value = value.map(function(value2, i) {
-          var oldValue = oldString[oldPos + i];
-          return oldValue.length > value2.length ? oldValue : value2;
-        });
-        component.value = diff2.join(value);
-      } else {
-        component.value = diff2.join(
-          newString.slice(newPos, newPos + component.count)
-        );
-      }
-      newPos += component.count;
-      if (!component.added) {
-        oldPos += component.count;
-      }
-    } else {
-      component.value = diff2.join(
-        oldString.slice(oldPos, oldPos + component.count)
-      );
-      oldPos += component.count;
-      if (componentPos && components[componentPos - 1].added) {
-        var tmp = components[componentPos - 1];
-        components[componentPos - 1] = components[componentPos];
-        components[componentPos] = tmp;
-      }
-    }
-  }
-  var finalComponent = components[componentLen - 1];
-  if (componentLen > 1 && typeof finalComponent.value === "string" && (finalComponent.added || finalComponent.removed) && diff2.equals("", finalComponent.value)) {
-    components[componentLen - 2].value += finalComponent.value;
-    components.pop();
-  }
-  return components;
-}
-var characterDiff = new Diff();
-var extendedWordChars = /^[A-Za-z\xC0-\u02C6\u02C8-\u02D7\u02DE-\u02FF\u1E00-\u1EFF]+$/;
-var reWhitespace = /\S/;
-var wordDiff = new Diff();
-wordDiff.equals = function(left2, right2) {
-  if (this.options.ignoreCase) {
-    left2 = left2.toLowerCase();
-    right2 = right2.toLowerCase();
-  }
-  return left2 === right2 || this.options.ignoreWhitespace && !reWhitespace.test(left2) && !reWhitespace.test(right2);
-};
-wordDiff.tokenize = function(value) {
-  var tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
-  for (var i = 0; i < tokens.length - 1; i++) {
-    if (!tokens[i + 1] && tokens[i + 2] && extendedWordChars.test(tokens[i]) && extendedWordChars.test(tokens[i + 2])) {
-      tokens[i] += tokens[i + 2];
-      tokens.splice(i + 1, 2);
-      i--;
-    }
-  }
-  return tokens;
-};
-var lineDiff = new Diff();
-lineDiff.tokenize = function(value) {
-  if (this.options.stripTrailingCr) {
-    value = value.replace(/\r\n/g, "\n");
-  }
-  var retLines = [], linesAndNewlines = value.split(/(\n|\r\n)/);
-  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-    linesAndNewlines.pop();
-  }
-  for (var i = 0; i < linesAndNewlines.length; i++) {
-    var line = linesAndNewlines[i];
-    if (i % 2 && !this.options.newlineIsToken) {
-      retLines[retLines.length - 1] += line;
-    } else {
-      if (this.options.ignoreWhitespace) {
-        line = line.trim();
-      }
-      retLines.push(line);
-    }
-  }
-  return retLines;
-};
-var sentenceDiff = new Diff();
-sentenceDiff.tokenize = function(value) {
-  return value.split(/(\S.+?[.!?])(?=\s+|$)/);
-};
-var cssDiff = new Diff();
-cssDiff.tokenize = function(value) {
-  return value.split(/([{}:;,]|\s+)/);
-};
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof = function(obj2) {
-      return typeof obj2;
-    };
-  } else {
-    _typeof = function(obj2) {
-      return obj2 && typeof Symbol === "function" && obj2.constructor === Symbol && obj2 !== Symbol.prototype ? "symbol" : typeof obj2;
-    };
-  }
-  return _typeof(obj);
-}
-var objectPrototypeToString = Object.prototype.toString;
-var jsonDiff = new Diff();
-jsonDiff.useLongestToken = true;
-jsonDiff.tokenize = lineDiff.tokenize;
-jsonDiff.castInput = function(value) {
-  var _this$options = this.options, undefinedReplacement = _this$options.undefinedReplacement, _this$options$stringi = _this$options.stringifyReplacer, stringifyReplacer = _this$options$stringi === void 0 ? function(k, v) {
-    return typeof v === "undefined" ? undefinedReplacement : v;
-  } : _this$options$stringi;
-  return typeof value === "string" ? value : JSON.stringify(
-    canonicalize(value, null, null, stringifyReplacer),
-    stringifyReplacer,
-    "  "
-  );
-};
-jsonDiff.equals = function(left2, right2) {
-  return Diff.prototype.equals.call(
-    jsonDiff,
-    left2.replace(/,([\r\n])/g, "$1"),
-    right2.replace(/,([\r\n])/g, "$1")
-  );
-};
-function canonicalize(obj, stack, replacementStack, replacer, key) {
-  stack = stack || [];
-  replacementStack = replacementStack || [];
-  if (replacer) {
-    obj = replacer(key, obj);
-  }
-  var i;
-  for (i = 0; i < stack.length; i += 1) {
-    if (stack[i] === obj) {
-      return replacementStack[i];
-    }
-  }
-  var canonicalizedObj;
-  if ("[object Array]" === objectPrototypeToString.call(obj)) {
-    stack.push(obj);
-    canonicalizedObj = new Array(obj.length);
-    replacementStack.push(canonicalizedObj);
-    for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(
-        obj[i],
-        stack,
-        replacementStack,
-        replacer,
-        key
-      );
-    }
-    stack.pop();
-    replacementStack.pop();
-    return canonicalizedObj;
-  }
-  if (obj && obj.toJSON) {
-    obj = obj.toJSON();
-  }
-  if (_typeof(obj) === "object" && obj !== null) {
-    stack.push(obj);
-    canonicalizedObj = {};
-    replacementStack.push(canonicalizedObj);
-    var sortedKeys = [], _key;
-    for (_key in obj) {
-      if (obj.hasOwnProperty(_key)) {
-        sortedKeys.push(_key);
-      }
-    }
-    sortedKeys.sort();
-    for (i = 0; i < sortedKeys.length; i += 1) {
-      _key = sortedKeys[i];
-      canonicalizedObj[_key] = canonicalize(
-        obj[_key],
-        stack,
-        replacementStack,
-        replacer,
-        _key
-      );
-    }
-    stack.pop();
-    replacementStack.pop();
-  } else {
-    canonicalizedObj = obj;
-  }
-  return canonicalizedObj;
-}
-var arrayDiff = new Diff();
-arrayDiff.tokenize = function(value) {
-  return value.slice();
-};
-arrayDiff.join = arrayDiff.removeEmpty = function(value) {
-  return value;
-};
-function parsePatch(uniDiff) {
-  var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-  var diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85]/), delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85]/g) || [], list = [], i = 0;
-  function parseIndex() {
-    var index = {};
-    list.push(index);
-    while (i < diffstr.length) {
-      var line = diffstr[i];
-      if (/^(\-\-\-|\+\+\+|@@)\s/.test(line)) {
-        break;
-      }
-      var header = /^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/.exec(line);
-      if (header) {
-        index.index = header[1];
-      }
-      i++;
-    }
-    parseFileHeader(index);
-    parseFileHeader(index);
-    index.hunks = [];
-    while (i < diffstr.length) {
-      var _line = diffstr[i];
-      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(_line)) {
-        break;
-      } else if (/^@@/.test(_line)) {
-        index.hunks.push(parseHunk());
-      } else if (_line && options.strict) {
-        throw new Error(
-          "Unknown line " + (i + 1) + " " + JSON.stringify(_line)
-        );
-      } else {
-        i++;
-      }
-    }
-  }
-  function parseFileHeader(index) {
-    var fileHeader = /^(---|\+\+\+)\s+(.*)$/.exec(diffstr[i]);
-    if (fileHeader) {
-      var keyPrefix = fileHeader[1] === "---" ? "old" : "new";
-      var data3 = fileHeader[2].split("	", 2);
-      var fileName = data3[0].replace(/\\\\/g, "\\");
-      if (/^".*"$/.test(fileName)) {
-        fileName = fileName.substr(1, fileName.length - 2);
-      }
-      index[keyPrefix + "FileName"] = fileName;
-      index[keyPrefix + "Header"] = (data3[1] || "").trim();
-      i++;
-    }
-  }
-  function parseHunk() {
-    var chunkHeaderIndex = i, chunkHeaderLine = diffstr[i++], chunkHeader = chunkHeaderLine.split(
-      /@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
-    );
-    var hunk = {
-      oldStart: +chunkHeader[1],
-      oldLines: typeof chunkHeader[2] === "undefined" ? 1 : +chunkHeader[2],
-      newStart: +chunkHeader[3],
-      newLines: typeof chunkHeader[4] === "undefined" ? 1 : +chunkHeader[4],
-      lines: [],
-      linedelimiters: []
-    };
-    if (hunk.oldLines === 0) {
-      hunk.oldStart += 1;
-    }
-    if (hunk.newLines === 0) {
-      hunk.newStart += 1;
-    }
-    var addCount = 0, removeCount = 0;
-    for (; i < diffstr.length; i++) {
-      if (diffstr[i].indexOf("--- ") === 0 && i + 2 < diffstr.length && diffstr[i + 1].indexOf("+++ ") === 0 && diffstr[i + 2].indexOf("@@") === 0) {
-        break;
-      }
-      var operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? " " : diffstr[i][0];
-      if (operation === "+" || operation === "-" || operation === " " || operation === "\\") {
-        hunk.lines.push(diffstr[i]);
-        hunk.linedelimiters.push(delimiters[i] || "\n");
-        if (operation === "+") {
-          addCount++;
-        } else if (operation === "-") {
-          removeCount++;
-        } else if (operation === " ") {
-          addCount++;
-          removeCount++;
-        }
-      } else {
-        break;
-      }
-    }
-    if (!addCount && hunk.newLines === 1) {
-      hunk.newLines = 0;
-    }
-    if (!removeCount && hunk.oldLines === 1) {
-      hunk.oldLines = 0;
-    }
-    if (options.strict) {
-      if (addCount !== hunk.newLines) {
-        throw new Error(
-          "Added line count did not match for hunk at line " + (chunkHeaderIndex + 1)
-        );
-      }
-      if (removeCount !== hunk.oldLines) {
-        throw new Error(
-          "Removed line count did not match for hunk at line " + (chunkHeaderIndex + 1)
-        );
-      }
-    }
-    return hunk;
-  }
-  while (i < diffstr.length) {
-    parseIndex();
-  }
-  return list;
-}
-function distanceIterator(start, minLine, maxLine) {
-  var wantForward = true, backwardExhausted = false, forwardExhausted = false, localOffset = 1;
-  return function iterator() {
-    if (wantForward && !forwardExhausted) {
-      if (backwardExhausted) {
-        localOffset++;
-      } else {
-        wantForward = false;
-      }
-      if (start + localOffset <= maxLine) {
-        return localOffset;
-      }
-      forwardExhausted = true;
-    }
-    if (!backwardExhausted) {
-      if (!forwardExhausted) {
-        wantForward = true;
-      }
-      if (minLine <= start - localOffset) {
-        return -localOffset++;
-      }
-      backwardExhausted = true;
-      return iterator();
-    }
-  };
-}
-function applyPatch2(source, uniDiff) {
-  var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
-  if (typeof uniDiff === "string") {
-    uniDiff = parsePatch(uniDiff);
-  }
-  if (Array.isArray(uniDiff)) {
-    if (uniDiff.length > 1) {
-      throw new Error("applyPatch only works with a single input.");
-    }
-    uniDiff = uniDiff[0];
-  }
-  var lines = source.split(/\r\n|[\n\v\f\r\x85]/), delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [], hunks = uniDiff.hunks, compareLine = options.compareLine || function(lineNumber, line2, operation2, patchContent) {
-    return line2 === patchContent;
-  }, errorCount = 0, fuzzFactor = options.fuzzFactor || 0, minLine = 0, offset = 0, removeEOFNL, addEOFNL;
-  function hunkFits(hunk2, toPos2) {
-    for (var j2 = 0; j2 < hunk2.lines.length; j2++) {
-      var line2 = hunk2.lines[j2], operation2 = line2.length > 0 ? line2[0] : " ", content3 = line2.length > 0 ? line2.substr(1) : line2;
-      if (operation2 === " " || operation2 === "-") {
-        if (!compareLine(toPos2 + 1, lines[toPos2], operation2, content3)) {
-          errorCount++;
-          if (errorCount > fuzzFactor) {
-            return false;
-          }
-        }
-        toPos2++;
-      }
-    }
-    return true;
-  }
-  for (var i = 0; i < hunks.length; i++) {
-    var hunk = hunks[i], maxLine = lines.length - hunk.oldLines, localOffset = 0, toPos = offset + hunk.oldStart - 1;
-    var iterator = distanceIterator(toPos, minLine, maxLine);
-    for (; localOffset !== void 0; localOffset = iterator()) {
-      if (hunkFits(hunk, toPos + localOffset)) {
-        hunk.offset = offset += localOffset;
-        break;
-      }
-    }
-    if (localOffset === void 0) {
-      return false;
-    }
-    minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
-  }
-  var diffOffset = 0;
-  for (var _i = 0; _i < hunks.length; _i++) {
-    var _hunk = hunks[_i], _toPos = _hunk.oldStart + _hunk.offset + diffOffset - 1;
-    diffOffset += _hunk.newLines - _hunk.oldLines;
-    for (var j = 0; j < _hunk.lines.length; j++) {
-      var line = _hunk.lines[j], operation = line.length > 0 ? line[0] : " ", content2 = line.length > 0 ? line.substr(1) : line, delimiter = _hunk.linedelimiters && _hunk.linedelimiters[j] || "\n";
-      if (operation === " ") {
-        _toPos++;
-      } else if (operation === "-") {
-        lines.splice(_toPos, 1);
-        delimiters.splice(_toPos, 1);
-      } else if (operation === "+") {
-        lines.splice(_toPos, 0, content2);
-        delimiters.splice(_toPos, 0, delimiter);
-        _toPos++;
-      } else if (operation === "\\") {
-        var previousOperation = _hunk.lines[j - 1] ? _hunk.lines[j - 1][0] : null;
-        if (previousOperation === "+") {
-          removeEOFNL = true;
-        } else if (previousOperation === "-") {
-          addEOFNL = true;
-        }
-      }
-    }
-  }
-  if (removeEOFNL) {
-    while (!lines[lines.length - 1]) {
-      lines.pop();
-      delimiters.pop();
-    }
-  } else if (addEOFNL) {
-    lines.push("");
-    delimiters.push("\n");
-  }
-  for (var _k = 0; _k < lines.length - 1; _k++) {
-    lines[_k] = lines[_k] + delimiters[_k];
-  }
-  return lines.join("");
-}
-
 // src/client/files/websocket-interface.js
 var CustomWebsocketInterface = class extends WebSocketInterface {
   constructor(...args) {
@@ -31838,92 +32019,14 @@ var CustomWebsocketInterface = class extends WebSocketInterface {
   }
   async onfilehistory({ path: path2, history: history3 }) {
     if (history3.length === 0) return;
-    const { basePath } = this;
     const fileEntry = document.querySelector(`file-entry[path="${path2}"]`);
-    const div = create(`div`, { class: `history` });
-    let { view, content: content2 } = fileEntry.state;
-    let pos = 0;
-    function rollBack() {
-      if (pos === history3.length - 1) return;
-      const { reverse } = history3[pos];
-      if (!content2) content2 = `
-`;
-      const newContent = applyPatch2(content2, reverse);
-      const entry = fileEntry.state;
-      entry.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
-      view.dispatch({
-        changes: {
-          from: 0,
-          to: view.state.doc.length,
-          insert: newContent
-        }
-        // FIXME: for this to work properly,
-        //        we need to disable the editor
-      });
-      content2 = newContent;
-      pos += 1;
+    let { rewind } = fileEntry.state;
+    if (!rewind) {
+      rewind = new Rewinder(this.basePath, fileEntry);
+      fileEntry.setState({ rewind });
     }
-    function fastForward() {
-      if (pos === 0) return;
-      pos -= 1;
-      const { forward } = history3[pos];
-      if (!content2) content2 = `
-`;
-      const newContent = applyPatch2(content2, forward);
-      fileEntry.state.scrollPosition = view.dom.querySelector(`.cm-scroller`).scrollTop;
-      view.dispatch({
-        changes: {
-          from: 0,
-          to: view.state.doc.length,
-          insert: newContent
-        }
-        // FIXME: for this to work properly,
-        //        we need to disable the editor
-      });
-      content2 = newContent;
-    }
-    const points = history3.map(({ timestamp }, i) => {
-      const point = create(
-        `span`,
-        {
-          class: `point`,
-          dataTime: new Date(timestamp).toLocaleString()
-        },
-        {
-          click: () => {
-            if (pos === i) return;
-            points[pos]?.classList.remove(`selected`);
-            if (pos < i) while (pos < i) rollBack();
-            if (pos > i) while (pos > i) fastForward();
-            points[pos]?.classList.add(`selected`);
-          }
-        }
-      );
-      point.dataset.index = i;
-      div.append(point);
-      return point;
-    });
-    points[0].classList.add(`selected`);
-    div.addEventListener(`close`, () => {
-      div.remove();
-      syncContent(basePath, fileEntry);
-    });
-    const keyNav = ({ key }) => {
-      if (key === `ArrowLeft`) {
-        points[pos - 1]?.click();
-      }
-      if (key === `ArrowRight`) {
-        points[pos + 1]?.click();
-      }
-      if (key === `Enter`) {
-        div.dispatchEvent(new CustomEvent(`close`));
-      }
-      if (key === `Escape`) {
-        div.dispatchEvent(new CustomEvent(`close`));
-      }
-    };
-    document.addEventListener(`keydown`, keyNav);
-    document.body.append(div);
+    rewind.setHistory(history3);
+    rewind.show();
   }
 };
 
@@ -32005,6 +32108,9 @@ async function addFileClick(fileTree3, projectSlug4) {
       projectSlug4,
       fileEntry.getAttribute(`path`)
     );
+    if (Rewinder.active) {
+      fileTree3.OT?.getFileHistory(fileEntry.path);
+    }
   });
 }
 async function uploadFile(fileTree3, fileName, content2, grant) {
@@ -32247,9 +32353,6 @@ async function addDirDelete(fileTree3, projectSlug4) {
 var mac2 = navigator.userAgent.includes(`Mac OS`);
 var left = document.getElementById(`left`);
 var right = document.getElementById(`right`);
-var download = document.getElementById(`download`);
-var format = document.getElementById(`format`);
-var rewind = document.getElementById(`rewind`);
 function addEventHandling(projectSlug4) {
   disableSaveHotkey();
   enableDownloadButton(projectSlug4);
@@ -32269,12 +32372,16 @@ function disableSaveHotkey() {
   });
 }
 function enableDownloadButton(projectSlug4) {
-  download?.addEventListener(`click`, async () => {
+  const download = document.getElementById(`download`);
+  if (!download) return;
+  download.addEventListener(`click`, async () => {
     API.projects.download(projectSlug4);
   });
 }
 function connectPrettierButton(projectSlug4) {
-  format?.addEventListener(`click`, async () => {
+  const format = document.getElementById(`format`);
+  if (!format) return;
+  format.addEventListener(`click`, async () => {
     const tab = document.querySelector(`.active`);
     const fileEntry = document.querySelector(`file-entry.selected`);
     if (fileEntry.state?.tab !== tab) {
@@ -32298,15 +32405,26 @@ function connectPrettierButton(projectSlug4) {
   });
 }
 function enableRewindFunctions() {
-  rewind?.addEventListener(`click`, async () => {
+  const rewind = document.getElementById(`rewind`);
+  if (!rewind) return;
+  rewind.addEventListener(`click`, async () => {
     rewind.blur();
     const path2 = document.querySelector(`.active.tab`).title;
-    const history3 = document.querySelector(`div.history`);
-    if (history3) {
-      return history3.dispatchEvent(new CustomEvent(`close`));
-    }
     const fileTree3 = document.querySelector(`file-tree`);
-    if (path2) fileTree3.OT?.getFileHistory(path2);
+    if (path2) {
+      const fileEntry = document.querySelector(`file-entry[path="${path2}"]`);
+      if (fileEntry) {
+        const { rewind: rewind2 } = fileEntry.state ?? {};
+        if (rewind2 && rewind2.open) {
+          fileTree3.classList.remove(`rewinding`);
+          Rewinder.close();
+        } else {
+          Rewinder.enable();
+          fileTree3.classList.add(`rewinding`);
+          fileTree3.OT?.getFileHistory(path2);
+        }
+      }
+    }
   });
 }
 function addTabScrollHandling() {
