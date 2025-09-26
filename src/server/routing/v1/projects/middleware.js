@@ -216,7 +216,9 @@ export async function loadProject(req, res, next) {
   // ensure there's a git dir
   if (!pathExists(`${dir}/.git`)) {
     console.log(`adding git tracking for ${dir}`);
-    execSync(`cd ${dir} && git init && cd ..`);
+    execSync(
+      `cd ${dir} && git init && git add . && git commit -m "first push" && cd ..`,
+    );
   }
 
   let suspended = false;

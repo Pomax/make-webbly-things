@@ -186,7 +186,7 @@ export async function setupGit(dir, projectSlug) {
   for (let cfg of [
     `init.defaultBranch main`,
     `user.name "${projectSlug}"`,
-    `user.email "actions@browsertests.local"`,
+    `user.email "actions@makewebblythings.local"`,
   ]) {
     await execPromise(`git config --local ${cfg}`, { cwd: dir });
   }

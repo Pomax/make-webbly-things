@@ -13,3 +13,4 @@ content/*
 !content/default
 data/data.sql
 data/temp
+./test.js

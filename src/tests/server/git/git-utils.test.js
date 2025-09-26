@@ -4,34 +4,40 @@ import * as GitUtils from "../../../server/git/git-utils.js";
 
 const forward = `--- a/README.md
 +++ b/README.md
-@@ -1,5 +1,7 @@
- # Make Webbly Things!
+@@ -157,6 +157,10 @@ And as an admin you can:
+   - see a list of and stop running, or delete expired containers
+ - Load up suspended projects in the editor (without running the project container)
  
-+Like over on https://make.webblythings.com! (just remember to read that wall of text, because unless we're friends, I'm unlikely to activate your account on my personal instance =)
++## What if I want to deploy my own instance?
 +
- ## Use the web to build the web
++Give [the deployment doc](./docs/deploying.md) a read-through. There's a bit more information than in this README.md, but all of it will be important to have gone through if you want to set up your own instance.
++
+ ## I want more <sup>and</sup>⧸<sub>or</sub> I have ideas
  
- <img width="100%" style="border: 1px solid black" src="public/screenshot.png">
+ I know. [Get in touch](https://github.com/Pomax/make-webbly-things/issues). We can do more.
 `;
 
 const reverse = `--- a/README.md
 +++ b/README.md
-@@ -1,7 +1,5 @@
- # Make Webbly Things!
+@@ -157,10 +157,6 @@ And as an admin you can:
+   - see a list of and stop running, or delete expired containers
+ - Load up suspended projects in the editor (without running the project container)
  
--Like over on https://make.webblythings.com! (just remember to read that wall of text, because unless we're friends, I'm unlikely to activate your account on my personal instance =)
+-## What if I want to deploy my own instance?
 -
- ## Use the web to build the web
+-Give [the deployment doc](./docs/deploying.md) a read-through. There's a bit more information than in this README.md, but all of it will be important to have gone through if you want to set up your own instance.
+-
+ ## I want more <sup>and</sup>⧸<sub>or</sub> I have ideas
  
- <img width="100%" style="border: 1px solid black" src="public/screenshot.png">
+ I know. [Get in touch](https://github.com/Pomax/make-webbly-things/issues). We can do more.
 `;
 
 describe(`Git utils tests`, async () => {
   test(`getFileHistory`, () => {
     const diffs = GitUtils.getFileHistory(`.`, `README.md`);
-    assert.equal(diffs.length, 13);
+    assert.equal(diffs.length, 12);
     assert.deepEqual(diffs.at(-2), {
-      timestamp: 1756403570000,
+      timestamp: 1756403713000,
       forward,
       reverse,
     });
