@@ -87,14 +87,22 @@ class Commit {
   }
 
   toDiff({ rename, changes }) {
-    // We're going to _completely_ ignore renames,
-    // because the user doesn't care. They want their
-    // file's content, across renames.
-    if (rename) return false;
+    if (rename) {
+      // We're going to _completely_ ignore renames, because
+      // the user doesn't care. They want their file's content,
+      // irrespective of whether the file got renamed or not.
+      return false;
+    }
+
     return [
       `--- a/${this.filepath}`,
       `+++ b/${this.filepath}`,
-      ...changes.map((c) => `@@ ${c.a} ${c.b} @@ ${c.lines.join(`\n`)}`),
+      ...changes.map(
+        (c) =>
+          `@@ ${c.a} ${c.b} @@${
+            c.lines[0].startsWith(`-`) ? `\n` : ` `
+          }${c.lines.join(`\n`)}`,
+      ),
     ].join(`\n`);
   }
 }

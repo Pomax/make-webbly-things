@@ -175,6 +175,8 @@ export class Rewinder {
     let { content } = this;
     if (!content) content = `\n`;
 
+    // console.log(reverse);
+
     const newContent = applyPatch(content, reverse);
     updateViewMaintainScroll(fileEntry.state, newContent, false);
     this.content = newContent;
@@ -203,6 +205,8 @@ export class Rewinder {
 
     const { forward } = history[pos];
     if (!content) content = `\n`;
+
+    // console.log(forward);
 
     const newContent = applyPatch(content, forward);
     updateViewMaintainScroll(fileEntry.state, newContent, false);
