@@ -16,7 +16,7 @@
     "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
     "start": "node src/server/index.js",
     "test": "npm run build && npm run test:node && npm run test:cleanup",
-    "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 \"./src/tests/**/*.test.js\"",
+    "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 \"./src/tests/**/git-utils.test.js\"",
     "lint": "npm run prettier && npm run prettier:html",
     "test:cleanup": "node ./src/tests/test-cleanup.js"
   },

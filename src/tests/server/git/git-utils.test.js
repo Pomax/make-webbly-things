@@ -1,40 +1,34 @@
 import test, { describe } from "node:test";
 import assert from "node:assert/strict";
 import * as GitUtils from "../../../server/git/git-utils.js";
-
-const forward = `--- a/README.md
-+++ b/README.md
-@@ -1,5 +1,7 @@
- # Make Webbly Things!
- 
-+Like over on https://make.webblythings.com! (just remember to read that wall of text, because unless we're friends, I'm unlikely to activate your account on my personal instance =)
-+
- ## Use the web to build the web
- 
- <img width="100%" style="border: 1px solid black" src="public/screenshot.png">
-`;
-
-const reverse = `--- a/README.md
-+++ b/README.md
-@@ -1,7 +1,5 @@
- # Make Webbly Things!
- 
--Like over on https://make.webblythings.com! (just remember to read that wall of text, because unless we're friends, I'm unlikely to activate your account on my personal instance =)
--
- ## Use the web to build the web
- 
- <img width="100%" style="border: 1px solid black" src="public/screenshot.png">
-`;
+import { execSync } from "node:child_process";
+import { applyPatch } from "../../../../public/vendor/diff.js";
 
 describe(`Git utils tests`, async () => {
   test(`getFileHistory`, () => {
     const diffs = GitUtils.getFileHistory(`.`, `README.md`);
     assert.equal(diffs.length, 13);
-    assert.deepEqual(diffs.at(-2), {
-      hash: "a00f013d98bed9ffc59fb90591a3c45909727b0e",
-      timestamp: 1756403570000,
-      forward,
-      reverse,
-    });
+
+    // verify all rollbacks and fast forwards are correct
+    const getFileFrom = (hash) =>
+      execSync(`git show ${hash}:README.md`).toString();
+    diffs.forEach((diff) => (diff.file = getFileFrom(diff.hash)));
+
+    // verify rollback
+    for (let i = 0; i < diffs.length - 1; i++) {
+      const [d1, d2] = diffs.slice(i);
+      const original = d1.file;
+      const patched = applyPatch(original, d1.reverse);
+      assert.equal(d2.file, patched);
+    }
+
+    // verify fast-forward
+    diffs.reverse();
+    for (let i = 0; i < diffs.length - 1; i++) {
+      const [d1, d2] = diffs.slice(i);
+      const original = d1.file;
+      const patched = applyPatch(original, d2.forward);
+      assert.equal(d2.file, patched);
+    }
   });
 });
