@@ -15,7 +15,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { getFileHistory } from "../../../git/git-utils-2.js";
+import { getFileHistory } from "../../../git/git-utils.js";
 import { FILE_TREE_PREFIX } from "custom-file-tree";
 
 export { FILE_TREE_PREFIX };

@@ -31,6 +31,7 @@ describe(`Git utils tests`, async () => {
     const diffs = GitUtils.getFileHistory(`.`, `README.md`);
     assert.equal(diffs.length, 13);
     assert.deepEqual(diffs.at(-2), {
+      hash: "a00f013d98bed9ffc59fb90591a3c45909727b0e",
       timestamp: 1756403570000,
       forward,
       reverse,

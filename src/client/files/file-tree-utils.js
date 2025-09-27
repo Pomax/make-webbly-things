@@ -162,6 +162,7 @@ async function addFileClick(fileTree, projectSlug) {
     // reveals, so we do not call the event's own grant() function.
 
     if (Rewinder.active) {
+      // TODO: DRY: can we unify this with editor-components
       fileTree.OT?.getFileHistory(fileEntry.path);
     }
   });

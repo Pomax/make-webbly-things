@@ -88,7 +88,7 @@ html {
           .projectname {
             flex-grow: 1;
             color: white;
-            padding: 1px 5px 3px;
+            padding: 0.25em 5px 3px;
             border-radius: 4px 4px 0 0;
             margin-left: 0.25em;
             font-weight: bold;

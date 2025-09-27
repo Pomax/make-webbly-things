@@ -86,6 +86,7 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
 
     // Finally: are we rewinding?
     if (Rewinder.active) {
+      // TODO: DRY: can we unify this with file-tree-utils
       fileTree.OT?.getFileHistory(fileEntry.path);
     }
   });
