@@ -79,7 +79,7 @@ function listEquals(a1, a2) {
   if (a1.length !== a2.length) return false;
   return a1.every((v, i) => a2[i] === v);
 }
-function updateViewMaintainScroll(entry, content2 = entry.content, editable3 = true) {
+async function updateViewMaintainScroll(entry, content2 = entry.content, editable3 = true) {
   const { view } = entry;
   entry.setEditable(editable3);
   const { doc: doc2, selection } = view.state;
@@ -30535,11 +30535,21 @@ var Rewinder = class _Rewinder {
   back() {
     const { fileEntry, history: history3, pos } = this;
     if (pos === history3.length - 1) return;
-    const { reverse } = history3[pos];
-    let { content: content2 } = this;
-    if (!content2) content2 = `
+    const { hash: hash2, reverse } = history3[pos];
+    let newContent;
+    if (reverse.create) {
+      newContent = reverse.create.data;
+    } else if (reverse.delete) {
+      newContent = ``;
+    } else {
+      let { content: content2 } = this;
+      if (!content2) content2 = `
 `;
-    const newContent = applyPatch(content2, reverse);
+      newContent = applyPatch(content2, reverse);
+      if (newContent === false) {
+        throw new Error(`could not apply patch`);
+      }
+    }
     updateViewMaintainScroll(fileEntry.state, newContent, false);
     this.content = newContent;
     this.pos = this.pos + 1;
@@ -30551,6 +30561,22 @@ var Rewinder = class _Rewinder {
     let { pos, content: content2 } = this;
     if (pos === 0) return;
     this.pos = pos = pos - 1;
+    const { forward } = history3[pos];
+    if (!content2) content2 = `
+`;
+    let newContent;
+    if (forward.create) {
+      newContent = forward.create.data;
+    } else if (forward.delete) {
+      newContent = ``;
+    } else {
+      newContent = applyPatch(content2, forward);
+      if (newContent === false) {
+        throw new Error(`could not apply patch`);
+      }
+    }
+    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    this.content = newContent;
     if (this.pos === 0) {
       fileEntry.classList.remove(`revision`);
       delete fileEntry.dataset.revision;
@@ -30558,12 +30584,6 @@ var Rewinder = class _Rewinder {
       fileEntry.classList.add(`revision`);
       fileEntry.dataset.revision = -this.pos;
     }
-    const { forward } = history3[pos];
-    if (!content2) content2 = `
-`;
-    const newContent = applyPatch(content2, forward);
-    updateViewMaintainScroll(fileEntry.state, newContent, false);
-    this.content = newContent;
   }
   go(steps = 0) {
     if (steps === 0) return;
@@ -30660,6 +30680,9 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     const currentURL = location.toString().replace(location.search, ``);
     const viewURL = `${currentURL}?view=${fileEntry.path}`;
     history.replaceState(null, null, viewURL);
+    if (Rewinder.active) {
+      fileTree.OT?.getFileHistory(fileEntry.path);
+    }
   });
   const closeTab = () => {
     if (fileEntry.state.closed) return;
@@ -32011,6 +32034,19 @@ var CustomWebsocketInterface = class extends WebSocketInterface {
     super(...args);
     this.bypassSync.push(`filehistory`);
   }
+  connect(...args) {
+    console.log((/* @__PURE__ */ new Date()).toISOString(), ` - running connect`);
+    super.connect(...args);
+  }
+  load(...args) {
+    console.log((/* @__PURE__ */ new Date()).toISOString(), ` - calling load`);
+    super.load(...args);
+  }
+  onload(...args) {
+    new Notice(`Connected to the server.`, 2e3);
+    console.log((/* @__PURE__ */ new Date()).toISOString(), ` - handling onload`);
+    super.onload(...args);
+  }
   // We're adding some more functions!
   // notably: history traversal for files.
   async getFileHistory(path2) {
@@ -32030,8 +32066,9 @@ var CustomWebsocketInterface = class extends WebSocketInterface {
 };
 
 // src/client/files/file-tree-utils.js
+var RETRY_INTERVAL = 3e3;
+var MAX_RETRIES = 5;
 var USE_WEBSOCKETS = !!document.body.dataset.useWebsockets;
-var setupAlready = false;
 var { defaultCollapse, defaultFile, projectMember, projectSlug: projectSlug2 } = document.body.dataset;
 var fileTree2 = document.getElementById(`filetree`);
 fileTree2.addEventListener(`tree:ready`, async () => {
@@ -32061,29 +32098,54 @@ fileTree2.addEventListener(`tree:ready`, async () => {
   }
 });
 async function setupFileTree() {
-  if (setupAlready) {
-    return Warning(`File tree tried to set up more than once`);
-  }
-  setupAlready = true;
   const dirData = await API.files.dir(projectSlug2);
   if (dirData instanceof Error) return;
   if (USE_WEBSOCKETS && projectMember) {
+    let initial;
+    let retried = false;
     const url = `wss://${location.host}`;
-    (async function connect() {
+    async function connect(retry = 0) {
+      if (retry === MAX_RETRIES) {
+        return setTimeout(
+          () => new ErrorNotice(
+            `Cannot connect to the server, it might be dead T_T`
+          ),
+          RETRY_INTERVAL
+        );
+      }
       const OT = await fileTree2.connectViaWebSocket(
         url,
         projectSlug2,
         6e4,
         CustomWebsocketInterface
       );
+      initial ??= OT;
+      if (retried) initial.socket.close();
       OT.socket.addEventListener(`close`, () => {
+        if (retried && initial === OT) return;
         setTimeout(() => {
           if (globalThis.__shutdown) return;
-          console.log(`connection lost. Reconnecting...`);
-          connect();
-        }, 3e3);
+          new Warning(
+            `No connection to server, trying to connect...`,
+            RETRY_INTERVAL
+          );
+          connect(retry + 1);
+        }, RETRY_INTERVAL);
       });
-    })();
+      return true;
+    }
+    const success = await Promise.race([
+      connect(),
+      new Promise((resolve) => setTimeout(resolve, 1e3))
+    ]);
+    if (success !== true) {
+      new ErrorNotice(
+        `initial connection took longer than a second`,
+        RETRY_INTERVAL
+      );
+      retried = true;
+      connect();
+    }
   } else {
     fileTree2.setContent(dirData);
   }

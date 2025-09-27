@@ -60,6 +60,7 @@ export class Rewinder {
   }
 
   setHistory(history = []) {
+    // console.log({ history });
     this.history = history;
     this.setupUI();
   }
@@ -168,19 +169,31 @@ export class Rewinder {
   back() {
     // going back in time means increasing the history position
     const { fileEntry, history, pos } = this;
-
     if (pos === history.length - 1) return;
+    // console.log(`applying reverse from [${pos}]`);
+    const { hash, reverse } = history[pos];
+    let newContent;
 
-    const { reverse } = history[pos];
-    let { content } = this;
-    if (!content) content = `\n`;
+    if (reverse.create) {
+      newContent = reverse.create.data;
+      // console.log(`create, ${reverse.create.data.split(`\n`).length} lines`);
+    } else if (reverse.delete) {
+      // console.log(`delete`);
+      newContent = ``;
+    } else {
+      let { content } = this;
+      if (!content) content = `\n`;
+      newContent = applyPatch(content, reverse);
+      if (newContent === false) {
+        throw new Error(`could not apply patch`);
+      }
+    }
 
-    // console.log(reverse);
-
-    const newContent = applyPatch(content, reverse);
     updateViewMaintainScroll(fileEntry.state, newContent, false);
     this.content = newContent;
+
     this.pos = this.pos + 1;
+    // console.log(`advanced pos to [${this.pos}]`);
 
     fileEntry.classList.add(`revision`);
     fileEntry.dataset.revision = -this.pos;
@@ -189,11 +202,32 @@ export class Rewinder {
   forward() {
     // going forward in time means decreasing the history position
     const { fileEntry, history } = this;
-
     let { pos, content } = this;
     if (pos === 0) return;
-
     this.pos = pos = pos - 1;
+    // console.log(`reverted pos to [${pos}]`);
+
+    // console.log(`applying forward from [${pos}]`);
+    const { forward } = history[pos];
+    if (!content) content = `\n`;
+    let newContent;
+
+    if (forward.create) {
+      newContent = forward.create.data;
+      // console.log(`create, ${forward.create.data.split(`\n`).length} lines`);
+    } else if (forward.delete) {
+      // console.log(`delete`);
+      newContent = ``;
+    } else {
+      newContent = applyPatch(content, forward);
+      if (newContent === false) {
+        // console.log({ content, forward });
+        throw new Error(`could not apply patch`);
+      }
+    }
+
+    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    this.content = newContent;
 
     if (this.pos === 0) {
       fileEntry.classList.remove(`revision`);
@@ -202,15 +236,6 @@ export class Rewinder {
       fileEntry.classList.add(`revision`);
       fileEntry.dataset.revision = -this.pos;
     }
-
-    const { forward } = history[pos];
-    if (!content) content = `\n`;
-
-    // console.log(forward);
-
-    const newContent = applyPatch(content, forward);
-    updateViewMaintainScroll(fileEntry.state, newContent, false);
-    this.content = newContent;
   }
 
   go(steps = 0) {

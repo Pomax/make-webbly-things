@@ -15,7 +15,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { getFileHistory } from "../../../git/git-utils.js";
+import { getFileHistory } from "../../../git/git-utils-2.js";
 import { FILE_TREE_PREFIX } from "custom-file-tree";
 
 export { FILE_TREE_PREFIX };
@@ -75,6 +75,7 @@ export class OTHandler {
   }
 
   async onload({ basePath, reconnect }) {
+    console.log(new Date().toISOString(), ` - handling load call`);
     const { user, id } = this;
     // save the path and associated project
     this.basePath = basePath;
@@ -84,6 +85,7 @@ export class OTHandler {
     comms.addHandler(this);
     const { dirs, files } = readContentDir(join(CONTENT_DIR, basePath));
     const seqnum = comms.getSeqNum(basePath) - 1;
+    console.log(new Date().toISOString(), ` - sending load result`);
     this.send(`load`, { id, dirs, files, seqnum, reconnect });
   }
 

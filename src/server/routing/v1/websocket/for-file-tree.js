@@ -13,6 +13,8 @@ export function setupFileTreeWebSocket(app, sessionParser) {
   const wss = new WebSocketServer({ clientTracking: false, noServer: true });
 
   server.on("upgrade", (request, socket, head) => {
+    console.log(new Date().toISOString(), ` - upgrade`);
+
     // make sure this user is authenticated before we allow a connection:
     sessionParser(request, {}, () => {
       const { user } = request.session.passport ?? {};
@@ -23,6 +25,7 @@ export function setupFileTreeWebSocket(app, sessionParser) {
       }
       // Auth is good: set up the websocket!
       wss.handleUpgrade(request, socket, head, (ws) => {
+        console.log(new Date().toISOString(), ` - emit connection`);
         wss.emit(`connection`, ws, request);
       });
     });
@@ -31,6 +34,7 @@ export function setupFileTreeWebSocket(app, sessionParser) {
   // Whenever a websocket connection is made, make sure
   // that socket knows how to deal with file-tree events:
   wss.on("connection", (socket, request) => {
+    console.log(new Date().toISOString(), ` - connection`);
     addFileTreeCommunication(socket, request);
   });
 
@@ -48,10 +52,12 @@ export async function addFileTreeCommunication(socket, request) {
   // Our websocket based request handler.
   const otHandler = new OTHandler(socket, request.session.passport.user);
 
+  console.log(new Date().toISOString(), ` - handler setup`);
   socket.on("message", async (message) => {
     const { type, detail, handlerName } = unpackMessage(message);
     if (!type) return;
     try {
+      console.log(new Date().toISOString(), ` - handler call`);
       otHandler[handlerName](detail, request);
     } catch (e) {
       return console.warn(`Missing implementation for ${handlerName}.`);

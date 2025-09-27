@@ -67,7 +67,7 @@ export function listEquals(a1, a2) {
  * @param {*} entry
  * @param {*} content
  */
-export function updateViewMaintainScroll(
+export async function updateViewMaintainScroll(
   entry,
   content = entry.content,
   editable = true,

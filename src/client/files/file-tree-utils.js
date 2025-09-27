@@ -1,5 +1,5 @@
 import { API } from "../utils/api.js";
-import { Warning } from "../utils/notifications.js";
+import { ErrorNotice, Warning } from "../utils/notifications.js";
 import { getMimeType } from "./content-types.js";
 import { updatePreview } from "../preview/preview.js";
 import { getOrCreateFileEditTab } from "../editor/editor-components.js";
@@ -8,8 +8,9 @@ import { unzip } from "/vendor/unzipit.module.js";
 import { CustomWebsocketInterface } from "./websocket-interface.js";
 import { Rewinder } from "./rewind.js";
 
+const RETRY_INTERVAL = 3000;
+const MAX_RETRIES = 5;
 const USE_WEBSOCKETS = !!document.body.dataset.useWebsockets;
-let setupAlready = false;
 
 const { defaultCollapse, defaultFile, projectMember, projectSlug } =
   document.body.dataset;
@@ -57,18 +58,28 @@ fileTree.addEventListener(`tree:ready`, async () => {
  * Make sure we're in sync with the server...
  */
 export async function setupFileTree() {
-  if (setupAlready) {
-    return Warning(`File tree tried to set up more than once`);
-  }
-  setupAlready = true;
-
   const dirData = await API.files.dir(projectSlug);
   if (dirData instanceof Error) return;
   // Only folks with edit rights get a websocket connection:
 
   if (USE_WEBSOCKETS && projectMember) {
+    let initial;
+    let retried = false;
+
     const url = `wss://${location.host}`;
-    (async function connect() {
+    async function connect(retry = 0) {
+      if (retry === MAX_RETRIES) {
+        return setTimeout(
+          () =>
+            new ErrorNotice(
+              `Cannot connect to the server, it might be dead T_T`,
+            ),
+          RETRY_INTERVAL,
+        );
+      }
+
+      // Why does it take so bloody long for the websocket
+      // connection to get established? What is blocking it?
       const OT = await fileTree.connectViaWebSocket(
         url,
         projectSlug,
@@ -76,15 +87,42 @@ export async function setupFileTree() {
         CustomWebsocketInterface,
       );
 
+      // Is there a failed initial attemp that needs to
+      // be shut down again?
+      initial ??= OT;
+      if (retried) initial.socket.close();
+
       // auto-reconnect when we get booted.
       OT.socket.addEventListener(`close`, () => {
+        if (retried && initial === OT) return;
         setTimeout(() => {
           if (globalThis.__shutdown) return;
-          console.log(`connection lost. Reconnecting...`);
-          connect();
-        }, 3000);
+          new Warning(
+            `No connection to server, trying to connect...`,
+            RETRY_INTERVAL,
+          );
+          connect(retry + 1);
+        }, RETRY_INTERVAL);
       });
-    })();
+
+      return true;
+    }
+
+    // Check whether we've managed to set up an initial
+    // connection within X seconds and if not, try again.
+    const success = await Promise.race([
+      connect(),
+      new Promise((resolve) => setTimeout(resolve, 1000)),
+    ]);
+
+    if (success !== true) {
+      new ErrorNotice(
+        `initial connection took longer than a second`,
+        RETRY_INTERVAL,
+      );
+      retried = true;
+      connect();
+    }
   } else {
     fileTree.setContent(dirData);
   }
@@ -119,8 +157,10 @@ async function addFileClick(fileTree, projectSlug) {
       projectSlug,
       fileEntry.getAttribute(`path`),
     );
+
     // note: we handle "selection" in the file tree as part of editor
     // reveals, so we do not call the event's own grant() function.
+
     if (Rewinder.active) {
       fileTree.OT?.getFileHistory(fileEntry.path);
     }

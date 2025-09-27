@@ -3,6 +3,7 @@ import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent, createUpdateListener } from "../files/sync.js";
 import { ErrorNotice } from "../utils/notifications.js";
+import { Rewinder } from "../files/rewind.js";
 
 const { projectId } = document.body.dataset;
 
@@ -77,10 +78,16 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     tab.classList.add(`active`);
     tab.scrollIntoView();
     view.focus();
+
     // update our visible URL too, so folks can link to files.
     const currentURL = location.toString().replace(location.search, ``);
     const viewURL = `${currentURL}?view=${fileEntry.path}`;
     history.replaceState(null, null, viewURL);
+
+    // Finally: are we rewinding?
+    if (Rewinder.active) {
+      fileTree.OT?.getFileHistory(fileEntry.path);
+    }
   });
 
   const closeTab = () => {
