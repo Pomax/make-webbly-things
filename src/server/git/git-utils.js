@@ -12,6 +12,13 @@ function cwd(projectSlug) {
 }
 
 /**
+ * Get a file from a specific commit.
+ */
+export function getFileFrom(hash, filepath) {
+  return execSync(`git show ${hash}:${filepath}`).toString();
+}
+
+/**
  * Convert a file-specific git log (with renames) to a sequence
  * of diffs that can either be applied both forward, and in reverse,
  * using jsdiff's applyPatch() function, or can be checked for
@@ -39,7 +46,7 @@ export function processFileHistory(filepath, data) {
     const line = lines.shift();
     if (line.startsWith(`commit `)) {
       currentCommit?.finalize();
-      currentCommit = new Commit(filepath);
+      currentCommit = new GitCommit(filepath);
       commits.push(currentCommit);
     }
     currentCommit?.addLine(line);
@@ -62,7 +69,7 @@ export function processFileHistory(filepath, data) {
 /**
  * ...docs go here...
  */
-class Commit {
+class GitCommit {
   message = [];
   diff; // array
   constructor(filepath) {
@@ -90,7 +97,7 @@ class Commit {
   finalize() {
     // this.original = this.diff.join(`\n`);
     this.forward = processDiff(this.diff);
-    this.reverse = reverseChanges(this.forward);
+    this.reverse = reverseHunks(this.forward);
     this.forward = this.backToDiff(this.forward);
     this.reverse = this.backToDiff(this.reverse);
     delete this.diff;
@@ -110,7 +117,7 @@ class Commit {
     return [
       `--- a/${this.filepath}`,
       `+++ b/${this.filepath}`,
-      ...data.changes.map(
+      ...data.hunks.map(
         (c) => `@@ ${c.a} ${c.b} @@${c.suffix}\n${c.lines.join(`\n`)}`,
       ),
     ].join(`\n`);
@@ -152,25 +159,25 @@ function processDiff(diff) {
   }
 
   // If not, that leaves a regular content change
-  const changes = [];
-  let currentChange;
+  const hunks = [];
+  let currentHunk;
   for (let line of diff) {
     if (line.startsWith(`@@`)) {
       const [_, a, b, suffix] = line.match(/@@ (\S+) (\S+) @@(.*)/);
-      currentChange = { a, b, suffix, lines: [] };
-      changes.push(currentChange);
+      currentHunk = { a, b, suffix, lines: [] };
+      hunks.push(currentHunk);
       continue;
     }
-    currentChange?.lines.push(line);
+    currentHunk?.lines.push(line);
   }
 
-  return { changes };
+  return { hunks };
 }
 
 /**
  * ...docs go here...
  */
-function reverseChanges(diff) {
+function reverseHunks(diff) {
   // a reverse create is a delete
   if (diff.create) {
     return { delete: diff.create };
@@ -192,9 +199,9 @@ function reverseChanges(diff) {
   }
 
   // which just leaves the "real" reversal.
-  if (diff.changes) {
+  if (diff.hunks) {
     return {
-      changes: diff.changes.map((c) => {
+      hunks: diff.hunks.map((c) => {
         let lines = [];
         let minus = [];
         let plus = [];
@@ -202,8 +209,8 @@ function reverseChanges(diff) {
         // Aggregate lines until we hit a change block.
         // When we do, add all `-` lines to "minus", and
         // all `+` lines to "plus", so that when we hit
-        // the end of that change block, we can insert
-        // those changes as "minus" followed by "plus".
+        // the end of that hunk, we can insert those
+        // changes as "minus" followed by "plus".
         c.lines.forEach((l) => {
           if (l.startsWith(`-`)) {
             plus.push(l.replace(`-`, `+`));
