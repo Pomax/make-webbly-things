@@ -32,8 +32,8 @@ const { WEB_EDITOR_APPS_HOSTNAME } = process.env;
  */
 projects.post(
   `/delete/:project`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   verifyOwner,
   deleteProject,
   (_req, res) => res.send(`ok`),
@@ -44,8 +44,8 @@ projects.post(
  */
 projects.get(
   `/download/:project`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   getDirListing,
   createProjectDownload,
   (req, res) =>
@@ -90,8 +90,8 @@ projects.get(
  */
 projects.get(
   `/history/:project/:commit?`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   verifyEditRights,
   loadProjectHistory,
   (_req, res) => res.json(res.locals.history),
@@ -102,8 +102,8 @@ projects.get(
  */
 projects.get(
   `/remix/:project/:newname?`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   remixProject,
   (req, res) => res.redirect(`/v1/projects/edit/${res.locals.newProjectSlug}`),
 );
@@ -113,8 +113,8 @@ projects.get(
  */
 projects.post(
   `/restart/:project`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   verifyOwner,
   restartProject,
   (_req, res) => res.send(`ok`),
@@ -125,8 +125,8 @@ projects.post(
  */
 projects.get(
   `/settings/:pid`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   getProjectSettings,
   (_req, res) => res.json(res.locals.settings),
 );
@@ -136,8 +136,8 @@ projects.get(
  */
 projects.post(
   `/settings/:pid`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   verifyOwner,
   multer().none(),
   getProjectSettings,

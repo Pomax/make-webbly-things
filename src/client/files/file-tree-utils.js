@@ -7,10 +7,11 @@ import { DEFAULT_FILES } from "./default-files.js";
 import { unzip } from "/vendor/unzipit.module.js";
 import { CustomWebsocketInterface } from "./websocket-interface.js";
 import { Rewinder } from "./rewind.js";
+import { handleFileHistory } from "./websocket-interface.js";
 
 const RETRY_INTERVAL = 3000;
 const MAX_RETRIES = 5;
-const USE_WEBSOCKETS = !!document.body.dataset.useWebsockets;
+const { useWebsockets } = document.body.dataset;
 
 const { defaultCollapse, defaultFile, projectMember, projectSlug } =
   document.body.dataset;
@@ -62,7 +63,7 @@ export async function setupFileTree() {
   if (dirData instanceof Error) return;
   // Only folks with edit rights get a websocket connection:
 
-  if (USE_WEBSOCKETS && projectMember) {
+  if (useWebsockets && projectMember) {
     let initial;
     let retried = false;
 
@@ -162,8 +163,13 @@ async function addFileClick(fileTree, projectSlug) {
     // reveals, so we do not call the event's own grant() function.
 
     if (Rewinder.active) {
-      // TODO: DRY: can we unify this with editor-components
-      fileTree.OT?.getFileHistory(fileEntry.path);
+      // TODO: DRY: can we unify this with editor-components and event-handling
+      if (useWebsockets) {
+        fileTree.OT?.getFileHistory(fileEntry.path);
+      } else {
+        const history = await API.files.history(projectSlug, fileEntry.path);
+        handleFileHistory(fileEntry, projectSlug, history);
+      }
     }
   });
 }

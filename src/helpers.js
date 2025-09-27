@@ -29,7 +29,7 @@ process.env.CONTENT_DIR = CONTENT_DIR;
 
 // Set up the things we need for scheduling git commits when
 // content changes, or the user requests an explicit rewind point:
-export const COMMIT_TIMEOUT_MS = 15_000;
+export const COMMIT_TIMEOUT_MS = 10_000;
 
 // We can't save timeouts to req.session so we need a separate tracker
 const COMMIT_TIMEOUTS = {};

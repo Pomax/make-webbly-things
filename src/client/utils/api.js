@@ -14,13 +14,13 @@ export const API = {
       a.href = `${PREFIX}/projects/download/${projectSlug}`;
       a.click();
     },
-    remix: async (projectSlug) => {
-      location = `${PREFIX}/projects/remix/${projectSlug}`;
-    },
     health: async (projectSlug) =>
       fetch(`projects/health/${projectSlug}?v=${Date.now()}`).then((r) =>
         r.text(),
       ),
+    remix: async (projectSlug) => {
+      location = `${PREFIX}/projects/remix/${projectSlug}`;
+    },
     restart: async (projectSlug) =>
       fetch(`projects/restart/${projectSlug}`, {
         method: `POST`,
@@ -30,23 +30,25 @@ export const API = {
   // File related calls, which are mostly "CRUD"
   // (create/read/update/delete) operations.
   files: {
-    dir: async (projectSlug) =>
-      fetch(`files/dir/${projectSlug}`).then((r) => r.json()),
     create: async (projectSlug, fileName) =>
       fetch(`files/create/${projectSlug}/${fileName}`, { method: `post` }),
-    upload: async (projectSlug, fileName, form) =>
-      fetch(`files/upload/${projectSlug}/${fileName}`, {
+    delete: async (projectSlug, fileName) =>
+      fetch(`files/delete/${projectSlug}/${fileName}`, {
+        method: `delete`,
+      }),
+    // NOTE: there is no separate delete-dir, the delete route should just "do what needs to be done".
+    dir: async (projectSlug) =>
+      fetch(`files/dir/${projectSlug}`).then((r) => r.json()),
+    format: async (projectSlug, fileName) =>
+      fetch(`files/format/${projectSlug}/${fileName}`, {
         method: `post`,
-        body: form,
       }),
     get: async (projectSlug, fileName) =>
       fetch(`files/content/${projectSlug}/${fileName}`),
+    history: async (projectSlug, fileName) =>
+      fetch(`files/history/${projectSlug}/${fileName}`).then((r) => r.json()),
     rename: async (projectSlug, oldPath, newPath) =>
       fetch(`files/rename/${projectSlug}/${oldPath}:${newPath}`, {
-        method: `post`,
-      }),
-    format: async (projectSlug, fileName) =>
-      fetch(`files/format/${projectSlug}/${fileName}`, {
         method: `post`,
       }),
     sync: async (projectSlug, fileName, changes) =>
@@ -55,10 +57,10 @@ export const API = {
         method: `post`,
         body: changes,
       }),
-    delete: async (projectSlug, fileName) =>
-      fetch(`files/delete/${projectSlug}/${fileName}`, {
-        method: `delete`,
+    upload: async (projectSlug, fileName, form) =>
+      fetch(`files/upload/${projectSlug}/${fileName}`, {
+        method: `post`,
+        body: form,
       }),
-    // NOTE: there is no separate delete-dir, the delete route should just "do what needs to be done".
   },
 };

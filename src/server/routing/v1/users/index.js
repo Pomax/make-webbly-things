@@ -45,24 +45,24 @@ users.post(
 
 users.get(
   `/service/add/:service`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   setNewProvider,
   redirectToAuth,
 );
 
 users.get(
   `/service/remove/:service`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   removeAuthProvider,
   redirectToProfile,
 );
 
 users.get(
   `/settings/:uid`,
-  verifyLogin,
   bindCommonValues,
+  verifyLogin,
   verifyAccesToUser,
   getUserSettings,
   (req, res) => res.json(res.locals.settings),

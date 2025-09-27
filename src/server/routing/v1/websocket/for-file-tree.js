@@ -1,6 +1,7 @@
 import http from "node:http";
 import { WebSocketServer } from "ws";
 import { FILE_TREE_PREFIX, OTHandler } from "./ot-handler.js";
+import { bindUser } from "../../middleware.js";
 
 /**
  * Set up file-tree related websocket handling given
@@ -17,12 +18,14 @@ export function setupFileTreeWebSocket(app, sessionParser) {
 
     // make sure this user is authenticated before we allow a connection:
     sessionParser(request, {}, () => {
-      const { user } = request.session.passport ?? {};
+      const user = bindUser(request);
+
       if (!user) {
         socket.write(`HTTP/1.1 401 Unauthorized\r\n\r\n`);
         socket.destroy();
         return;
       }
+
       // Auth is good: set up the websocket!
       wss.handleUpgrade(request, socket, head, (ws) => {
         console.log(new Date().toISOString(), ` - emit connection`);
@@ -46,11 +49,11 @@ export function setupFileTreeWebSocket(app, sessionParser) {
  * message handling to a websocket.
  */
 export async function addFileTreeCommunication(socket, request) {
-  // you are you *sure* you're allowed in here?
-  if (!request.session?.passport?.user) return;
+  const user = bindUser(request);
+  if (!user) return;
 
   // Our websocket based request handler.
-  const otHandler = new OTHandler(socket, request.session.passport.user);
+  const otHandler = new OTHandler(socket, user);
 
   console.log(new Date().toISOString(), ` - handler setup`);
   socket.on("message", async (message) => {

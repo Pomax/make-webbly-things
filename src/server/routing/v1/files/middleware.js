@@ -22,6 +22,7 @@ import {
   pathExists,
   readContentDir,
 } from "../../../../helpers.js";
+import * as GitUtils from "../../../git/git-utils.js";
 
 const contentDir = join(ROOT_DIR, CONTENT_DIR);
 
@@ -139,7 +140,6 @@ export async function formatFile(req, res, next) {
 
 /**
  * ...docs go here...
- * @returns
  */
 export async function getDirListing(req, res, next) {
   const { user, lookups } = res.locals;
@@ -155,6 +155,17 @@ export async function getDirListing(req, res, next) {
   const excludes = [`.container/**`];
   if (accessLevel < MEMBER) excludes.push(`.data/**`);
   res.locals.dirData = readContentDir(dirName, `*`, excludes);
+  next();
+}
+
+/**
+ * ...docs go here ...
+ */
+export async function getFileHistory(req, res, next) {
+  res.locals.fileHistory = GitUtils.getFileHistory(
+    res.locals.lookups.project.slug,
+    res.locals.filename,
+  );
   next();
 }
 

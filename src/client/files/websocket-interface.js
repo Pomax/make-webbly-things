@@ -2,6 +2,17 @@ import { WebSocketInterface } from "custom-file-tree";
 import { Rewinder } from "./rewind.js";
 import { Notice } from "../utils/notifications.js";
 
+// TODO: is there a better place for this function?
+export function handleFileHistory(fileEntry, basePath, history) {
+  let { rewind } = fileEntry.state;
+  if (!rewind) {
+    rewind = new Rewinder(basePath, fileEntry);
+    fileEntry.setState({ rewind });
+  }
+  rewind.setHistory(history);
+  rewind.show();
+}
+
 // Our websocket interface needs some functions that are not
 // offered as part of the standard file tree ws interface:
 export class CustomWebsocketInterface extends WebSocketInterface {
@@ -36,12 +47,6 @@ export class CustomWebsocketInterface extends WebSocketInterface {
   async onfilehistory({ path, history }) {
     if (history.length === 0) return;
     const fileEntry = document.querySelector(`file-entry[path="${path}"]`);
-    let { rewind } = fileEntry.state;
-    if (!rewind) {
-      rewind = new Rewinder(this.basePath, fileEntry);
-      fileEntry.setState({ rewind });
-    }
-    rewind.setHistory(history);
-    rewind.show();
+    handleFileHistory(fileEntry, this.basePath, history);
   }
 }

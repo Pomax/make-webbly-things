@@ -14,6 +14,7 @@ import {
   deleteFile,
   formatFile,
   getDirListing,
+  getFileHistory,
   getMimeType,
   handleUpload,
   moveFile,
@@ -23,7 +24,7 @@ import {
 import { Router } from "express";
 export const files = Router();
 
-const prechecks = [verifyLogin, bindCommonValues, verifyEditRights];
+const prechecks = [bindCommonValues, verifyLogin, verifyEditRights];
 
 /**
  *  Get the project files for populating the <file-tree>, making sure to filter
@@ -80,6 +81,16 @@ files.post(
     res.json({
       formatted: res.locals.formatted,
     }),
+);
+
+/**
+ * Get a file's commit history
+ */
+files.get(
+  `/history/:project/:filename*`,
+  ...prechecks,
+  getFileHistory,
+  (req, res) => res.json(res.locals.fileHistory),
 );
 
 /**

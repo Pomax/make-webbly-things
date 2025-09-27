@@ -58,10 +58,19 @@ export function pageNotFound(req, res) {
 /**
  * ...docs go here...
  */
-export async function bindUser(req, res, next = () => {}) {
-  const { user } = req.session.passport || {};
+export async function bindUser(req, res = { locals: {} }, next = () => {}) {
+  let fallback = {};
+
+  if (process.argv.includes(`--admin-mode`)) {
+    const user = getUser(1);
+    user.admin = true;
+    fallback = { user };
+  }
+
+  const { user } = req.session.passport ?? fallback;
   res.locals.user = user;
   next();
+  return user;
 }
 
 /**
@@ -69,7 +78,7 @@ export async function bindUser(req, res, next = () => {}) {
  * @returns
  */
 export async function verifyLogin(req, res, next) {
-  const user = req.session.passport?.user;
+  const { user } = res.locals;
   if (!user) {
     return next(new Error(`Not logged in`));
   }

@@ -2,8 +2,10 @@ import { fetchFileContents } from "../utils/utils.js";
 import { API } from "../utils/api.js";
 import { Notice } from "../utils/notifications.js";
 import { Rewinder } from "../files/rewind.js";
+import { handleFileHistory } from "../files/websocket-interface.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
+const { useWebsockets } = document.body.dataset;
 
 // These always exist
 const left = document.getElementById(`left`);
@@ -16,7 +18,7 @@ export function addEventHandling(projectSlug) {
   disableSaveHotkey();
   enableDownloadButton(projectSlug);
   connectPrettierButton(projectSlug);
-  enableRewindFunctions();
+  enableRewindFunctions(projectSlug);
   addTabScrollHandling();
 
   // Lastly: make sure we can tell whether or not this
@@ -88,7 +90,7 @@ function connectPrettierButton(projectSlug) {
 /**
  * ...docs go here...
  */
-function enableRewindFunctions() {
+function enableRewindFunctions(projectSlug) {
   const rewindBtn = document.getElementById(`rewind`);
   if (!rewindBtn) return;
 
@@ -106,7 +108,13 @@ function enableRewindFunctions() {
         } else {
           Rewinder.enable();
           fileTree.classList.add(`rewinding`);
-          fileTree.OT?.getFileHistory(path);
+          // TODO: DRY: can we unify this with file-tree-utils and editor-components
+          if (useWebsockets) {
+            fileTree.OT?.getFileHistory(path);
+          } else {
+            const history = await API.files.history(projectSlug, path);
+            handleFileHistory(fileEntry, projectSlug, history);
+          }
         }
       }
     }

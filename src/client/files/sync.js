@@ -8,6 +8,8 @@ import { updatePreview } from "../preview/preview.js";
 import { API } from "../utils/api.js";
 import { Rewinder } from "./rewind.js";
 
+const { useWebsockets } = document.body.dataset;
+
 export function createUpdateListener(entry) {
   return async (evt) => {
     const { type, update, ours } = evt.detail;
@@ -46,7 +48,7 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
   const patch = createPatch(path, currentContent, newContent);
 
   // sync via websocket or REST?
-  if (fileEntry.root.OT) {
+  if (useWebsockets) {
     entry.content = newContent;
     fileEntry.updateContent(`diff`, patch);
   }

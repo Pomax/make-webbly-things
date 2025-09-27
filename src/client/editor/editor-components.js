@@ -1,11 +1,13 @@
+import { API } from "../utils/api.js";
 import { getInitialState, setupView } from "./code-mirror-6.js";
 import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent, createUpdateListener } from "../files/sync.js";
 import { ErrorNotice } from "../utils/notifications.js";
 import { Rewinder } from "../files/rewind.js";
+import { handleFileHistory } from "../files/websocket-interface.js";
 
-const { projectId } = document.body.dataset;
+const { projectId, projectSlug, useWebsockets } = document.body.dataset;
 
 const fileTree = document.querySelector(`file-tree`);
 const tabs = document.getElementById(`tabs`);
@@ -62,7 +64,7 @@ export function setupEditorTab(filename) {
  * @param {*} view
  */
 export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
-  tab.addEventListener(`click`, () => {
+  tab.addEventListener(`click`, async () => {
     if (!fileEntry.state) return;
     if (!fileEntry.state.tab) return;
     if (!fileEntry.parentNode) return;
@@ -86,8 +88,13 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
 
     // Finally: are we rewinding?
     if (Rewinder.active) {
-      // TODO: DRY: can we unify this with file-tree-utils
-      fileTree.OT?.getFileHistory(fileEntry.path);
+      // TODO: DRY: can we unify this with file-tree-utils and event-handling
+      if (useWebsockets) {
+        fileTree.OT?.getFileHistory(fileEntry.path);
+      } else {
+        const history = await API.files.history(projectSlug, fileEntry.path);
+        handleFileHistory(fileEntry, projectSlug, history);
+      }
     }
   });
 
