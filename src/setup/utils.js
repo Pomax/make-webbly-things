@@ -96,4 +96,5 @@ export function randomSecret() {
  */
 export function runNpmInstall() {
   execSync(`npm i`, { shell: true, stdio: `inherit` });
+  () => console.log(`\n`);
 }

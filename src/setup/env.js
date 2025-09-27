@@ -17,6 +17,7 @@ export async function setupEnv(
 ) {
   let {
     LOCAL_DEV_TESTING,
+    USE_WEBSOCKETS,
     WEB_EDITOR_HOSTNAME,
     WEB_EDITOR_APPS_HOSTNAME,
     WEB_EDITOR_IMAGE_NAME,
@@ -129,10 +130,26 @@ This will require knowing your DNS provider and your API key for that provider.
 
   LOCAL_DEV_TESTING = `${!!LOCAL_DEV_TESTING}`;
 
+  if (USE_WEBSOCKETS === undefined) {
+    const defaulValue = `y`;
+    USE_WEBSOCKETS =
+      (await question(
+        `Enable websockets [y/n] (defaults to ${defaulValue})`,
+        true,
+        autoFill.USE_WEBSOCKETS,
+      )) || defaulValue;
+    if (USE_WEBSOCKETS.toLowerCase().startsWith(`y`)) {
+      USE_WEBSOCKETS = `true`;
+    } else {
+      USE_WEBSOCKETS = `false`;
+    }
+  }
+
   // (Re)generate the .env file
   writeFileSync(
     join(SETUP_ROOT_DIR, `.env`),
     `LOCAL_DEV_TESTING=${LOCAL_DEV_TESTING}
+USE_WEBSOCKETS=${USE_WEBSOCKETS}
 
 WEB_EDITOR_HOSTNAME="${WEB_EDITOR_HOSTNAME}"
 WEB_EDITOR_APPS_HOSTNAME="${WEB_EDITOR_APPS_HOSTNAME}"
