@@ -181,6 +181,7 @@ TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
   // functions rely on having these variables set:
   Object.assign(env, {
     LOCAL_DEV_TESTING,
+    USE_WEBSOCKETS,
     WEB_EDITOR_HOSTNAME,
     WEB_EDITOR_APPS_HOSTNAME,
     WEB_EDITOR_APP_SECRET,

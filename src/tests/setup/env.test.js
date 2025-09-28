@@ -7,7 +7,7 @@ import { closeReader } from "../../setup/utils.js";
 
 const autoFill = {
   LOCAL_DEV_TESTING: `false`,
-  USE_WEBSOCKETS: `true`,
+  USE_WEBSOCKETS: `false`,
   WEB_EDITOR_HOSTNAME: `localhost`,
   WEB_EDITOR_APPS_HOSTNAME: `app.localhost`,
   WEB_EDITOR_IMAGE_NAME: `test-image-for-platform-setup`,
