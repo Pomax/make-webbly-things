@@ -7,6 +7,12 @@ This platform's codebase is split up into several sections:
 - `./docs` houses the platform's documentation
 - `./public` houses all the content that the platform's own server can **_statically_** serve. It does not have any "html pages", those are found in `src/server/pages`
 
+Note that there are a few special content folders:
+
+- `./content/__archives` is used as a transient location for project downloads.
+- `./content/__screenshots` is where project screenshots are stored for showing project cards on the main page as well as a user's profile page.
+- `./content/__starter_projects` houses all the starter projects offered by the platform.
+
 All the "code" lives inside the `src` folder:
 
 - `./src` houses the platform's client and server code
