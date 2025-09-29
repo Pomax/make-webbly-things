@@ -2,6 +2,7 @@ import net from "node:net";
 import { join, resolve, sep, posix } from "node:path";
 import { exec, execSync } from "node:child_process";
 import { existsSync, globSync, lstatSync, readFileSync } from "node:fs";
+import * as AuthSettings from "./server/routing/auth/settings.js";
 import express from "express";
 import nocache from "nocache";
 import helmet from "helmet";
@@ -33,6 +34,21 @@ export const COMMIT_TIMEOUT_MS = 10_000;
 
 // We can't save timeouts to req.session so we need a separate tracker
 const COMMIT_TIMEOUTS = {};
+
+// Make sure all the CSP directives that need clearing are set to cleared
+const CSP_DIRECTIVES = {
+  connectSrc: `* data: blob: 'unsafe-inline'`,
+  defaultSrc: `* data: mediastream: blob: filesystem: about: ws: wss: 'unsafe-eval' 'unsafe-inline'`,
+  fontSrc: `* data: blob: 'unsafe-inline'`,
+  formAction: `'self'`,
+  frameAncestors: `* data: blob: 'unsafe-inline'`,
+  frameSrc: `* data: blob:`,
+  imgSrc: `* data: blob: 'unsafe-inline'`,
+  mediaSrc: `* data: blob: 'unsafe-inline'`,
+  scriptSrc: `* data: blob: 'unsafe-inline' 'unsafe-eval'`,
+  scriptSrcElem: `* data: blob: 'unsafe-inline'`,
+  styleSrc: `* data: blob: 'unsafe-inline'`,
+};
 
 /**
  * Schedule a git commit to capture all changes since the last time we did that.
@@ -161,22 +177,9 @@ export function setDefaultAspects(app) {
   app.set("etag", false);
   app.use(nocache());
   app.use(express.urlencoded({ extended: true }));
-  app.use(
-    helmet.contentSecurityPolicy({
-      directives: {
-        connectSrc: `* data: blob: 'unsafe-inline'`,
-        defaultSrc: `* data: mediastream: blob: filesystem: about: ws: wss: 'unsafe-eval' 'unsafe-inline'`,
-        fontSrc: `* data: blob: 'unsafe-inline'`,
-        frameAncestors: `* data: blob: 'unsafe-inline'`,
-        frameSrc: `* data: blob:`,
-        imgSrc: `* data: blob: 'unsafe-inline'`,
-        mediaSrc: `* data: blob: 'unsafe-inline'`,
-        scriptSrc: `* data: blob: 'unsafe-inline' 'unsafe-eval'`,
-        scriptSrcElem: `* data: blob: 'unsafe-inline'`,
-        styleSrc: `* data: blob: 'unsafe-inline'`,
-      },
-    }),
-  );
+  const directives = CSP_DIRECTIVES;
+  AuthSettings.updateCSPDirectives(directives);
+  app.use(helmet.contentSecurityPolicy({ directives }));
 }
 
 /**

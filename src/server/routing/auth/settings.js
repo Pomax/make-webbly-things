@@ -57,6 +57,15 @@ export function getServiceDomain(provider) {
 }
 
 /**
+ * Ensure that the CSP directives cover auth methods
+ * for provided that rely on the formAction directive.
+ */
+export function updateCSPDirectives(directives) {
+  if (githubSettings) directives.formAction += ` https://github.com`;
+  if (googleSettings) directives.formAction += ` https://accounts.google.com`;
+}
+
+/**
  * Which providers do we offer?
  */
 export const validProviders = [];
