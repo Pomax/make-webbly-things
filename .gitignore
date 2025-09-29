@@ -9,6 +9,7 @@
 Caddyfile
 node_modules
 content/*
+!content/__screenshots/default.jpg
 !content/__starter_projects
 !content/default
 data/data.sql
