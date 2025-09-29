@@ -177,7 +177,7 @@ export function setDefaultAspects(app) {
   app.set("etag", false);
   app.use(nocache());
   app.use(express.urlencoded({ extended: true }));
-  const directives = CSP_DIRECTIVES;
+  const directives = structuredClone(CSP_DIRECTIVES);
   AuthSettings.updateCSPDirectives(directives);
   app.use(helmet.contentSecurityPolicy({ directives }));
 }
