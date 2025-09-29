@@ -19,7 +19,8 @@
     "test": "npm run build && npm run test:node && npm run test:cleanup",
     "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 \"./src/tests/**/*.test.js\"",
     "lint": "npm run prettier && npm run prettier:html",
-    "test:cleanup": "node ./src/tests/test-cleanup.js"
+    "test:cleanup": "node ./src/tests/test-cleanup.js",
+    "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.2.1",
@@ -28,6 +29,7 @@
     "@codemirror/lang-markdown": "^6.2.5",
     "@codemirror/state": "^6.4.1",
     "@dotenvx/dotenvx": "^1.48.4",
+    "@playwright/test": "^1.45.1",
     "archiver": "^7.0.1",
     "better-sqlite3": "^12.2.0",
     "better-sqlite3-session-store": "^0.1.0",

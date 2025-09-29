@@ -114,6 +114,14 @@ html {
           }
         }
 
+        picture.screenshot {
+          margin: 1em 0 0 0;
+          img {
+            border: 1px solid grey;
+            width: 100%;
+          }
+        }
+
         .edit-project-settings,
         .delete-project {
           position: absolute;

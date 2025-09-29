@@ -9,7 +9,6 @@
   {% if project.description %}
     <p>{{ project.description | para | safe }}</p>
   {% endif %}
-
   {% if ownProject %}
     <button data-project-id="{{ project.id }}" class="edit-project-settings">
       settings
@@ -19,11 +18,18 @@
     </button>
   {% endif %}
 
-  <iframe
-    width="1000"
-    height="600"
-    src="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}/?v={{ currentTime }}"
-  ></iframe>
+  {% if USE_LIVE_EMBEDS == "true" %}
+    <iframe
+      width="1000"
+      height="600"
+      src="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}/?v={{ currentTime }}"
+    ></iframe>
+  {% else %}
+    <picture class="screenshot">
+      <source srcset="/screenshots/{{ project.slug }}.png" type="image/png" />
+      <img src="/screenshots/default.png" />
+    </picture>
+  {% endif %}
 
   <p class="date">
     Created {{ project.created_at | year }}, last updated

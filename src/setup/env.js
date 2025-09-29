@@ -18,6 +18,7 @@ export async function setupEnv(
   let {
     LOCAL_DEV_TESTING,
     USE_WEBSOCKETS,
+    USE_LIVE_EMBEDS,
     WEB_EDITOR_HOSTNAME,
     WEB_EDITOR_APPS_HOSTNAME,
     WEB_EDITOR_IMAGE_NAME,
@@ -145,11 +146,27 @@ This will require knowing your DNS provider and your API key for that provider.
     }
   }
 
+  if (USE_LIVE_EMBEDS === undefined) {
+    const defaulValue = `y`;
+    USE_LIVE_EMBEDS =
+      (await question(
+        `Use live embeds [y/n] (defaults to ${defaulValue})`,
+        true,
+        autoFill.USE_LIVE_EMBEDS,
+      )) || defaulValue;
+    if (USE_LIVE_EMBEDS.toLowerCase().startsWith(`y`)) {
+      USE_LIVE_EMBEDS = `true`;
+    } else {
+      USE_LIVE_EMBEDS = `false`;
+    }
+  }
+
   // (Re)generate the .env file
   writeFileSync(
     join(SETUP_ROOT_DIR, `.env`),
     `LOCAL_DEV_TESTING=${LOCAL_DEV_TESTING}
 USE_WEBSOCKETS=${USE_WEBSOCKETS}
+USE_LIVE_EMBEDS=${USE_LIVE_EMBEDS}
 
 WEB_EDITOR_HOSTNAME="${WEB_EDITOR_HOSTNAME}"
 WEB_EDITOR_APPS_HOSTNAME="${WEB_EDITOR_APPS_HOSTNAME}"
@@ -182,6 +199,7 @@ TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
   Object.assign(env, {
     LOCAL_DEV_TESTING,
     USE_WEBSOCKETS,
+    USE_LIVE_EMBEDS,
     WEB_EDITOR_HOSTNAME,
     WEB_EDITOR_APPS_HOSTNAME,
     WEB_EDITOR_APP_SECRET,

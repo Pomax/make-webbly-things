@@ -7,6 +7,7 @@ import {
   updateCaddyFile,
 } from "../caddy/caddy.js";
 import { getProjectEnvironmentVariables } from "../database/index.js";
+import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
 /**
  * ...docs go here...
@@ -24,6 +25,7 @@ export function checkContainerHealth(project, slug = project.slug) {
     return `wait`;
   }
   if (result.includes(`(healthy)`)) {
+    scheduleScreenShot(project);
     return `ready`;
   }
 }

@@ -192,12 +192,14 @@
     associated websites by clicking the link at the bottom of each project card.
   </p>
 
-  <p>
-    Note that not all projects may be running, but if they are: those are not
-    screenshots, you're looking at the websites running as an embed. And if
-    they're interactive, you can interact with them. Or you can open them in
-    their own tab to experience them as proper, full website, of course!
-  </p>
+  {% if USE_LIVE_EMBEDS == "true" %}
+    <p>
+      Note that not all projects may be running, but if they are: those are not
+      screenshots, you're looking at the websites running as an embed. And if
+      they're interactive, you can interact with them. Or you can open them in
+      their own tab to experience them as proper, full website, of course!
+    </p>
+  {% endif %}
 
   <ul>
     {% for project in projectList %}

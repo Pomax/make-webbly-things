@@ -195,13 +195,12 @@ export async function setupGit(dir, projectSlug) {
 /**
  * ...docs go here...
  */
-
 export function slugify(text) {
-  return ubase
-    .basify(text.replaceAll(`..`, `LOL_YEAH_NO`))
-    .toLowerCase()
+  text = text.replaceAll(`/`, `-`).replaceAll(`.`, ``);
+  text = ubase.basify(text).toLowerCase();
+  return text
     .replace(/\s+/g, `-`)
-    .replace(/[<>]/g, ``)
+    .replace(/[<\._>]/g, ``)
     .replace(
       /[\u0021-\u002C\u002E-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u00BF]+/g,
       ``,

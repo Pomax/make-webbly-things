@@ -96,6 +96,11 @@ export function setupRoutes(app) {
   // static routes for the website itself
   app.use(`/`, noStaticHTML, express.static(`public`, { etag: false }));
   app.use(`/default`, express.static(`content/default`, { etag: false }));
+  app.use(
+    `/screenshots`,
+    noStaticHTML,
+    express.static(`content/__screenshots`, { etag: false }),
+  );
 
   // What do we do with a 404?
   app.use(pageNotFound);

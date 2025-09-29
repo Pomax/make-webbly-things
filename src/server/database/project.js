@@ -65,6 +65,7 @@ import {
   dockerDueToEdit,
   getTimingDiffInMinutes,
 } from "../docker/sleep-check.js";
+import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
 export function getMostRecentProjects(projectCount) {
   return runQuery(`
@@ -370,6 +371,7 @@ export async function touch(project) {
   const { settings, ...p } = project;
   Project.save(p);
   if (!portBindings[p.slug]) return runProject(project);
+  scheduleScreenShot(project);
 }
 
 /**
