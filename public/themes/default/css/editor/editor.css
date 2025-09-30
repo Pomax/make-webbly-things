@@ -216,7 +216,9 @@ html {
       }
 
       #editors {
-        max-height: calc(100% - var(--tab-bar-height) - 5px);
+        --editor-height: calc(100% - var(--tab-bar-height) - 5px);
+        min-height: var(--editor-height);
+        max-height: var(--editor-height);
         overflow: auto;
         border: 1px solid grey;
         width: calc(100% - 2px);
