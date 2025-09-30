@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="/themes/default/css/editor.css" />
     <link rel="stylesheet" href="/themes/default/css/file-tree.css" />
     <link rel="stylesheet" href="/themes/default/css/cm6.css" />
+    <link rel="stylesheet" href="/themes/default/css/editor/three-column.css" />
+    <script src="/themes/default/js/three-column.js" async defer></script>
   </head>
   <body
     {% if projectMember %}data-project-member="true"{% endif %}
@@ -23,57 +25,71 @@
     data-default-collapse="{{ projectSettings.default_collapse }}"
     data-use-websockets="{{ USE_WEBSOCKETS }}"
   >
-    <main>
-      <div id="buttons">
-        <div>
-          <a class="link-back" href="https://{{ WEB_EDITOR_HOSTNAME }}">home</a>
-          <span class="projectname" title="{{ project.name }}"
-            >{{ project.name }}</span
-          >
-          {% if user and user.enabled_at %}
-            <a
-              class="link-remix"
-              title="Remix this project!"
-              href="/v1/projects/remix/{{ project.slug }}"
-              >✨</a
+    <main class="three-column">
+      <div class="left column">
+        <div id="buttons">
+          <div>
+            <a class="link-back" href="https://{{ WEB_EDITOR_HOSTNAME }}"
+              >home</a
             >
-          {% endif %}
-        </div>
-        <div>
-          {% if user and (user.admin or projectOwner) %}
-            <button
-              class="project-settings"
-              title="change your project settings"
+            <span class="projectname" title="{{ project.name }}"
+              >{{ project.name }}</span
             >
-              settings
-            </button>
-          {% endif %}
-          {% if user and user.enabled_at %}
-            <button id="download" title="Download this project as a .zip">
-              💾
-            </button>
-          {% endif %}
-          {% if user and (user.admin or projectMember) %}
-            <button id="format" title="Make my code pretty!">🤩</button>
-            <button id="rewind" title="Use the time machine!">🔄</button>
-          {% endif %}
+            {% if user and user.enabled_at %}
+              <a
+                class="link-remix"
+                title="Remix this project!"
+                href="/v1/projects/remix/{{ project.slug }}"
+                >✨</a
+              >
+            {% endif %}
+          </div>
+          <div>
+            {% if user and (user.admin or projectOwner) %}
+              <button
+                class="project-settings"
+                title="change your project settings"
+              >
+                settings
+              </button>
+            {% endif %}
+            {% if user and user.enabled_at %}
+              <button id="download" title="Download this project as a .zip">
+                💾
+              </button>
+            {% endif %}
+            {% if user and (user.admin or projectMember) %}
+              <button id="format" title="Make my code pretty!">🤩</button>
+              <button id="rewind" title="Use the time machine!">🔄</button>
+            {% endif %}
+          </div>
         </div>
+
+        <file-tree id="filetree"></file-tree>
       </div>
 
-      <file-tree id="filetree"></file-tree>
-
-      <div id="tabnav">
-        <div id="left">
-          <button>〈</button>
-        </div>
-        <div id="tabs"></div>
-        <div id="right">
-          <button>〉</button>
-        </div>
+      <div class="full resize">
+        <span><i>.</i><i>.</i><i>.</i></span>
       </div>
-      <div id="editors"></div>
 
-      <div id="preview" style="position: relative">
+      <div class="middle column">
+        <div id="tabnav">
+          <div id="left">
+            <button>〈</button>
+          </div>
+          <div id="tabs"></div>
+          <div id="right">
+            <button>〉</button>
+          </div>
+        </div>
+        <div id="editors"></div>
+      </div>
+
+      <div class="full resize">
+        <span><i>.</i><i>.</i><i>.</i></span>
+      </div>
+
+      <div class="right column" id="preview" style="position:relative">
         <span id="preview-buttons">
           {% if user and app_type != "static" %}
             <button class="restart" title="Restart your host container">

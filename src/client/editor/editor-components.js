@@ -6,6 +6,7 @@ import { syncContent, createUpdateListener } from "../files/sync.js";
 import { ErrorNotice } from "../utils/notifications.js";
 import { Rewinder } from "../files/rewind.js";
 import { handleFileHistory } from "../files/websocket-interface.js";
+import { ensureFileTreeWidth } from "../files/file-tree-utils.js";
 
 const { projectId, projectSlug, useWebsockets } = document.body.dataset;
 
@@ -25,7 +26,6 @@ settingsIcon?.addEventListener(`click`, () => {
 export function setupEditorPanel(filename) {
   const panel = create(`div`);
   panel.id = filename;
-  panel.title = filename;
   panel.classList.add(`editor`, `tab`);
   return panel;
 }
@@ -69,14 +69,20 @@ export function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     if (!fileEntry.state.tab) return;
     if (!fileEntry.parentNode) return;
     if (!fileEntry.select) return;
+
     fileEntry.select();
+    ensureFileTreeWidth();
+
     document
       .querySelectorAll(`.editor`)
       .forEach((e) => e.setAttribute(`hidden`, `hidden`));
+
     panel.removeAttribute(`hidden`);
+
     document
       .querySelectorAll(`.active`)
       .forEach((e) => e.classList.remove(`active`));
+
     tab.classList.add(`active`);
     tab.scrollIntoView();
     view.focus();

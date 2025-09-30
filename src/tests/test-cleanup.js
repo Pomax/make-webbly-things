@@ -9,6 +9,9 @@ import {
 // First, clean up orphaned folders
 execSync(`rm -rf ./content/docker-*`);
 
+// And screenshots
+execSync(`rm -rf ./content/__screenshots/docker-*`);
+
 // Then clean up any test containers
 getAllRunningContainers()
   .filter((e) => e.image.startsWith(`docker-project-`))
@@ -17,6 +20,7 @@ getAllRunningContainers()
     deleteContainerAndImage({ slug: e.image });
   });
 3;
+
 // And then do an "orphaned images" pass:
 execSync(`docker image list -a --no-trunc --format json`)
   .toString()

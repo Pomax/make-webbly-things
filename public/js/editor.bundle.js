@@ -29772,6 +29772,9 @@ function setupView(parent, state) {
     state,
     lineWrapping: true
   });
+  document.addEventListener(`layout:resize`, () => {
+    view.requestMeasure();
+  });
   return view;
 }
 
@@ -31919,7 +31922,6 @@ settingsIcon?.addEventListener(`click`, () => {
 function setupEditorPanel(filename) {
   const panel = create(`div`);
   panel.id = filename;
-  panel.title = filename;
   panel.classList.add(`editor`, `tab`);
   return panel;
 }
@@ -31942,6 +31944,7 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
     if (!fileEntry.parentNode) return;
     if (!fileEntry.select) return;
     fileEntry.select();
+    ensureFileTreeWidth();
     document.querySelectorAll(`.editor`).forEach((e2) => e2.setAttribute(`hidden`, `hidden`));
     panel.removeAttribute(`hidden`);
     document.querySelectorAll(`.active`).forEach((e2) => e2.classList.remove(`active`));
@@ -32081,6 +32084,7 @@ var MAX_RETRIES = 5;
 var { useWebsockets: useWebsockets3 } = document.body.dataset;
 var { defaultCollapse, defaultFile, projectMember, projectSlug: projectSlug3 } = document.body.dataset;
 var fileTree2 = document.getElementById(`filetree`);
+var col1 = document.querySelector(`.left.column`);
 fileTree2.addEventListener(`tree:ready`, async () => {
   let fileEntry;
   if (defaultFile) {
@@ -32118,7 +32122,7 @@ async function setupFileTree() {
       if (retry === MAX_RETRIES) {
         return setTimeout(
           () => new ErrorNotice(
-            `Cannot connect to the server, it might be dead T_T`
+            `Cannot connect to the server... it might be offline?`
           ),
           RETRY_INTERVAL
         );
@@ -32172,6 +32176,18 @@ function addFileTreeHandling() {
   addDirMove(fileTree2, projectSlug3);
   addDirDelete(fileTree2, projectSlug3);
 }
+function ensureFileTreeWidth() {
+  const wf = fileTree2.scrollWidth;
+  const wc = col1.clientWidth;
+  const diff2 = wf - wc;
+  if (diff2 > 0) {
+    col1.parentNode.dispatchEvent(
+      new CustomEvent(`update:col1`, {
+        detail: { diff: diff2 + 16 }
+      })
+    );
+  }
+}
 async function addFileClick(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
@@ -32188,6 +32204,7 @@ async function addFileClick(fileTree3, projectSlug5) {
         handleFileHistory(fileEntry, projectSlug5, history3);
       }
     }
+    ensureFileTreeWidth();
   });
 }
 async function uploadFile(fileTree3, fileName, content2, grant) {
@@ -32268,17 +32285,21 @@ async function addFileCreate(fileTree3, projectSlug5) {
         const fileEntry = grant();
         getOrCreateFileEditTab(fileEntry, projectSlug5, path2);
       };
-      if (fileTree3.OT) return runCreate();
-      const response = await API.files.create(projectSlug5, path2);
-      if (response instanceof Error) return;
-      if (response.status === 200) {
+      if (fileTree3.OT) {
         runCreate();
       } else {
-        const msg = `Could not create ${path2}`;
-        new Warning(msg);
-        console.warn(`${msg}} (status:${response.status})`);
+        const response = await API.files.create(projectSlug5, path2);
+        if (response instanceof Error) return;
+        if (response.status === 200) {
+          runCreate();
+        } else {
+          const msg = `Could not create ${path2}`;
+          new Warning(msg);
+          console.warn(`${msg}} (status:${response.status})`);
+        }
       }
     }
+    ensureFileTreeWidth();
   });
   fileTree3.addEventListener(`ot:created`, (evt) => {
   });
@@ -32324,6 +32345,7 @@ async function addFileMove(fileTree3, projectSlug5) {
       console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
+    ensureFileTreeWidth();
   };
   fileTree3.addEventListener(`file:rename`, renameHandler);
   fileTree3.addEventListener(`file:move`, renameHandler);
@@ -32358,6 +32380,7 @@ async function addFileDelete(fileTree3, projectSlug5) {
       }
     }
     updatePreview();
+    ensureFileTreeWidth();
   });
   fileTree3.addEventListener(`ot:deleted`, async (evt) => {
     const { entries } = evt.detail;
@@ -32369,42 +32392,52 @@ async function addFileDelete(fileTree3, projectSlug5) {
 async function addDirClick(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`dir:click`, async (evt) => {
     evt.detail.grant();
+    ensureFileTreeWidth();
   });
 }
 async function addDirToggle(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`dir:toggle`, async (evt) => {
     evt.detail.grant();
+    ensureFileTreeWidth();
   });
 }
 async function addDirCreate(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`dir:create`, async (evt) => {
     const { path: path2, grant } = evt.detail;
-    if (fileTree3.OT) return grant();
-    const response = await API.files.create(projectSlug5, path2);
-    if (response instanceof Error) return;
-    if (response.status === 200) {
+    if (fileTree3.OT) {
       grant();
     } else {
-      const msg = `Could not create ${path2}`;
-      new Warning(msg);
-      console.warn(`${msg} (status:${response.status})`);
+      const response = await API.files.create(projectSlug5, path2);
+      if (response instanceof Error) return;
+      if (response.status === 200) {
+        grant();
+      } else {
+        const msg = `Could not create ${path2}`;
+        new Warning(msg);
+        console.warn(`${msg} (status:${response.status})`);
+      }
     }
+    ensureFileTreeWidth();
   });
 }
 async function addDirMove(fileTree3, projectSlug5) {
   const dirRenameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    if (fileTree3.OT) return grant();
-    const response = await API.files.rename(projectSlug5, oldPath, newPath);
-    if (response instanceof Error) return;
-    if (response.status === 200) {
+    if (fileTree3.OT) {
       grant();
     } else {
-      const msg = `Could not rename ${oldPath} to ${newPath}`;
-      new Warning(msg);
-      console.warn(`${msg} (status:${response.status})`);
+      const response = await API.files.rename(projectSlug5, oldPath, newPath);
+      if (response instanceof Error) return;
+      if (response.status === 200) {
+        grant();
+      } else {
+        const msg = `Could not rename ${oldPath} to ${newPath}`;
+        new Warning(msg);
+        console.warn(`${msg} (status:${response.status})`);
+      }
     }
     updatePreview();
+    ensureFileTreeWidth();
   };
   fileTree3.addEventListener(`dir:rename`, dirRenameHandler);
   fileTree3.addEventListener(`dir:move`, dirRenameHandler);
@@ -32423,6 +32456,7 @@ async function addDirDelete(fileTree3, projectSlug5) {
       console.warn(`${msg} (status:${response.status})`);
     }
     updatePreview();
+    ensureFileTreeWidth();
   });
 }
 

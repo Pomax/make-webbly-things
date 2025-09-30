@@ -1,0 +1,166 @@
+.full {
+  position: relative;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+:root {
+  body {
+    --hlc: blue;
+
+    main.three-column {
+      --divider-width: 1px;
+
+      --d-offset-0: 0px;
+      --d-offset-1: 0px;
+
+      --p0: calc(100% / 3);
+      --p1: calc(200% / 3);
+
+      --d0: var(--d-offset-0);
+      --d1: var(--d-offset-1);
+
+      --c1: calc(15em - var(--divider-width) / 2);
+      --w1: calc(var(--c1) + var(--d0));
+
+      --c2: calc(50% - var(--divider-width) / 2);
+      --w2: calc(var(--c2) - var(--d0) + var(--d1));
+
+      --c3: calc(100% - (var(--w1) + var(--w2) + var(--divider-width)));
+      --w3: var(--c3);
+
+      --track-w: 2em;
+      --track-h: 3em;
+      --track-pos: calc(50% - var(--track-h) / 2);
+
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+
+      display: grid;
+      grid-gap: 0;
+      grid-template-rows: 1fr;
+      grid-template-columns: var(--w1) var(--divider-width) var(--w2) var(--divider-width) var(--w3);
+      grid-template-areas: "left . middle . right";
+
+      .column {
+        background: white;
+        height: 100%;
+        overflow: hidden;
+        padding: 0 0.2em;
+
+        &.left {
+          grid-area: left;
+        }
+        &.middle {
+          grid-area: middle;
+        }
+        &.right {
+          grid-area: right;
+        }
+      }
+
+      .resize {
+        display: block;
+        background: transparent;
+        border: none;
+        cursor: ew-resize;
+
+        &.top {
+          z-index: 2;
+        }
+
+        &:nth-child(1 of .resize) {
+          --track-offset: calc(var(--p0) + var(--d-offset-0));
+        }
+
+        &:nth-child(2 of .resize) {
+          --track-offset: calc(var(--p1) + var(--d-offset-1));
+        }
+
+        span {
+          user-select: none;
+
+          position: absolute;
+          z-index: 1;
+          top: calc(var(--track-pos) - var(--track-h) / 2);
+          left: calc(0px - var(--track-w) / 2);
+          width: var(--track-w);
+          height: var(--track-h);
+          opacity: 0.7;
+
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-evenly;
+
+          background: white;
+          color: black;
+          font-family: Verdana;
+          text-align: center;
+
+          box-sizing: border-box;
+          border: 1px solid grey;
+          border-radius: 1em;
+
+          &:hover {
+            background: #eee;
+          }
+
+          i {
+            width: 0.25em;
+            height: 0.25em;
+            border-radius: 100%;
+            background: grey;
+            color: transparent;
+          }
+        }
+
+        &.highlight {
+          span {
+            background-color: #d0e4f0;
+            border-color: var(--hlc);
+            color: var(--hlc);
+            i {
+              background: var(--hlc);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &:has(.highlight.resize) {
+    background: var(--hlc);
+    .column {
+      user-select: none;
+    }
+    * {
+      touch-action: none;
+      pointer-events: none;
+    }
+  }
+
+  footer {
+    position: fixed;
+    z-index: 1;
+    right: 0.5em;
+    bottom: 0.5em;
+    border: 1px solid grey;
+    border-radius: 0.5em;
+    padding: 0.5em;
+    background: #44ffd8;
+    box-shadow: 2px 2px 0 3px black;
+
+    a,
+    a:visited {
+      font-family: Arial;
+      text-decoration: none;
+      color: black;
+      text-shadow: 0 0 1px white;
+    }
+  }
+}

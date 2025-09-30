@@ -88,5 +88,10 @@ export function setupView(parent, state) {
     state,
     lineWrapping: true,
   });
+
+  document.addEventListener(`layout:resize`, () => {
+    view.requestMeasure();
+  });
+
   return view;
 }

@@ -17,12 +17,16 @@ html {
       height: 100%;
       overflow: hidden;
 
+      --header-block-height: 3.75em;
+
       #filetree {
+        display: block;
         border: 1px solid #444;
         font-family: Arial;
         padding: 0 1em 0.25em 0;
         overflow-x: auto;
         white-space: nowrap;
+        height: calc(100% - var(--header-block-height) - 0.5em);
 
         &:not([show-top-level]) {
           --highlight-background-bw: #44ffd8;
@@ -57,6 +61,7 @@ html {
         display: flex;
         flex-direction: column;
         background: white;
+        height: var(--header-block-height);
 
         div {
           position: relative;
@@ -148,13 +153,17 @@ html {
         }
       }
 
+      --tab-bar-height: 3.75em;
+
       #tabnav {
+        height: var(--tab-bar-height);
+
         #left,
         #right {
           align-self: center;
           & button {
             width: 100%;
-            height: 2.5em;
+            height: calc(var(--tab-bar-height) / 1.5);
             margin: 0;
             padding: 0;
           }
@@ -207,9 +216,10 @@ html {
       }
 
       #editors {
-        max-height: 100%;
+        max-height: calc(100% - var(--tab-bar-height) - 5px);
         overflow: auto;
         border: 1px solid grey;
+        width: calc(100% - 2px);
 
         .editor.tab {
           width: 100%;
@@ -241,7 +251,7 @@ html {
           background-color: #fde;
         }
         #preview-buttons {
-          position: fixed;
+          position: absolute;
           right: 1em;
           top: 0.5em;
           z-index: 2;

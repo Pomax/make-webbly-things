@@ -29,7 +29,6 @@ main {
   margin: 0;
   padding: 0;
   overflow: auto;
-  resize: horizontal;
 }
 
 #left {
@@ -53,15 +52,14 @@ main {
 #editors {
   display: flex;
   grid-area: editors;
-  width: 46em;
+  width: 100%;
   margin: 0;
   padding: 0;
   overflow: auto;
-  resize: horizontal;
 }
 
 #preview {
-  grid-area: preview;
+  /* grid-area: preview; */
   margin: 0;
   padding: 0;
 }
