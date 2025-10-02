@@ -32508,16 +32508,9 @@ function connectPrettierButton(projectSlug5) {
     const result = await API.files.format(projectSlug5, fileName);
     if (result instanceof Error) return;
     format.hidden = false;
-    const { view } = fileEntry.state;
     const content2 = await fetchFileContents(projectSlug5, fileName);
     fileEntry.setState({ content: content2 });
-    view.dispatch({
-      changes: {
-        from: 0,
-        to: view.state.doc.length,
-        insert: content2
-      }
-    });
+    updateViewMaintainScroll(fileEntry, content2);
   });
 }
 function enableRewindFunctions(projectSlug5) {

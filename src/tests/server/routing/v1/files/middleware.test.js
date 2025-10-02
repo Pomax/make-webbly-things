@@ -1,4 +1,10 @@
-import test, { after, before, describe } from "node:test";
+import test, {
+  after,
+  afterEach,
+  before,
+  beforeEach,
+  describe,
+} from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, resolve, join, dirname } from "node:path";
@@ -37,14 +43,9 @@ async function runTestWithDockerProject(testFunction) {
 }
 
 describe(`project middlerware tests`, async () => {
-  before(async () => {
-    await initTestDatabase();
-  });
-
-  after(() => {
-    concludeTesting();
-    closeReader();
-  });
+  beforeEach(async () => await initTestDatabase());
+  afterEach(() => concludeTesting());
+  after(() => closeReader);
 
   // doubles as createFile test
   test(`deleteFile`, async () => {

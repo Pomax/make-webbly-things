@@ -1,4 +1,10 @@
-import test, { after, before, describe } from "node:test";
+import test, {
+  after,
+  afterEach,
+  before,
+  beforeEach,
+  describe,
+} from "node:test";
 import assert from "node:assert/strict";
 import { resolve, join } from "node:path";
 import * as Middleware from "../../../server/routing/middleware.js";
@@ -17,11 +23,9 @@ const envPath = resolve(join(ROOT_DIR, `.env`));
 dotenv.config({ quiet: true, path: envPath });
 
 describe(`Universal middleware tests`, async () => {
-  before(async () => await initTestDatabase());
-  after(() => {
-    concludeTesting();
-    closeReader();
-  });
+  beforeEach(async () => await initTestDatabase());
+  afterEach(() => concludeTesting());
+  after(() => closeReader);
 
   test(`nocache`, async () => {
     const headers = {};

@@ -1,4 +1,10 @@
-import test, { after, before, describe } from "node:test";
+import test, {
+  after,
+  afterEach,
+  before,
+  beforeEach,
+  describe,
+} from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, rmSync } from "node:fs";
 import { resolve, join } from "node:path";
@@ -24,11 +30,9 @@ const WITHOUT_RUNNING = false;
 const FORCE_CLEANUP = true;
 
 describe(`project middlerware tests`, async () => {
-  before(async () => await initTestDatabase());
-  after(() => {
-    concludeTesting();
-    closeReader();
-  });
+  beforeEach(async () => await initTestDatabase());
+  afterEach(() => concludeTesting());
+  after(() => closeReader);
 
   test(`checkProjectHealth`, async () => {
     const { res, cleanup } = await createDockerProject();
