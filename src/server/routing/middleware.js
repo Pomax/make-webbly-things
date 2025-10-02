@@ -8,6 +8,7 @@ import {
   getMostRecentProjects,
   getProject,
   getProjectListForUser,
+  getProjectOwners,
   getUser,
   userIsAdmin,
   getUserSuspensions,
@@ -268,6 +269,7 @@ export function loadProjectList(req, res, next) {
   } else {
     res.locals.projectList = getMostRecentProjects(5);
   }
+  res.locals.projectList.forEach((p) => (p.owners = getProjectOwners(p)));
   next();
 }
 

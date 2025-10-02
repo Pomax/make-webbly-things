@@ -27,7 +27,12 @@ db.pragma(`foreign_keys = ON`);
  */
 export function runQuery(sql, values = []) {
   if (DEBUG_SQL) console.log(`RUN QUERY`, sql, values);
-  return db.prepare(sql).all(...values);
+  try {
+    return db.prepare(sql).all(...values);
+  } catch (e) {
+    console.error(e, { sql, values });
+  }
+  return [];
 }
 
 /**
@@ -99,7 +104,12 @@ class Model {
       sql = `${sql} ORDER BY ${sortKeys.join(`,`)} ${sortDir}`;
     }
     if (DEBUG_SQL) console.log(`FIND ALL`, sql, values);
-    return db.prepare(sql).all(values).filter(Boolean);
+    try {
+      return db.prepare(sql).all(values).filter(Boolean);
+    } catch (e) {
+      console.error(e, { sql, values });
+    }
+    return [];
   }
 
   /**

@@ -1,10 +1,31 @@
 <li>
-  <h3>
-    <a
-      href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/edit/{{ project.slug }}"
-      >{{ project.name }}</a
-    >
-  </h3>
+  <header>
+    <h3>
+      <a
+        href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/edit/{{ project.slug }}"
+        >{{ project.name }}</a
+      >
+    </h3>
+    {% if not profileUser %}
+    <h4>
+      by
+      {% for user in project.owners %}
+        {% if project.owners.length > 1 %}
+          {% if project.owners.length == 2 %}
+            and
+          {% else %}
+            {% if not loop.first %},{% endif %}
+            {% if loop.last %}and{% endif %}
+          {% endif %}
+        {% endif %}
+        <a
+          href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/users/profile/{{ user.slug }}"
+          >{{ user.name }}</a
+        >
+      {% endfor %}
+    </h4>
+    {% endif %}
+  </header>
 
   {% if project.description %}
     <p>{{ project.description | para | safe }}</p>

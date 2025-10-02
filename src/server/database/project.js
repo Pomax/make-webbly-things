@@ -68,9 +68,10 @@ import {
 import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
 export function getMostRecentProjects(projectCount) {
-  return runQuery(`
+  const query = `
     select
-      *
+      *,
+      projects.id as id
     from
       projects
     left join
@@ -89,7 +90,8 @@ export function getMostRecentProjects(projectCount) {
       updated_at DESC,
       created_at DESC
     limit ${projectCount}
-  `);
+  `;
+  return runQuery(query);
 }
 
 /**
@@ -243,6 +245,15 @@ export function getProjectSuspensions(project, includeOld = false) {
 export function getProjectListForUser(user) {
   const projects = Access.findAll({ user_id: user.id });
   return projects.map((p) => Project.find({ id: p.project_id }));
+}
+
+/**
+ * Get the list of users with owner access to this project
+ */
+export function getProjectOwners(project) {
+  return Access.findAll({ project_id: project.id }).map(({ user_id }) =>
+    User.find({ id: user_id }),
+  );
 }
 
 /**
