@@ -1,0 +1,56 @@
+/*
+  These are your blog styles...
+  Try changing a color!
+*/
+
+:root {
+  --color-bg: skyblue;
+  --color-text-main: black;
+  --color-primary: purple;
+  --color-header: blue;
+  --wrapper-height: 85vh;
+  --font-family: sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+}
+.wrapper {
+  min-height: var(--wrapper-height);
+  place-items: center;
+  margin: 3rem 2rem;
+}
+.content {
+  display: flex;
+  flex-direction: column;
+  max-width: 900px;
+  margin: 0 auto;
+}
+img {
+  width:80%;
+  max-width:20rem;
+}
+h1 {
+  color: var(--color-header);
+}
+h2,
+h3,
+h4,
+h5 {
+  color: var(--color-primary);
+}
+a:link, a:hover, a:visited {
+  color:var(--color-primary);
+  font-weight:bold;
+}
+a:hover:not(.headlink) {
+  color:var(--color-bg);
+  background-color:var(--color-primary);
+}
+.headlink {
+  text-decoration: none;
+}
+
