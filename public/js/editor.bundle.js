@@ -30707,7 +30707,6 @@ var FileTreeElement = class extends HTMLElement {
       const dot2 = name2.indexOf(`.`);
       if (dot2 >= 0 && dot2 < name2.length - 1) {
         this.extension = name2.substring(dot2 + 1);
-        this.setAttribute(`extension`, this.extension);
       }
     }
     const heading2 = this.find(`& > entry-heading`);
