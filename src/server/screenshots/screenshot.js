@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
-import { CONTENT_DIR } from "../../helpers.js";
+import { CONTENT_DIR, TESTING } from "../../helpers.js";
 
 const { WEB_EDITOR_APPS_HOSTNAME } = process.env;
 const SCREENSHOT_DIR = join(CONTENT_DIR, `__screenshots`);
@@ -18,7 +18,8 @@ const debounce = {};
  * request for a screenshot while there's already an
  * outstanding request will simply reset the timeout.
  */
-export async function scheduleScreenShot(project) {
+export async function scheduleScreenShot(project, bypass = TESTING) {
+  if (bypass) return;
   const { slug } = project;
   if (debounce[slug]) clearTimeout(debounce[slug]);
   debounce[slug] = setTimeout(async () => {
@@ -30,7 +31,9 @@ export async function scheduleScreenShot(project) {
 /**
  * Use playwright to screenshot this project.
  */
-async function screenshot(slug) {
+async function screenshot(slug, bypass = TESTING) {
+  if (bypass) return;
+
   const browser = await chromium.launch();
   const context = await browser.newContext({
     viewport: { width: 1000, height: 600 },

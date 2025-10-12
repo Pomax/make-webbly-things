@@ -30707,6 +30707,7 @@ var FileTreeElement = class extends HTMLElement {
       const dot2 = name2.indexOf(`.`);
       if (dot2 >= 0 && dot2 < name2.length - 1) {
         this.extension = name2.substring(dot2 + 1);
+        this.setAttribute(`extension`, this.extension);
       }
     }
     const heading2 = this.find(`& > entry-heading`);
@@ -31905,6 +31906,9 @@ var { projectSlug: projectSlug2, useWebsockets: useWebsockets2 } = document.body
 var fileTree = document.querySelector(`file-tree`);
 var tabs = document.getElementById(`tabs`);
 var editors = document.getElementById(`editors`);
+var movingTab;
+var emptyImage = new Image();
+emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
 function getOrCreateFileEditTab(fileEntry) {
   return EditorEntry.getOrCreateFileEditTab(fileEntry);
 }
@@ -31922,14 +31926,24 @@ var EditorEntry = class _EditorEntry {
     return this.entries;
   }
   static getNext(reference) {
-    const pos = this.entries.indexOf(reference);
-    if (pos > 0) return this.entries[pos - 1];
-    return this.entries[pos + 1];
+    const { entries } = this;
+    const pos = entries.indexOf(reference);
+    if (pos === entries.length - 1) return entries.at(pos - 1);
+    return entries.at(pos + 1);
   }
   static getOrCreateFileEditTab(fileEntry) {
     const entry2 = this.entries.find((e2) => e2.fileEntry === fileEntry);
     if (entry2) return entry2.select();
     return new _EditorEntry(fileEntry);
+  }
+  static sortFromTabs() {
+    const { entries } = this;
+    const ordering = [...tabs.querySelectorAll(`.editor.tab`)];
+    entries.sort((a, b) => {
+      a = ordering.indexOf(a.tab);
+      b = ordering.indexOf(b.tab);
+      return a === b ? 0 : a < b ? -1 : 1;
+    });
   }
   // Instance properties and methods
   editable = false;
@@ -31949,7 +31963,7 @@ var EditorEntry = class _EditorEntry {
     this.focus();
     return this;
   }
-  async getFileData(mimetype) {
+  async getFileData(path2, mimetype) {
     const { fileEntry } = this;
     0;
     let data3;
@@ -31957,11 +31971,11 @@ var EditorEntry = class _EditorEntry {
       ({ data: data3 } = await fileEntry.load());
     } else {
       try {
-        data3 = await fetchFileContents(projectSlug2, path, mimetype);
+        data3 = await fetchFileContents(projectSlug2, path2, mimetype);
       } catch (e2) {
       }
     }
-    return data3 || new ErrorNotice(`Could not load ${path}`);
+    return data3 || new ErrorNotice(`Could not load ${path2}`);
   }
   async load() {
     const { fileEntry } = this;
@@ -31969,7 +31983,7 @@ var EditorEntry = class _EditorEntry {
     const filename = path2.split(`/`).at(-1);
     const viewType = getViewType(filename);
     const { text, unknown, media, type } = viewType;
-    const data3 = await this.getFileData(type);
+    const data3 = await this.getFileData(path2, type);
     const verified = verifyViewType(viewType.type, data3);
     if (!verified) {
       return new ErrorNotice(
@@ -31996,6 +32010,7 @@ var EditorEntry = class _EditorEntry {
       `div`,
       {
         class: `editor tab`,
+        draggable: true,
         title: path2,
         textContent: filename
       },
@@ -32004,6 +32019,31 @@ var EditorEntry = class _EditorEntry {
       }
     );
     tab.addEventListener(`click`, async () => this.focus());
+    tab.addEventListener(`dragstart`, (evt) => {
+      movingTab = tab;
+      tab.classList.add(`moving`);
+      const { dataTransfer } = evt;
+      dataTransfer.setData(`text/plain`, ``);
+      dataTransfer.setDragImage(emptyImage, 0, 0);
+      dataTransfer.effectAllowed = `move`;
+    });
+    tab.addEventListener(`dragover`, (evt) => {
+      const { target } = evt;
+      const source = movingTab;
+      if (source === target) return;
+      if (!source.classList.contains(`tab`)) return;
+      evt.preventDefault();
+      if (target === source.previousSibling) {
+        tabs.insertBefore(source, target);
+      } else {
+        tabs.insertBefore(source, target.nextSibling);
+      }
+    });
+    tab.addEventListener(`dragend`, (evt) => {
+      movingTab.classList.remove(`moving`);
+      movingTab = void 0;
+      _EditorEntry.sortFromTabs();
+    });
     tabs.appendChild(tab);
     const close = this.close = create(
       `button`,

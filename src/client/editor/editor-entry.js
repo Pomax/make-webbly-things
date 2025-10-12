@@ -14,6 +14,10 @@ const fileTree = document.querySelector(`file-tree`);
 const tabs = document.getElementById(`tabs`);
 const editors = document.getElementById(`editors`);
 
+let movingTab;
+const emptyImage = new Image();
+emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
+
 // Drop-in replacement for editor-components.js:getOrCreateFileEditTab
 export function getOrCreateFileEditTab(fileEntry) {
   return EditorEntry.getOrCreateFileEditTab(fileEntry);
@@ -38,15 +42,26 @@ export class EditorEntry {
   }
 
   static getNext(reference) {
-    const pos = this.entries.indexOf(reference);
-    if (pos > 0) return this.entries[pos - 1];
-    return this.entries[pos + 1];
+    const { entries } = this;
+    const pos = entries.indexOf(reference);
+    if (pos === entries.length - 1) return entries.at(pos - 1);
+    return entries.at(pos + 1);
   }
 
   static getOrCreateFileEditTab(fileEntry) {
     const entry = this.entries.find((e) => e.fileEntry === fileEntry);
     if (entry) return entry.select();
     return new EditorEntry(fileEntry);
+  }
+
+  static sortFromTabs() {
+    const { entries } = this;
+    const ordering = [...tabs.querySelectorAll(`.editor.tab`)];
+    entries.sort((a, b) => {
+      a = ordering.indexOf(a.tab);
+      b = ordering.indexOf(b.tab);
+      return a === b ? 0 : a < b ? -1 : 1;
+    });
   }
 
   // Instance properties and methods
@@ -70,7 +85,7 @@ export class EditorEntry {
     return this;
   }
 
-  async getFileData(mimetype) {
+  async getFileData(path, mimetype) {
     const { fileEntry } = this;
     0;
     let data;
@@ -91,7 +106,7 @@ export class EditorEntry {
 
     const viewType = getViewType(filename);
     const { text, unknown, media, type } = viewType;
-    const data = await this.getFileData(type);
+    const data = await this.getFileData(path, type);
     const verified = verifyViewType(viewType.type, data);
 
     if (!verified) {
@@ -133,6 +148,7 @@ export class EditorEntry {
       `div`,
       {
         class: `editor tab`,
+        draggable: true,
         title: path,
         textContent: filename,
       },
@@ -141,6 +157,33 @@ export class EditorEntry {
       },
     ));
     tab.addEventListener(`click`, async () => this.focus());
+    tab.addEventListener(`dragstart`, (evt) => {
+      movingTab = tab;
+      tab.classList.add(`moving`);
+      const { dataTransfer } = evt;
+      // Such nonsense... This should have been
+      // "arbitrary data" and "use CSS" from day 1:
+      dataTransfer.setData(`text/plain`, ``);
+      dataTransfer.setDragImage(emptyImage, 0, 0);
+      dataTransfer.effectAllowed = `move`;
+    });
+    tab.addEventListener(`dragover`, (evt) => {
+      const { target } = evt;
+      const source = movingTab;
+      if (source === target) return;
+      if (!source.classList.contains(`tab`)) return;
+      evt.preventDefault();
+      if (target === source.previousSibling) {
+        tabs.insertBefore(source, target);
+      } else {
+        tabs.insertBefore(source, target.nextSibling);
+      }
+    });
+    tab.addEventListener(`dragend`, (evt) => {
+      movingTab.classList.remove(`moving`);
+      movingTab = undefined;
+      EditorEntry.sortFromTabs();
+    });
     tabs.appendChild(tab);
 
     // set up the

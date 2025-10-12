@@ -120,7 +120,7 @@ ${host} {
     portBindings[slug].port = port;
   }
 
-  spawn(`caddy`, [`reload`, `--config`, caddyFile], {
+  spawn(`caddy reload --config ${caddyFile}`, {
     shell: true,
     stdio: `ignore`,
   });

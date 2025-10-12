@@ -194,6 +194,10 @@ html {
               color: #333;
             }
 
+            &.moving {
+              background: #e7e3ff;
+            }
+
             .close {
               position: relative;
               top: -0.3em;

@@ -41,8 +41,8 @@ const CSP_DIRECTIVES = {
   defaultSrc: `* data: mediastream: blob: filesystem: about: ws: wss: 'unsafe-eval' 'unsafe-inline'`,
   fontSrc: `* data: blob: 'unsafe-inline'`,
   formAction: `'self'`,
-  frameAncestors: `* data: blob: 'unsafe-inline'`,
-  frameSrc: `* data: blob:`,
+  frameAncestors: `'self' * data: blob:`,
+  frameSrc: `'self' * data: blob:`,
   imgSrc: `* data: blob: 'unsafe-inline'`,
   mediaSrc: `* data: blob: 'unsafe-inline'`,
   scriptSrc: `* data: blob: 'unsafe-inline' 'unsafe-eval'`,
@@ -58,7 +58,10 @@ const CSP_DIRECTIVES = {
 export function createRewindPoint(
   project,
   reason = `Autosave ${scrubDateTime(new Date().toISOString())}`,
+  bypass = TESTING,
 ) {
+  if (bypass) return;
+
   console.log(`scheduling rewind point`);
 
   const { slug } = project;

@@ -42,7 +42,8 @@ export function deleteContainer(req, res, next) {
 
 export function stopContainer(req, res, next) {
   try {
-    Docker.stopContainer(req.params.image);
+    const project = Database.getProject(req.params.image);
+    if (project) Docker.stopContainer(project);
     next();
   } catch (e) {
     next(e);

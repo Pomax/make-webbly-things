@@ -35,12 +35,12 @@ export function checkContainerHealth(project, slug = project.slug) {
  */
 export function deleteContainer(project, slug = project.slug) {
   try {
-    execSync(`docker container rm ${slug}`);
+    execSync(`docker container rm ${slug}`, { stdio: `ignore` });
   } catch (e) {
     // failure just means it's already been removed.
   }
   try {
-    execSync(`docker image rm ${slug}`);
+    execSync(`docker image rm ${slug}`, { stdio: `ignore` });
   } catch (e) {
     // idem dito
   }

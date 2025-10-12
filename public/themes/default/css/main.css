@@ -24,6 +24,12 @@ html {
     font-family: Verdana;
     font-size: 14px;
 
+    transition: opacity 5s ease-in;
+
+    &.fade-out {
+      opacity: 0;
+    }
+
     h1,
     h2,
     footer {
