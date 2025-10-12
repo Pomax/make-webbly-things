@@ -5,20 +5,21 @@ import { Rewinder } from "../files/rewind.js";
 import { handleFileHistory } from "../files/websocket-interface.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
-const { useWebsockets } = document.body.dataset;
+const { projectId, projectSlug, useWebsockets } = document.body.dataset;
 
-// These always exist
+const tabs = document.getElementById(`tabs`);
 const left = document.getElementById(`left`);
 const right = document.getElementById(`right`);
 
 /**
  * Hook up the "Add new file" and "Format this file" buttons
  */
-export function addEventHandling(projectSlug) {
+export function addEventHandling() {
   disableSaveHotkey();
-  enableDownloadButton(projectSlug);
-  connectPrettierButton(projectSlug);
-  enableRewindFunctions(projectSlug);
+  enableSettings();
+  enableDownloadButton();
+  connectPrettierButton();
+  enableRewindFunctions();
   addTabScrollHandling();
 
   // Lastly: make sure we can tell whether or not this
@@ -47,7 +48,20 @@ function disableSaveHotkey() {
 /**
  * ...docs go here...
  */
-function enableDownloadButton(projectSlug) {
+function enableSettings() {
+  const settingsIcon = document.querySelector(`.project-settings`);
+  if (!settingsIcon) return;
+
+  settingsIcon?.addEventListener(`click`, () => {
+    // TODO: this should probably not be tucked away in a template file
+    globalThis.showEditDialog(projectId);
+  });
+}
+
+/**
+ * ...docs go here...
+ */
+function enableDownloadButton() {
   const download = document.getElementById(`download`);
   if (!download) return;
 
@@ -59,7 +73,7 @@ function enableDownloadButton(projectSlug) {
 /**
  * ...docs go here...
  */
-function connectPrettierButton(projectSlug) {
+function connectPrettierButton() {
   const format = document.getElementById(`format`);
   if (!format) return;
 
@@ -80,7 +94,7 @@ function connectPrettierButton(projectSlug) {
 /**
  * ...docs go here...
  */
-function enableRewindFunctions(projectSlug) {
+function enableRewindFunctions() {
   const rewindBtn = document.getElementById(`rewind`);
   if (!rewindBtn) return;
 

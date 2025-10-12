@@ -5,44 +5,44 @@ var API = {
   // Project related calls, such as getting project health,
   // restarting the container, updating settings, etc.
   projects: {
-    download: async (projectSlug5) => {
+    download: async (projectSlug6) => {
       const a = document.createElement(`a`);
-      a.href = `${PREFIX}/projects/download/${projectSlug5}`;
+      a.href = `${PREFIX}/projects/download/${projectSlug6}`;
       a.click();
     },
-    health: async (projectSlug5) => fetch2(`projects/health/${projectSlug5}?v=${Date.now()}`).then(
+    health: async (projectSlug6) => fetch2(`projects/health/${projectSlug6}?v=${Date.now()}`).then(
       (r) => r.text()
     ),
-    remix: async (projectSlug5) => {
-      location = `${PREFIX}/projects/remix/${projectSlug5}`;
+    remix: async (projectSlug6) => {
+      location = `${PREFIX}/projects/remix/${projectSlug6}`;
     },
-    restart: async (projectSlug5) => fetch2(`projects/restart/${projectSlug5}`, {
+    restart: async (projectSlug6) => fetch2(`projects/restart/${projectSlug6}`, {
       method: `POST`
     })
   },
   // File related calls, which are mostly "CRUD"
   // (create/read/update/delete) operations.
   files: {
-    create: async (projectSlug5, fileName) => fetch2(`files/create/${projectSlug5}/${fileName}`, { method: `post` }),
-    delete: async (projectSlug5, fileName) => fetch2(`files/delete/${projectSlug5}/${fileName}`, {
+    create: async (projectSlug6, fileName) => fetch2(`files/create/${projectSlug6}/${fileName}`, { method: `post` }),
+    delete: async (projectSlug6, fileName) => fetch2(`files/delete/${projectSlug6}/${fileName}`, {
       method: `delete`
     }),
     // NOTE: there is no separate delete-dir, the delete route should just "do what needs to be done".
-    dir: async (projectSlug5) => fetch2(`files/dir/${projectSlug5}`).then((r) => r.json()),
-    format: async (projectSlug5, fileName) => fetch2(`files/format/${projectSlug5}/${fileName}`, {
+    dir: async (projectSlug6) => fetch2(`files/dir/${projectSlug6}`).then((r) => r.json()),
+    format: async (projectSlug6, fileName) => fetch2(`files/format/${projectSlug6}/${fileName}`, {
       method: `post`
     }),
-    get: async (projectSlug5, fileName) => fetch2(`files/content/${projectSlug5}/${fileName}`),
-    history: async (projectSlug5, fileName) => fetch2(`files/history/${projectSlug5}/${fileName}`).then((r) => r.json()),
-    rename: async (projectSlug5, oldPath, newPath) => fetch2(`files/rename/${projectSlug5}/${oldPath}:${newPath}`, {
+    get: async (projectSlug6, fileName) => fetch2(`files/content/${projectSlug6}/${fileName}`),
+    history: async (projectSlug6, fileName) => fetch2(`files/history/${projectSlug6}/${fileName}`).then((r) => r.json()),
+    rename: async (projectSlug6, oldPath, newPath) => fetch2(`files/rename/${projectSlug6}/${oldPath}:${newPath}`, {
       method: `post`
     }),
-    sync: async (projectSlug5, fileName, changes) => fetch2(`files/sync/${projectSlug5}/${fileName}`, {
+    sync: async (projectSlug6, fileName, changes) => fetch2(`files/sync/${projectSlug6}/${fileName}`, {
       headers: { "Content-Type": `text/plain` },
       method: `post`,
       body: changes
     }),
-    upload: async (projectSlug5, fileName, form) => fetch2(`files/upload/${projectSlug5}/${fileName}`, {
+    upload: async (projectSlug6, fileName, form) => fetch2(`files/upload/${projectSlug6}/${fileName}`, {
       method: `post`,
       body: form
     })
@@ -66,8 +66,8 @@ function create(tag, attributes = {}, evts = {}) {
   Object.entries(evts).forEach(([t2, fn]) => e2.addEventListener(t2, fn));
   return e2;
 }
-async function fetchFileContents(projectSlug5, fileName, type = `text/plain`) {
-  const response = await API.files.get(projectSlug5, fileName);
+async function fetchFileContents(projectSlug6, fileName, type = `text/plain`) {
+  const response = await API.files.get(projectSlug6, fileName);
   if (type.startsWith(`text`) || type.startsWith(`application`))
     return response.text();
   return response.arrayBuffer();
@@ -30597,7 +30597,7 @@ var Rewinder = class _Rewinder {
 
 // src/client/files/sync.js
 var { useWebsockets } = document.body.dataset;
-async function syncContent(projectSlug5, fileEntry, forced = false) {
+async function syncContent(projectSlug6, fileEntry, forced = false) {
   if (Rewinder.active && !forced) return;
   const { path: path2 } = fileEntry;
   const { editorEntry } = fileEntry.state;
@@ -30610,14 +30610,14 @@ async function syncContent(projectSlug5, fileEntry, forced = false) {
     editorEntry.setContent(newContent);
     fileEntry.updateContent(`diff`, patch);
   } else {
-    const response = await API.files.sync(projectSlug5, path2, patch);
+    const response = await API.files.sync(projectSlug6, path2, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
       editorEntry.setContent(newContent);
       updatePreview();
     } else {
       if (document.body.dataset.projectMember) {
-        editorEntry.setContent(await fetchFileContents(projectSlug5, path2));
+        editorEntry.setContent(await fetchFileContents(projectSlug6, path2));
       }
       editorEntry.contentReset = true;
       updateViewMaintainScroll2(editorEntry);
@@ -31898,7 +31898,7 @@ var CustomWebsocketInterface = class extends WebSocketInterface {
 // src/client/editor/editor-entry.js
 var { projectSlug: projectSlug2, useWebsockets: useWebsockets2 } = document.body.dataset;
 var fileTree = document.querySelector(`file-tree`);
-var tabs2 = document.getElementById(`tabs`);
+var tabs = document.getElementById(`tabs`);
 var editors = document.getElementById(`editors`);
 function getOrCreateFileEditTab(fileEntry) {
   return EditorEntry.getOrCreateFileEditTab(fileEntry);
@@ -31999,7 +31999,7 @@ var EditorEntry = class _EditorEntry {
       }
     );
     tab.addEventListener(`click`, async () => this.focus());
-    tabs2.appendChild(tab);
+    tabs.appendChild(tab);
     const close = this.close = create(
       `button`,
       {
@@ -32066,7 +32066,7 @@ var EditorEntry = class _EditorEntry {
   }
   unload() {
     const { fileEntry, tab, editor } = this;
-    tabs2.removeChild(tab);
+    tabs.removeChild(tab);
     editors.removeChild(editor);
     if (tab.classList.contains(`active`)) {
       _EditorEntry.getNext(this)?.select();
@@ -32221,20 +32221,20 @@ function ensureFileTreeWidth() {
     })
   );
 }
-async function addFileClick(fileTree3, projectSlug5) {
+async function addFileClick(fileTree3, projectSlug6) {
   fileTree3.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
     getOrCreateFileEditTab(
       fileEntry,
-      projectSlug5,
+      projectSlug6,
       fileEntry.getAttribute(`path`)
     );
     if (Rewinder.active) {
       if (useWebsockets3) {
         fileTree3.OT?.getFileHistory(fileEntry.path);
       } else {
-        const history3 = await API.files.history(projectSlug5, fileEntry.path);
-        handleFileHistory(fileEntry, projectSlug5, history3);
+        const history3 = await API.files.history(projectSlug6, fileEntry.path);
+        handleFileHistory(fileEntry, projectSlug6, history3);
       }
     }
     ensureFileTreeWidth();
@@ -32298,7 +32298,7 @@ async function uploadArchive(path2, content2, bulkUploadPaths) {
     fileTree2.createEntry(path3, isFile, content3);
   }
 }
-async function addFileCreate(fileTree3, projectSlug5) {
+async function addFileCreate(fileTree3, projectSlug6) {
   const bulkUploadPaths = [];
   fileTree3.addEventListener(`file:create`, async (evt) => {
     const { path: path2, content: content2, bulk, grant } = evt.detail;
@@ -32309,19 +32309,19 @@ async function addFileCreate(fileTree3, projectSlug5) {
       } else {
         const entry2 = await uploadFile(fileTree3, path2, content2, grant);
         if (!bulk && !bulkUploadPaths.includes(path2)) {
-          getOrCreateFileEditTab(entry2, projectSlug5, path2);
+          getOrCreateFileEditTab(entry2, projectSlug6, path2);
         }
       }
       updatePreview();
     } else {
       const runCreate = () => {
         const fileEntry = grant();
-        getOrCreateFileEditTab(fileEntry, projectSlug5, path2);
+        getOrCreateFileEditTab(fileEntry, projectSlug6, path2);
       };
       if (fileTree3.OT) {
         runCreate();
       } else {
-        const response = await API.files.create(projectSlug5, path2);
+        const response = await API.files.create(projectSlug6, path2);
         if (response instanceof Error) return;
         if (response.status === 200) {
           runCreate();
@@ -32358,7 +32358,7 @@ function updateEditorBindings(fileTreeEntry) {
   }
   fileTreeEntry.setState(entry2);
 }
-async function addFileMove(fileTree3, projectSlug5) {
+async function addFileMove(fileTree3, projectSlug6) {
   const renameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
     const runMove = () => {
@@ -32368,7 +32368,7 @@ async function addFileMove(fileTree3, projectSlug5) {
     if (fileTree3.OT) {
       return runMove();
     }
-    const response = await API.files.rename(projectSlug5, oldPath, newPath);
+    const response = await API.files.rename(projectSlug6, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       runMove();
@@ -32386,7 +32386,7 @@ async function addFileMove(fileTree3, projectSlug5) {
     updateEditorBindings(evt.detail.entry);
   });
 }
-async function addFileDelete(fileTree3, projectSlug5) {
+async function addFileDelete(fileTree3, projectSlug6) {
   fileTree3.addEventListener(`file:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     const runDelete = () => {
@@ -32399,7 +32399,7 @@ async function addFileDelete(fileTree3, projectSlug5) {
     }
     if (path2) {
       try {
-        const response = await API.files.delete(projectSlug5, path2);
+        const response = await API.files.delete(projectSlug6, path2);
         if (response instanceof Error) return;
         if (response.status === 200) {
           runDelete();
@@ -32422,25 +32422,25 @@ async function addFileDelete(fileTree3, projectSlug5) {
     editorEntry?.unload();
   });
 }
-async function addDirClick(fileTree3, projectSlug5) {
+async function addDirClick(fileTree3, projectSlug6) {
   fileTree3.addEventListener(`dir:click`, async (evt) => {
     evt.detail.grant();
     ensureFileTreeWidth();
   });
 }
-async function addDirToggle(fileTree3, projectSlug5) {
+async function addDirToggle(fileTree3, projectSlug6) {
   fileTree3.addEventListener(`dir:toggle`, async (evt) => {
     evt.detail.grant();
     ensureFileTreeWidth();
   });
 }
-async function addDirCreate(fileTree3, projectSlug5) {
+async function addDirCreate(fileTree3, projectSlug6) {
   fileTree3.addEventListener(`dir:create`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     if (fileTree3.OT) {
       grant();
     } else {
-      const response = await API.files.create(projectSlug5, path2);
+      const response = await API.files.create(projectSlug6, path2);
       if (response instanceof Error) return;
       if (response.status === 200) {
         grant();
@@ -32453,13 +32453,13 @@ async function addDirCreate(fileTree3, projectSlug5) {
     ensureFileTreeWidth();
   });
 }
-async function addDirMove(fileTree3, projectSlug5) {
+async function addDirMove(fileTree3, projectSlug6) {
   const dirRenameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
     if (fileTree3.OT) {
       grant();
     } else {
-      const response = await API.files.rename(projectSlug5, oldPath, newPath);
+      const response = await API.files.rename(projectSlug6, oldPath, newPath);
       if (response instanceof Error) return;
       if (response.status === 200) {
         grant();
@@ -32475,11 +32475,11 @@ async function addDirMove(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`dir:rename`, dirRenameHandler);
   fileTree3.addEventListener(`dir:move`, dirRenameHandler);
 }
-async function addDirDelete(fileTree3, projectSlug5) {
+async function addDirDelete(fileTree3, projectSlug6) {
   fileTree3.addEventListener(`dir:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     if (fileTree3.OT) return grant();
-    const response = await API.files.delete(projectSlug5, path2);
+    const response = await API.files.delete(projectSlug6, path2);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
@@ -32495,14 +32495,16 @@ async function addDirDelete(fileTree3, projectSlug5) {
 
 // src/client/editor/event-handling.js
 var mac2 = navigator.userAgent.includes(`Mac OS`);
-var { useWebsockets: useWebsockets4 } = document.body.dataset;
+var { projectId, projectSlug: projectSlug4, useWebsockets: useWebsockets4 } = document.body.dataset;
+var tabs2 = document.getElementById(`tabs`);
 var left = document.getElementById(`left`);
 var right = document.getElementById(`right`);
-function addEventHandling(projectSlug5) {
+function addEventHandling() {
   disableSaveHotkey();
-  enableDownloadButton(projectSlug5);
-  connectPrettierButton(projectSlug5);
-  enableRewindFunctions(projectSlug5);
+  enableSettings();
+  enableDownloadButton();
+  connectPrettierButton();
+  enableRewindFunctions();
   addTabScrollHandling();
   globalThis.addEventListener("beforeunload", () => {
     globalThis.__shutdown = true;
@@ -32519,14 +32521,21 @@ function disableSaveHotkey() {
     }
   });
 }
-function enableDownloadButton(projectSlug5) {
+function enableSettings() {
+  const settingsIcon = document.querySelector(`.project-settings`);
+  if (!settingsIcon) return;
+  settingsIcon?.addEventListener(`click`, () => {
+    globalThis.showEditDialog(projectId);
+  });
+}
+function enableDownloadButton() {
   const download = document.getElementById(`download`);
   if (!download) return;
   download.addEventListener(`click`, async () => {
-    API.projects.download(projectSlug5);
+    API.projects.download(projectSlug4);
   });
 }
-function connectPrettierButton(projectSlug5) {
+function connectPrettierButton() {
   const format = document.getElementById(`format`);
   if (!format) return;
   format.addEventListener(`click`, async () => {
@@ -32534,15 +32543,15 @@ function connectPrettierButton(projectSlug5) {
     const fileEntry = document.querySelector(`file-entry.selected`);
     const fileName = fileEntry.path;
     format.hidden = true;
-    const result = await API.files.format(projectSlug5, fileName);
+    const result = await API.files.format(projectSlug4, fileName);
     if (result instanceof Error) return;
     format.hidden = false;
     const { editorEntry } = fileEntry.state;
-    editorEntry.setContent(await fetchFileContents(projectSlug5, fileName));
+    editorEntry.setContent(await fetchFileContents(projectSlug4, fileName));
     updateViewMaintainScroll2(editorEntry);
   });
 }
-function enableRewindFunctions(projectSlug5) {
+function enableRewindFunctions() {
   const rewindBtn = document.getElementById(`rewind`);
   if (!rewindBtn) return;
   rewindBtn.addEventListener(`click`, async () => {
@@ -32562,8 +32571,8 @@ function enableRewindFunctions(projectSlug5) {
           if (useWebsockets4) {
             fileTree3.OT?.getFileHistory(path2);
           } else {
-            const history3 = await API.files.history(projectSlug5, path2);
-            handleFileHistory(fileEntry, projectSlug5, history3);
+            const history3 = await API.files.history(projectSlug4, path2);
+            handleFileHistory(fileEntry, projectSlug4, history3);
           }
         }
       }
@@ -32574,7 +32583,7 @@ function addTabScrollHandling() {
   let scrolling = false;
   function scrollTabs(step) {
     if (!scrolling) return;
-    tabs.scrollBy(step, 0);
+    tabs2.scrollBy(step, 0);
     setTimeout(() => scrollTabs(step), 4);
   }
   for (const type of [`mouseup`, `touchend`]) {
@@ -32597,10 +32606,10 @@ function addTabScrollHandling() {
 }
 
 // src/client/entry-point.js
-var { projectId, projectSlug: projectSlug4 } = document.body.dataset;
+var { projectId: projectId2, projectSlug: projectSlug5 } = document.body.dataset;
 new class Editor {
   constructor() {
-    Object.assign(this, { projectId, projectSlug: projectSlug4 });
+    Object.assign(this, { projectId: projectId2, projectSlug: projectSlug5 });
     this.init();
   }
   async init() {

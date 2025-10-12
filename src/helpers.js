@@ -6,7 +6,7 @@ import * as AuthSettings from "./server/routing/auth/settings.js";
 import express from "express";
 import nocache from "nocache";
 import helmet from "helmet";
-import ubase from "ubase.js";
+import asciify from "any-ascii";
 
 // Explicit env loading as we rely on process.env
 // at the module's top level scope...
@@ -200,7 +200,7 @@ export async function setupGit(dir, projectSlug) {
  */
 export function slugify(text) {
   text = text.replaceAll(`/`, `-`).replaceAll(`.`, ``);
-  text = ubase.basify(text).toLowerCase();
+  text = asciify(text).toLowerCase();
   return text
     .replace(/\s+/g, `-`)
     .replace(/[<\._>]/g, ``)

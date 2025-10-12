@@ -30,6 +30,7 @@
     "@codemirror/state": "^6.4.1",
     "@dotenvx/dotenvx": "^1.48.4",
     "@playwright/test": "^1.45.1",
+    "any-ascii": "^0.3.3",
     "archiver": "^7.0.1",
     "better-sqlite3": "^12.2.0",
     "better-sqlite3-session-store": "^0.1.0",

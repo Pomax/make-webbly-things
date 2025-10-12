@@ -2,6 +2,8 @@
 
 Like over on https://make.webblythings.com! (just remember to read that wall of text, because unless we're friends, I'm unlikely to activate your account on my personal instance =)
 
+See the [release notes](./RELEASE_NOTES.md) for the current release, and what changed with each release.
+
 ## Use the web to build the web
 
 <img width="100%" style="border: 1px solid black" src="public/screenshot.png">
