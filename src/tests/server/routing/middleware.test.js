@@ -8,6 +8,7 @@ import {
   concludeTesting,
   getUser,
   getProject,
+  getProjectOwners,
 } from "../../../server/database/index.js";
 import { closeReader } from "../../../setup/utils.js";
 
@@ -130,6 +131,7 @@ describe(`Universal middleware tests`, async () => {
   test("loadProjectList", async () => {
     const user = getUser(`test-user`);
     const project = getProject(`test-project`, false);
+    project.owners = getProjectOwners(project);
     const res = {
       locals: {
         user,
@@ -171,6 +173,7 @@ describe(`Universal middleware tests`, async () => {
   test("loadProjectList", async () => {
     const user = getUser(`test-user`);
     const project = getProject(`test-project`, false);
+    project.owners = getProjectOwners(project);
     const res = {
       locals: {
         user,

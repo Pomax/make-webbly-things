@@ -14,9 +14,12 @@ const editable = !!document.body.dataset.projectMember;
 /**
  * Create an initial CodeMirror6 state object
  */
-export function getInitialState(fileEntry, filename, data) {
-  const entry = fileEntry.state;
-  const doc = data.toString();
+export function getInitialState(editorEntry, doc) {
+  const { fileEntry } = editorEntry;
+  const { path } = fileEntry;
+  const fileExtension = path.substring(path.lastIndexOf(`.`) + 1);
+
+  // Our list of codemirror extensions:
   const extensions = [basicSetup, EditorView.lineWrapping];
 
   // We want to be able to toggle the editable state of our
@@ -34,22 +37,21 @@ export function getInitialState(fileEntry, filename, data) {
   // And then we need to set up a function for dispatching
   // updates that reconfigure the compartment, as a "visual
   // effect" update. That's an insane way to go about this.
-  entry.setEditable = (b) => {
+  editorEntry.setEditable = (b) => {
     const newValue = readOnly.of(!b);
     const update = readOnlyCompartment.reconfigure(newValue);
-    entry.view.dispatch({ effects: update });
+    editorEntry.view.dispatch({ effects: update });
   };
 
   // Can we add syntax highlighting? At least that's normal.
   // Provided we don't want to dynamically load any additional
   // ones later on, based on whether user needs them or not.
-  const ext = filename.substring(filename.lastIndexOf(`.`) + 1);
   const syntax = {
     css: css,
     html: html,
     js: javascript,
     md: markdown,
-  }[ext];
+  }[fileExtension];
   if (syntax) extensions.push(syntax());
 
   // Then we have to manually add debounced content change
@@ -58,20 +60,18 @@ export function getInitialState(fileEntry, filename, data) {
   // to be a meaningful thing", instead firing for every input.
   extensions.push(
     EditorView.updateListener.of((e) => {
-      const tab = e.view.tabElement;
-      if (tab && e.docChanged) {
-        const entry = fileEntry.state;
-        const reset = entry.contentReset;
-        // If we're already on a debounce schedule clear it
-        // before we set the new debounce timeout.
-        if (entry.debounce || reset) {
-          clearTimeout(entry.debounce);
-        }
-        if (!reset) {
-          entry.debounce = setTimeout(entry.sync, 1000);
-        }
-        entry.contentReset = false;
+      if (e.view !== editorEntry.view) return;
+      if (!e.docChanged) return;
+      const reset = editorEntry.contentReset;
+      // If we're already on a debounce schedule clear it
+      // before we set the new debounce timeout.
+      if (editorEntry.debounce || reset) {
+        clearTimeout(editorEntry.debounce);
       }
+      if (!reset) {
+        editorEntry.debounce = setTimeout(() => editorEntry.sync(), 1000);
+      }
+      editorEntry.contentReset = false;
     }),
   );
 
@@ -82,16 +82,14 @@ export function getInitialState(fileEntry, filename, data) {
 /**
  * Set up a CodeMirror6 view
  */
-export function setupView(parent, state) {
+export function setupView(editorEntry, data) {
   const view = new EditorView({
-    parent,
-    state,
+    parent: editorEntry.editor,
+    state: getInitialState(editorEntry, data),
     lineWrapping: true,
   });
 
-  document.addEventListener(`layout:resize`, () => {
-    view.requestMeasure();
-  });
+  document.addEventListener(`layout:resize`, () => view.requestMeasure());
 
   return view;
 }

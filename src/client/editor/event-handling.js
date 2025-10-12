@@ -66,17 +66,14 @@ function connectPrettierButton(projectSlug) {
   format.addEventListener(`click`, async () => {
     const tab = document.querySelector(`.active`);
     const fileEntry = document.querySelector(`file-entry.selected`);
-    if (fileEntry.state?.tab !== tab) {
-      throw new Error(`active tab has no associated selected file? O_o`);
-    }
     const fileName = fileEntry.path;
     format.hidden = true;
     const result = await API.files.format(projectSlug, fileName);
     if (result instanceof Error) return;
     format.hidden = false;
-    const content = await fetchFileContents(projectSlug, fileName);
-    fileEntry.setState({ content });
-    updateViewMaintainScroll(fileEntry, content);
+    const { editorEntry } = fileEntry.state;
+    editorEntry.setContent(await fetchFileContents(projectSlug, fileName));
+    updateViewMaintainScroll(editorEntry);
   });
 }
 

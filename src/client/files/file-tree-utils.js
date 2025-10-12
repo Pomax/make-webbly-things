@@ -2,7 +2,7 @@ import { API } from "../utils/api.js";
 import { ErrorNotice, Warning } from "../utils/notifications.js";
 import { getMimeType } from "./content-types.js";
 import { updatePreview } from "../preview/preview.js";
-import { getOrCreateFileEditTab } from "../editor/editor-components.js";
+import { getOrCreateFileEditTab } from "../editor/editor-entry.js";
 import { DEFAULT_FILES } from "./default-files.js";
 import { unzip } from "/vendor/unzipit.module.js";
 import { CustomWebsocketInterface } from "./websocket-interface.js";
@@ -405,8 +405,8 @@ async function addFileDelete(fileTree, projectSlug) {
 
     const runDelete = () => {
       const [entry] = grant();
-      const { close } = entry.state ?? {};
-      close?.click();
+      const { editorEntry } = entry.state ?? {};
+      editorEntry?.unload();
     };
 
     if (fileTree.OT) {
@@ -435,8 +435,8 @@ async function addFileDelete(fileTree, projectSlug) {
   fileTree.addEventListener(`ot:deleted`, async (evt) => {
     const { entries } = evt.detail;
     const [fileEntry] = entries;
-    const { close } = fileEntry.state ?? {};
-    close?.click();
+    const { editorEntry } = fileEntry.state ?? {};
+    editorEntry?.unload();
   });
 }
 

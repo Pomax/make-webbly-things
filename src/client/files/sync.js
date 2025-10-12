@@ -10,21 +10,6 @@ import { Rewinder } from "./rewind.js";
 
 const { useWebsockets } = document.body.dataset;
 
-export function createUpdateListener(entry) {
-  return async (evt) => {
-    const { type, update, ours } = evt.detail;
-    if (type === `diff`) {
-      if (!ours) {
-        const oldContent = entry.content;
-        const newContent = applyPatch(oldContent, update);
-        entry.content = newContent;
-        updateViewMaintainScroll(entry);
-      }
-      updatePreview();
-    }
-  };
-}
-
 /**
  * Sync the content of a file with the server by calculating
  * the diffing patch, sending it over to the server so it can
@@ -36,12 +21,12 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
   if (Rewinder.active && !forced) return;
 
   const { path } = fileEntry;
-  const entry = fileEntry.state;
-  if (entry.noSync) return;
+  const { editorEntry } = fileEntry.state;
+  if (!editorEntry.editable) return;
 
   // Do we even have something to sync, here?
-  const currentContent = entry.content;
-  const newContent = entry.view.state.doc.toString();
+  const { content: currentContent, view } = editorEntry;
+  const newContent = view.state.doc.toString();
   if (newContent === currentContent) return;
 
   // We do!
@@ -49,7 +34,7 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
 
   // sync via websocket or REST?
   if (useWebsockets) {
-    entry.content = newContent;
+    editorEntry.setContent(newContent);
     fileEntry.updateContent(`diff`, patch);
   }
 
@@ -58,7 +43,7 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
     const response = await API.files.sync(projectSlug, path, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
-      entry.content = newContent;
+      editorEntry.setContent(newContent);
       updatePreview();
     } else {
       // If we get here, then something went wrong.
@@ -70,14 +55,14 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
       // Or, much more likely, the user's content has become desynced
       // somehow and we resync it.
       if (document.body.dataset.projectMember) {
-        entry.content = await fetchFileContents(projectSlug, path);
+        editorEntry.setContent(await fetchFileContents(projectSlug, path));
       }
-      entry.contentReset = true;
-      updateViewMaintainScroll(entry);
+      editorEntry.contentReset = true;
+      updateViewMaintainScroll(editorEntry);
     }
   }
 
   // finally, clear the debounc flag because we just sent off
   // all the accumulated data we had pending transmission.
-  entry.debounce = false;
+  editorEntry.debounce = false;
 }

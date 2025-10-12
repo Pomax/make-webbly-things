@@ -176,7 +176,7 @@ html {
           align-items: flex-end;
           padding: 0 0.5em;
 
-          .tab {
+          .editor.tab {
             cursor: pointer;
             border: 1px solid black;
             border-radius: 0.5em 0.5em 0 0;
@@ -217,21 +217,27 @@ html {
 
       #editors {
         --editor-height: calc(100% - var(--tab-bar-height) - 5px);
+
         min-height: var(--editor-height);
         max-height: var(--editor-height);
         overflow: auto;
         border: 1px solid grey;
         width: calc(100% - 2px);
 
-        .editor.tab {
+        .editor.panel {
+          display: none;
           width: 100%;
-        }
 
-        img,
-        audio,
-        video {
-          margin: 2em;
-          max-width: calc(100% - 4em);
+          &.active {
+            display: block;
+          }
+
+          img,
+          audio,
+          video {
+            margin: 2em;
+            max-width: calc(100% - 4em);
+          }
         }
       }
 

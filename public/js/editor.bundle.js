@@ -80,9 +80,9 @@ function listEquals(a1, a2) {
   if (a1.length !== a2.length) return false;
   return a1.every((v, i) => a2[i] === v);
 }
-async function updateViewMaintainScroll(entry, content2 = entry.content, editable3 = true) {
-  const { view } = entry;
-  entry.setEditable(editable3);
+async function updateViewMaintainScroll2(editorEntry, content2 = editorEntry.content, editable3 = editorEntry.editable) {
+  const { view } = editorEntry;
+  editorEntry.setEditable(editable3);
   const { doc: doc2, selection } = view.state;
   const cursor = doc2.lineAt(selection.main.head);
   const line = doc2.line(cursor.number);
@@ -11532,9 +11532,9 @@ var EditorView = class _EditorView {
     if (line.length > MaxBidiLine)
       return trivialOrder(line.length);
     let dir = this.textDirectionAt(line.from), isolates;
-    for (let entry of this.bidiCache) {
-      if (entry.from == line.from && entry.dir == dir && (entry.fresh || isolatesEq(entry.isolates, isolates = getIsolatedRanges(this, line))))
-        return entry.order;
+    for (let entry2 of this.bidiCache) {
+      if (entry2.from == line.from && entry2.dir == dir && (entry2.fresh || isolatesEq(entry2.isolates, isolates = getIsolatedRanges(this, line))))
+        return entry2.order;
     }
     if (!isolates)
       isolates = getIsolatedRanges(this, line);
@@ -11745,9 +11745,9 @@ var CachedOrder = class _CachedOrder {
       return cache2;
     let result = [], lastDir = cache2.length ? cache2[cache2.length - 1].dir : Direction.LTR;
     for (let i = Math.max(0, cache2.length - 10); i < cache2.length; i++) {
-      let entry = cache2[i];
-      if (entry.dir == lastDir && !changes.touchesRange(entry.from, entry.to))
-        result.push(new _CachedOrder(changes.mapPos(entry.from, 1), changes.mapPos(entry.to, -1), entry.dir, entry.isolates, false, entry.order));
+      let entry2 = cache2[i];
+      if (entry2.dir == lastDir && !changes.touchesRange(entry2.from, entry2.to))
+        result.push(new _CachedOrder(changes.mapPos(entry2.from, 1), changes.mapPos(entry2.to, -1), entry2.dir, entry2.isolates, false, entry2.order));
     }
     return result;
   }
@@ -29729,58 +29729,54 @@ function htmlTagCompletions() {
 
 // src/client/editor/code-mirror-6.js
 var editable2 = !!document.body.dataset.projectMember;
-function getInitialState(fileEntry, filename, data3) {
-  const entry = fileEntry.state;
-  const doc2 = data3.toString();
+function getInitialState(editorEntry, doc2) {
+  const { fileEntry } = editorEntry;
+  const { path: path2 } = fileEntry;
+  const fileExtension = path2.substring(path2.lastIndexOf(`.`) + 1);
   const extensions = [basicSetup, EditorView.lineWrapping];
   const readOnly2 = EditorState.readOnly;
   const readOnlyCompartment = new Compartment();
   extensions.push(readOnlyCompartment.of(readOnly2.of(!editable2)));
-  entry.setEditable = (b) => {
+  editorEntry.setEditable = (b) => {
     const newValue = readOnly2.of(!b);
     const update = readOnlyCompartment.reconfigure(newValue);
-    entry.view.dispatch({ effects: update });
+    editorEntry.view.dispatch({ effects: update });
   };
-  const ext = filename.substring(filename.lastIndexOf(`.`) + 1);
   const syntax = {
     css,
     html,
     js: javascript,
     md: markdown
-  }[ext];
+  }[fileExtension];
   if (syntax) extensions.push(syntax());
   extensions.push(
     EditorView.updateListener.of((e2) => {
-      const tab = e2.view.tabElement;
-      if (tab && e2.docChanged) {
-        const entry2 = fileEntry.state;
-        const reset = entry2.contentReset;
-        if (entry2.debounce || reset) {
-          clearTimeout(entry2.debounce);
-        }
-        if (!reset) {
-          entry2.debounce = setTimeout(entry2.sync, 1e3);
-        }
-        entry2.contentReset = false;
+      if (e2.view !== editorEntry.view) return;
+      if (!e2.docChanged) return;
+      const reset = editorEntry.contentReset;
+      if (editorEntry.debounce || reset) {
+        clearTimeout(editorEntry.debounce);
       }
+      if (!reset) {
+        editorEntry.debounce = setTimeout(() => editorEntry.sync(), 1e3);
+      }
+      editorEntry.contentReset = false;
     })
   );
   return EditorState.create({ doc: doc2, extensions });
 }
-function setupView(parent, state) {
+function setupView(editorEntry, data3) {
   const view = new EditorView({
-    parent,
-    state,
+    parent: editorEntry.editor,
+    state: getInitialState(editorEntry, data3),
     lineWrapping: true
   });
-  document.addEventListener(`layout:resize`, () => {
-    view.requestMeasure();
-  });
+  document.addEventListener(`layout:resize`, () => view.requestMeasure());
   return view;
 }
 
 // src/client/files/sync.js
-import { createPatch, applyPatch as applyPatch2 } from "/vendor/diff.js";
+import { createPatch, applyPatch as applyPatch3 } from "/vendor/diff.js";
 
 // public/vendor/diff.js
 function Diff() {
@@ -30318,7 +30314,7 @@ function distanceIterator(start, minLine, maxLine) {
     }
   };
 }
-function applyPatch(source, uniDiff) {
+function applyPatch2(source, uniDiff) {
   var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
   if (typeof uniDiff === "string") {
     uniDiff = parsePatch(uniDiff);
@@ -30419,22 +30415,24 @@ var Rewinder = class _Rewinder {
   pos = 0;
   points = [];
   constructor(basePath, fileEntry) {
+    const { editorEntry } = fileEntry.state;
     _Rewinder.rewinders.push(this);
     Object.assign(this, {
       basePath,
       fileEntry,
-      content: fileEntry.state.content
+      content: editorEntry.content
     });
   }
   hide() {
+    const { fileEntry, ui } = this;
     this.open = false;
-    this.ui.classList.toggle(`hidden`, true);
-    this.fileEntry.state.setEditable(true);
+    ui.classList.toggle(`hidden`, true);
+    fileEntry.state.editorEntry.setEditable(true);
   }
   show() {
     const { fileEntry, points, ui } = this;
     _Rewinder.rewinders.forEach((r) => r.hide());
-    fileEntry.state.setEditable(false);
+    fileEntry.state.editorEntry.setEditable(false);
     ui.classList.toggle(`hidden`, false);
     points[this.pos]?.click();
     this.open = true;
@@ -30516,10 +30514,9 @@ var Rewinder = class _Rewinder {
    */
   setupKeyListeners(ui, points) {
     const { fileEntry } = this;
-    const { tab } = fileEntry.state;
     const handleKeyInput = ({ key }) => {
       const { pos } = this;
-      if (!tab.classList.contains(`active`)) {
+      if (!fileEntry.classList.contains(`selected`)) {
         return;
       }
       if (key === `ArrowLeft`) {
@@ -30539,6 +30536,7 @@ var Rewinder = class _Rewinder {
   }
   back() {
     const { fileEntry, history: history3, pos } = this;
+    const { editorEntry } = fileEntry.state;
     if (pos === history3.length - 1) return;
     const { hash: hash2, reverse } = history3[pos];
     let newContent;
@@ -30550,12 +30548,12 @@ var Rewinder = class _Rewinder {
       let { content: content2 } = this;
       if (!content2) content2 = `
 `;
-      newContent = applyPatch(content2, reverse);
+      newContent = applyPatch2(content2, reverse);
       if (newContent === false) {
         throw new Error(`could not apply patch`);
       }
     }
-    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    updateViewMaintainScroll2(editorEntry, newContent, false);
     this.content = newContent;
     this.pos = this.pos + 1;
     fileEntry.classList.add(`revision`);
@@ -30575,12 +30573,12 @@ var Rewinder = class _Rewinder {
     } else if (forward.delete) {
       newContent = ``;
     } else {
-      newContent = applyPatch(content2, forward);
+      newContent = applyPatch2(content2, forward);
       if (newContent === false) {
         throw new Error(`could not apply patch`);
       }
     }
-    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    updateViewMaintainScroll2(fileEntry.state.editorEntry, newContent, false);
     this.content = newContent;
     if (this.pos === 0) {
       fileEntry.classList.remove(`revision`);
@@ -30599,47 +30597,33 @@ var Rewinder = class _Rewinder {
 
 // src/client/files/sync.js
 var { useWebsockets } = document.body.dataset;
-function createUpdateListener(entry) {
-  return async (evt) => {
-    const { type, update, ours } = evt.detail;
-    if (type === `diff`) {
-      if (!ours) {
-        const oldContent = entry.content;
-        const newContent = applyPatch2(oldContent, update);
-        entry.content = newContent;
-        updateViewMaintainScroll(entry);
-      }
-      updatePreview();
-    }
-  };
-}
 async function syncContent(projectSlug5, fileEntry, forced = false) {
   if (Rewinder.active && !forced) return;
   const { path: path2 } = fileEntry;
-  const entry = fileEntry.state;
-  if (entry.noSync) return;
-  const currentContent = entry.content;
-  const newContent = entry.view.state.doc.toString();
+  const { editorEntry } = fileEntry.state;
+  if (!editorEntry.editable) return;
+  const { content: currentContent, view } = editorEntry;
+  const newContent = view.state.doc.toString();
   if (newContent === currentContent) return;
   const patch = createPatch(path2, currentContent, newContent);
   if (useWebsockets) {
-    entry.content = newContent;
+    editorEntry.setContent(newContent);
     fileEntry.updateContent(`diff`, patch);
   } else {
     const response = await API.files.sync(projectSlug5, path2, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
-      entry.content = newContent;
+      editorEntry.setContent(newContent);
       updatePreview();
     } else {
       if (document.body.dataset.projectMember) {
-        entry.content = await fetchFileContents(projectSlug5, path2);
+        editorEntry.setContent(await fetchFileContents(projectSlug5, path2));
       }
-      entry.contentReset = true;
-      updateViewMaintainScroll(entry);
+      editorEntry.contentReset = true;
+      updateViewMaintainScroll2(editorEntry);
     }
   }
-  entry.debounce = false;
+  editorEntry.debounce = false;
 }
 
 // node_modules/custom-file-tree/src/utils/utils.js
@@ -30996,9 +30980,9 @@ var WebSocketInterface = class {
   async oncreate({ path: path2, isFile, from }) {
     const { id: id2, fileTree: fileTree3 } = this;
     if (from === id2) return;
-    const entry = fileTree3.__create(path2, isFile);
+    const entry2 = fileTree3.__create(path2, isFile);
     fileTree3.dispatchEvent(
-      new CustomEvent(`ot:created`, { detail: { entry, path: path2, isFile } })
+      new CustomEvent(`ot:created`, { detail: { entry: entry2, path: path2, isFile } })
     );
   }
   /**
@@ -31044,10 +31028,10 @@ var WebSocketInterface = class {
   async onmove({ isFile, oldPath, newPath, from }) {
     const { id: id2, fileTree: fileTree3 } = this;
     if (from === id2) return;
-    const entry = fileTree3.__move(isFile, oldPath, newPath);
+    const entry2 = fileTree3.__move(isFile, oldPath, newPath);
     fileTree3.dispatchEvent(
       new CustomEvent(`ot:moved`, {
-        detail: { entry, isFile, oldPath, newPath }
+        detail: { entry: entry2, isFile, oldPath, newPath }
       })
     );
   }
@@ -31149,23 +31133,23 @@ async function processUpload(root, items, dirPath = ``) {
       const updatedPath = path2 + item.name + "/";
       root.createEntry(updatedPath, false, false, bulkUpload);
       item.createReader().readEntries(async (entries) => {
-        for (let entry of entries) await iterate(entry, updatedPath);
+        for (let entry2 of entries) await iterate(entry2, updatedPath);
       });
     }
   }
   for (let item of items) {
     try {
-      let entry;
-      if (!entry && item instanceof File) {
-        entry = item;
+      let entry2;
+      if (!entry2 && item instanceof File) {
+        entry2 = item;
       }
-      if (!entry && item.webkitGetAsEntry) {
-        entry = item.webkitGetAsEntry() ?? entry;
+      if (!entry2 && item.webkitGetAsEntry) {
+        entry2 = item.webkitGetAsEntry() ?? entry2;
       }
-      if (!entry && item.getAsFile) {
-        entry = item.getAsFile();
+      if (!entry2 && item.getAsFile) {
+        entry2 = item.getAsFile();
       }
-      await iterate(entry);
+      await iterate(entry2);
     } catch (e2) {
       return alert(localeStrings.INVALID_UPLOAD_TYPE(item.kind));
     }
@@ -31235,20 +31219,20 @@ function makeDropZone(dirEntry) {
   }
   return abortController;
 }
-function inThisDir(dir, entry) {
-  if (entry === dir) return true;
-  return entry.closest(`dir-entry`) === dir;
+function inThisDir(dir, entry2) {
+  if (entry2 === dir) return true;
+  return entry2.closest(`dir-entry`) === dir;
 }
 function processDragMove(dirEntry, entryId) {
-  const entry = dirEntry.findInTree(`[data-id="${entryId}"]`);
-  delete entry.dataset.id;
-  entry.classList.remove(`dragging`);
-  if (entry === dirEntry) return;
-  const oldPath = entry.path;
+  const entry2 = dirEntry.findInTree(`[data-id="${entryId}"]`);
+  delete entry2.dataset.id;
+  entry2.classList.remove(`dragging`);
+  if (entry2 === dirEntry) return;
+  const oldPath = entry2.path;
   let dirPath = dirEntry.path;
-  let newPath = (dirPath !== `.` ? dirPath : ``) + entry.name;
-  if (entry.isDir) newPath += `/`;
-  dirEntry.root.moveEntry(entry, oldPath, newPath);
+  let newPath = (dirPath !== `.` ? dirPath : ``) + entry2.name;
+  if (entry2.isDir) newPath += `/`;
+  dirEntry.root.moveEntry(entry2, oldPath, newPath);
 }
 
 // node_modules/custom-file-tree/src/classes/dir-entry.js
@@ -31411,8 +31395,8 @@ var DirEntry = class extends FileTreeElement {
    * never need to do any recursion: if there's an addEntry, that entry
    * goes here.
    */
-  addEntry(entry) {
-    this.appendChild(entry);
+  addEntry(entry2) {
+    this.appendChild(entry2);
     this.sort();
   }
   /**
@@ -31664,26 +31648,26 @@ var FileTree = class extends FileTreeElement {
     return this.OT?.update(path2, type, update);
   }
   // A rename is a relocation where only the last part of the path changed.
-  renameEntry(entry, newName) {
-    const isFile = !!entry.isFile;
-    const oldPath = entry.path;
-    const pos = oldPath.lastIndexOf(entry.name);
+  renameEntry(entry2, newName) {
+    const isFile = !!entry2.isFile;
+    const oldPath = entry2.path;
+    const pos = oldPath.lastIndexOf(entry2.name);
     let newPath = oldPath.substring(0, pos) + newName;
-    if (entry.isDir) newPath += `/`;
-    const eventType = (entry.isFile ? `file` : `dir`) + `:rename`;
+    if (entry2.isDir) newPath += `/`;
+    const eventType = (entry2.isFile ? `file` : `dir`) + `:rename`;
     this.#relocateEntry(isFile, oldPath, newPath, eventType);
   }
   // A move is a relocation where everything *but* the last part of the path may have changed.
-  moveEntry(entry, oldPath, newPath) {
-    const isFile = !!entry.isFile;
-    const eventType = (entry.isFile ? `file` : `dir`) + `:move`;
+  moveEntry(entry2, oldPath, newPath) {
+    const isFile = !!entry2.isFile;
+    const eventType = (entry2.isFile ? `file` : `dir`) + `:move`;
     this.#relocateEntry(isFile, oldPath, newPath, eventType);
   }
   // Deletes are a DOM removal of the entry itself, and a pruning
   // of the path -> entry map for any entry that started with the
   // same path, so we don't end up with any orphans.
-  removeEntry(entry) {
-    const { path: path2, isFile, parentDir } = entry;
+  removeEntry(entry2) {
+    const { path: path2, isFile, parentDir } = entry2;
     const eventType = (isFile ? `file` : `dir`) + `:delete`;
     const detail = { path: path2, emptyDir: this.removeEmptyDir };
     this.emit(eventType, detail, () => {
@@ -31713,10 +31697,10 @@ var FileTree = class extends FileTreeElement {
     }
     const detail = { path: path2, content: content2, bulk };
     const grant = (processedContent = content2) => {
-      const entry = this.__create(path2, isFile);
+      const entry2 = this.__create(path2, isFile);
       if (!bypassOT) this.OT?.create(path2, isFile, processedContent);
-      detail.entry = entry;
-      return entry;
+      detail.entry = entry2;
+      return entry2;
     };
     if (immediate) return grant();
     this.emit(eventType, detail, grant);
@@ -31765,10 +31749,10 @@ var FileTree = class extends FileTreeElement {
     }
     const detail = { oldPath, newPath };
     this.emit(eventType, detail, () => {
-      const entry = this.__move(isFile, oldPath, newPath);
+      const entry2 = this.__move(isFile, oldPath, newPath);
       this.OT?.move(isFile, oldPath, newPath);
-      detail.entry = entry;
-      return entry;
+      detail.entry = entry2;
+      return entry2;
     });
   }
   // ================================================================================================
@@ -31776,29 +31760,29 @@ var FileTree = class extends FileTreeElement {
   __create(path2, isFile) {
     const { entries } = this;
     const EntryType = isFile ? FileEntry : DirEntry;
-    const entry = entries[path2] = new EntryType();
-    entry.path = path2;
-    this.#mkdir(entry).addEntry(entry);
-    return entry;
+    const entry2 = entries[path2] = new EntryType();
+    entry2.path = path2;
+    this.#mkdir(entry2).addEntry(entry2);
+    return entry2;
   }
   // move notification via websocket or immediate code path:
   __move(isFile, oldPath, newPath, when) {
     const { entries } = this;
-    const entry = entries[oldPath];
+    const entry2 = entries[oldPath];
     Object.keys(entries).forEach((key) => {
       if (key.startsWith(oldPath)) {
-        const entry2 = entries[key];
-        const updated = entry2.updatePath(isFile, oldPath, newPath);
+        const entry3 = entries[key];
+        const updated = entry3.updatePath(isFile, oldPath, newPath);
         if (updated) {
-          entries[entry2.path] = entry2;
+          entries[entry3.path] = entry3;
           delete entries[key];
         }
       }
     });
-    const { dirPath } = entries[newPath] = entry;
+    const { dirPath } = entries[newPath] = entry2;
     let dir = dirPath ? entries[dirPath] : this.rootDir;
-    dir.addEntry(entry);
-    return entry;
+    dir.addEntry(entry2);
+    return entry2;
   }
   // update notification via websocket or immediate code path:
   __update(path2, type, update, ours) {
@@ -31809,16 +31793,16 @@ var FileTree = class extends FileTreeElement {
   // delete notification via websocket or immediate code path:
   __delete(path2, isFile, when) {
     const { entries } = this;
-    const entry = entries[path2];
-    const removed = [entry];
+    const entry2 = entries[path2];
+    const removed = [entry2];
     if (isFile) {
-      entry.remove();
+      entry2.remove();
       delete entries[path2];
     } else {
-      Object.entries(entries).forEach(([key, entry2]) => {
+      Object.entries(entries).forEach(([key, entry3]) => {
         if (key.startsWith(path2)) {
-          removed.push(entry2);
-          entry2.remove();
+          removed.push(entry3);
+          entry3.remove();
           delete entries[key];
         }
       });
@@ -31828,9 +31812,9 @@ var FileTree = class extends FileTreeElement {
   // ================================================================================================
   // Select an entry by its path
   select(path2) {
-    const entry = this.entries[path2];
-    if (!entry) throw new Error(localeStrings.PATH_DOES_NOT_EXIST(path2));
-    entry.select();
+    const entry2 = this.entries[path2];
+    if (!entry2) throw new Error(localeStrings.PATH_DOES_NOT_EXIST(path2));
+    entry2.select();
   }
   // Counterpart to select()
   unselect() {
@@ -31838,21 +31822,21 @@ var FileTree = class extends FileTreeElement {
   }
   // Entry selection depends on the element, so we hand that
   // off to the entry itself once granted. (if granted)
-  selectEntry(entry, detail = {}) {
-    const eventType = (entry.isFile ? `file` : `dir`) + `:click`;
-    detail.path = entry.path;
+  selectEntry(entry2, detail = {}) {
+    const eventType = (entry2.isFile ? `file` : `dir`) + `:click`;
+    detail.path = entry2.path;
     this.emit(eventType, detail, () => {
-      entry.select();
-      detail.entry = entry;
-      return entry;
+      entry2.select();
+      detail.entry = entry2;
+      return entry2;
     });
   }
-  toggleDirectory(entry, detail = {}) {
+  toggleDirectory(entry2, detail = {}) {
     const eventType = `dir:toggle`;
-    detail.path = entry.path;
+    detail.path = entry2.path;
     this.emit(eventType, detail, () => {
-      detail.entry = entry;
-      entry.toggle();
+      detail.entry = entry2;
+      entry2.toggle();
     });
   }
   sort() {
@@ -31911,47 +31895,158 @@ var CustomWebsocketInterface = class extends WebSocketInterface {
   }
 };
 
-// src/client/editor/editor-components.js
-var { projectId, projectSlug: projectSlug2, useWebsockets: useWebsockets2 } = document.body.dataset;
+// src/client/editor/editor-entry.js
+var { projectSlug: projectSlug2, useWebsockets: useWebsockets2 } = document.body.dataset;
 var fileTree = document.querySelector(`file-tree`);
 var tabs2 = document.getElementById(`tabs`);
 var editors = document.getElementById(`editors`);
-var settingsIcon = document.querySelector(`.project-settings`);
-settingsIcon?.addEventListener(`click`, () => {
-  showEditDialog(projectId);
-});
-function setupEditorPanel(filename) {
-  const panel = create(`div`);
-  panel.id = filename;
-  panel.classList.add(`editor`, `tab`);
-  return panel;
+function getOrCreateFileEditTab(fileEntry) {
+  return EditorEntry.getOrCreateFileEditTab(fileEntry);
 }
-function setupEditorTab(filename) {
-  const tab = create(`div`);
-  tab.title = filename;
-  tab.textContent = filename.includes(`/`) ? filename.substring(filename.lastIndexOf(`/`) + 1) : filename;
-  document.querySelectorAll(`.active`).forEach((e2) => e2.classList.remove(`active`));
-  tab.classList.add(`tab`, `active`);
-  const close = create(`button`);
-  close.textContent = `x`;
-  close.classList.add(`close`);
-  tab.appendChild(close);
-  return { tab, close };
-}
-function addEditorEventHandling(fileEntry, panel, tab, close, view) {
-  tab.addEventListener(`click`, async () => {
-    if (!fileEntry.state) return;
-    if (!fileEntry.state.tab) return;
-    if (!fileEntry.parentNode) return;
-    if (!fileEntry.select) return;
+var EditorEntry = class _EditorEntry {
+  // Static properties and methods
+  static entries = [];
+  static addEntry(entry2) {
+    this.entries.push(entry2);
+  }
+  static removeEntry(entry2) {
+    const pos = this.entries.indexOf(entry2);
+    this.entries.splice(pos, 1);
+  }
+  static getEntries() {
+    return this.entries;
+  }
+  static getNext(reference) {
+    const pos = this.entries.indexOf(reference);
+    if (pos > 0) return this.entries[pos - 1];
+    return this.entries[pos + 1];
+  }
+  static getOrCreateFileEditTab(fileEntry) {
+    const entry2 = this.entries.find((e2) => e2.fileEntry === fileEntry);
+    if (entry2) return entry2.select();
+    return new _EditorEntry(fileEntry);
+  }
+  // Instance properties and methods
+  editable = false;
+  contentReset = false;
+  debounce = false;
+  setEditable = () => {
+  };
+  // Relies on the function binding performed in getInitialState()
+  constructor(fileEntry) {
+    this.fileEntry = fileEntry;
+    _EditorEntry.entries.push(this);
+    fileEntry.setState({ editorEntry: this });
+    this.select();
+  }
+  async select() {
+    if (!this.editor) await this.load();
+    this.focus();
+    return this;
+  }
+  async getFileData(mimetype) {
+    const { fileEntry } = this;
+    0;
+    let data3;
+    if (fileEntry.root.OT) {
+      ({ data: data3 } = await fileEntry.load());
+    } else {
+      try {
+        data3 = await fetchFileContents(projectSlug2, path, mimetype);
+      } catch (e2) {
+      }
+    }
+    return data3 || new ErrorNotice(`Could not load ${path}`);
+  }
+  async load() {
+    const { fileEntry } = this;
+    const { path: path2 } = this.fileEntry;
+    const filename = path2.split(`/`).at(-1);
+    const viewType = getViewType(filename);
+    const { text, unknown, media, type } = viewType;
+    const data3 = await this.getFileData(type);
+    const verified = verifyViewType(viewType.type, data3);
+    if (!verified) {
+      return new ErrorNotice(
+        `Content for ${path2} does not match the file extension!`
+      );
+    }
+    this.editable = viewType.editable;
+    this.createEditorPanel();
+    if (text || unknown) {
+      this.setTextContent(data3);
+    } else if (media) {
+      const key = `${projectSlug2}/${path2}`;
+      this.setMediaContent(type, key);
+    }
+    this.createTab(path2, filename);
+    fileEntry.addEventListener(`content:update`, (evt) => this.update(evt));
+  }
+  createEditorPanel() {
+    const editor = this.editor = create(`div`, { class: `editor panel` });
+    editors.appendChild(editor);
+  }
+  createTab(path2, filename) {
+    const tab = this.tab = create(
+      `div`,
+      {
+        class: `editor tab`,
+        title: path2,
+        textContent: filename
+      },
+      {
+        click: () => this.focus()
+      }
+    );
+    tab.addEventListener(`click`, async () => this.focus());
+    tabs2.appendChild(tab);
+    const close = this.close = create(
+      `button`,
+      {
+        textContent: `x`,
+        class: `close`
+      },
+      {
+        click: () => this.unload()
+      }
+    );
+    close.addEventListener(`pointerdown`, () => this.unload());
+    close.addEventListener(`click`, () => this.unload());
+    tab.appendChild(close);
+  }
+  setTextContent(data3) {
+    if (data3.map) {
+      data3 = new TextDecoder().decode(Uint8Array.from(data3));
+    }
+    this.setContent(data3);
+    this.view = setupView(this, data3);
+  }
+  setContent(content2) {
+    this.content = content2;
+  }
+  setMediaContent(type, key) {
+    let view;
+    if (type.startsWith(`image`)) {
+      view = create(`img`);
+    } else if (type.startsWith(`audio`)) {
+      view = create(`audio`);
+      view.controls = true;
+    } else if (type.startsWith(`video`)) {
+      view = create(`video`);
+      view.controls = true;
+    }
+    view.src = `/v1/files/content/${key}`;
+    this.editor.appendChild(view);
+  }
+  async focus() {
+    const { fileEntry, editor, tab, view } = this;
     fileEntry.select();
     ensureFileTreeWidth();
-    document.querySelectorAll(`.editor`).forEach((e2) => e2.setAttribute(`hidden`, `hidden`));
-    panel.removeAttribute(`hidden`);
-    document.querySelectorAll(`.active`).forEach((e2) => e2.classList.remove(`active`));
+    _EditorEntry.entries.forEach((e2) => e2.blur());
+    editor.classList.add(`active`);
     tab.classList.add(`active`);
     tab.scrollIntoView();
-    view.focus();
+    view?.focus();
     const currentURL = location.toString().replace(location.search, ``);
     const viewURL = `${currentURL}?view=${fileEntry.path}`;
     history.replaceState(null, null, viewURL);
@@ -31963,111 +32058,48 @@ function addEditorEventHandling(fileEntry, panel, tab, close, view) {
         handleFileHistory(fileEntry, projectSlug2, history3);
       }
     }
-  });
-  const closeTab = () => {
-    if (fileEntry.state.closed) return;
-    let newTab;
+  }
+  blur() {
+    const { tab, editor, view } = this;
+    tab.classList.remove(`active`);
+    editor.classList.remove(`active`);
+  }
+  unload() {
+    const { fileEntry, tab, editor } = this;
+    tabs2.removeChild(tab);
+    editors.removeChild(editor);
     if (tab.classList.contains(`active`)) {
-      fileTree.unselect();
-      const tabs3 = Array.from(document.querySelectorAll(`div.tab`));
-      const tabPos = tabs3.findIndex((t2) => t2 === tab);
-      newTab = tabPos === 0 ? tabs3[1] : tabs3[tabPos - 1];
+      _EditorEntry.getNext(this)?.select();
     }
-    fileEntry.state.closed = true;
-    tab.remove();
-    panel.remove();
-    newTab?.click();
-  };
-  close.addEventListener(`pointerdown`, closeTab);
-  close.addEventListener(`click`, closeTab);
-}
-async function getOrCreateFileEditTab(fileEntry, projectSlug5, filename) {
-  let entry = fileEntry.state;
-  if (entry?.tab) {
-    const { closed, tab: tab2, panel: panel2 } = entry;
-    if (closed) {
-      entry.closed = false;
-      tabs2.appendChild(tab2);
-      editors.appendChild(panel2);
+    delete fileEntry.state.editorEntry;
+    _EditorEntry.removeEntry(this);
+  }
+  async update(evt) {
+    const { type, update, ours } = evt.detail;
+    if (type !== `diff`) return;
+    if (!ours) {
+      const oldContent = entry.content;
+      this.setContent(applyPatch(oldContent, update));
+      updateViewMaintainScroll(this);
     }
-    return tab2.click();
-  } else {
-    const { path: path2 } = fileEntry;
-    if (document.querySelector(`[title="${path2}"]`)) {
-      return;
-    }
+    updatePreview();
   }
-  const viewType = getViewType(filename);
-  let data3;
-  if (fileEntry.root.OT) {
-    ({ data: data3 } = await fileEntry.load());
-  } else {
-    try {
-      data3 = await fetchFileContents(projectSlug5, filename, viewType.type);
-    } catch (e2) {
-    }
+  sync() {
+    const { fileEntry, editable: editable3 } = this;
+    if (!editable3) return;
+    syncContent(projectSlug2, fileEntry);
   }
-  if (!data3) {
-    return new ErrorNotice(`Could not load ${filename}`);
+  lock() {
+    if (!this.editable) return;
+    this.editable = false;
+    this.setEditable?.(false);
   }
-  const verified = verifyViewType(viewType.type, data3);
-  if (!verified) {
-    return new ErrorNotice(`Content for ${filename} does not match extension.`);
+  unlock() {
+    if (this.editable) return;
+    this.editable = true;
+    this.setEditable?.(true);
   }
-  const panel = setupEditorPanel(filename);
-  editors.appendChild(panel);
-  const { tab, close } = setupEditorTab(filename);
-  tabs2.appendChild(tab);
-  const key = `${projectSlug5}/${filename}`;
-  let view;
-  if (viewType.text || viewType.unknown) {
-    if (data3.map) {
-      data3 = new TextDecoder().decode(Uint8Array.from(data3));
-    }
-    const initialState = getInitialState(fileEntry, filename, data3);
-    view = setupView(panel, initialState);
-  } else if (viewType.media) {
-    const { type } = viewType;
-    if (type.startsWith(`image`)) {
-      view = create(`img`);
-    } else if (type.startsWith(`audio`)) {
-      view = create(`audio`);
-      view.controls = true;
-    } else if (type.startsWith(`video`)) {
-      view = create(`video`);
-      view.controls = true;
-    }
-    view.src = `/v1/files/content/${key}`;
-    panel.appendChild(view);
-  }
-  view.tabElement = tab;
-  addEditorEventHandling(fileEntry, panel, tab, close, view);
-  const properties2 = {
-    filename,
-    tab,
-    close,
-    panel,
-    view,
-    content: viewType.editable ? view.state.doc.toString() : data3,
-    sync: () => {
-      if (viewType.editable) {
-        syncContent(projectSlug5, fileEntry);
-      }
-    },
-    noSync: !viewType.editable
-  };
-  if (entry) {
-    Object.assign(entry, properties2);
-  } else {
-    fileEntry.setState(properties2);
-    entry = fileEntry.state;
-  }
-  if (!entry.updateListener) {
-    const updateListener2 = createUpdateListener(entry);
-    fileEntry.addEventListener(`content:update`, updateListener2);
-  }
-  tab.click();
-}
+};
 
 // src/client/files/default-files.js
 var DEFAULT_FILES = [
@@ -32100,8 +32132,8 @@ fileTree2.addEventListener(`tree:ready`, async () => {
     const entries = defaultCollapse.split(`
 `).map((v) => v.trim()).filter(Boolean);
     entries.forEach((path2) => {
-      let entry = fileTree2.querySelector(`dir-entry[path="${path2}/"]`);
-      entry?.toggle(true);
+      let entry2 = fileTree2.querySelector(`dir-entry[path="${path2}/"]`);
+      entry2?.toggle(true);
     });
   }
   if (fileEntry) {
@@ -32238,9 +32270,9 @@ async function uploadFile(fileTree3, fileName, content2, grant) {
 async function uploadArchive(path2, content2, bulkUploadPaths) {
   const basePath = path2.substring(0, path2.lastIndexOf(`/`) + 1);
   let { entries } = await unzip(new Uint8Array(content2).buffer);
-  entries = Object.entries(entries).map(([path3, entry]) => ({
+  entries = Object.entries(entries).map(([path3, entry2]) => ({
     path: path3,
-    entry
+    entry: entry2
   }));
   const prefix = (function findPrefix() {
     let a = entries[0].path;
@@ -32255,10 +32287,10 @@ async function uploadArchive(path2, content2, bulkUploadPaths) {
     }
   }
   bulkUploadPaths.push(...entries.map((e2) => e2.path));
-  for await (let { path: path3, entry } of entries) {
+  for await (let { path: path3, entry: entry2 } of entries) {
     path3 = basePath + path3;
-    const arrayBuffer = await entry.arrayBuffer();
-    const isFile = !entry.isDirectory;
+    const arrayBuffer = await entry2.arrayBuffer();
+    const isFile = !entry2.isDirectory;
     let content3 = void 0;
     if (isFile && arrayBuffer.byteLength > 0) {
       content3 = new TextDecoder().decode(arrayBuffer);
@@ -32275,9 +32307,9 @@ async function addFileCreate(fileTree3, projectSlug5) {
         bulkUploadPaths.splice(0, bulkUploadPaths.length);
         uploadArchive(path2, content2, bulkUploadPaths);
       } else {
-        const entry = await uploadFile(fileTree3, path2, content2, grant);
+        const entry2 = await uploadFile(fileTree3, path2, content2, grant);
         if (!bulk && !bulkUploadPaths.includes(path2)) {
-          getOrCreateFileEditTab(entry, projectSlug5, path2);
+          getOrCreateFileEditTab(entry2, projectSlug5, path2);
         }
       }
       updatePreview();
@@ -32306,13 +32338,13 @@ async function addFileCreate(fileTree3, projectSlug5) {
   });
 }
 function updateEditorBindings(fileTreeEntry) {
-  const { path: path2, state: entry } = fileTreeEntry;
-  if (!entry) return;
+  const { path: path2, state: entry2 } = fileTreeEntry;
+  if (!entry2) return;
   let key = path2;
   if (key.includes(`/`)) {
     key = key.substring(key.lastIndexOf(`/`) + 1);
   }
-  const { tab, panel } = entry;
+  const { tab, panel } = entry2;
   if (tab) {
     tab.title = path2;
     tab.childNodes.forEach((n) => {
@@ -32324,7 +32356,7 @@ function updateEditorBindings(fileTreeEntry) {
   if (panel) {
     panel.title = panel.id = path2;
   }
-  fileTreeEntry.setState(entry);
+  fileTreeEntry.setState(entry2);
 }
 async function addFileMove(fileTree3, projectSlug5) {
   const renameHandler = async (evt) => {
@@ -32358,9 +32390,9 @@ async function addFileDelete(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`file:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     const runDelete = () => {
-      const [entry] = grant();
-      const { close } = entry.state ?? {};
-      close?.click();
+      const [entry2] = grant();
+      const { editorEntry } = entry2.state ?? {};
+      editorEntry?.unload();
     };
     if (fileTree3.OT) {
       return runDelete();
@@ -32386,8 +32418,8 @@ async function addFileDelete(fileTree3, projectSlug5) {
   fileTree3.addEventListener(`ot:deleted`, async (evt) => {
     const { entries } = evt.detail;
     const [fileEntry] = entries;
-    const { close } = fileEntry.state ?? {};
-    close?.click();
+    const { editorEntry } = fileEntry.state ?? {};
+    editorEntry?.unload();
   });
 }
 async function addDirClick(fileTree3, projectSlug5) {
@@ -32500,24 +32532,14 @@ function connectPrettierButton(projectSlug5) {
   format.addEventListener(`click`, async () => {
     const tab = document.querySelector(`.active`);
     const fileEntry = document.querySelector(`file-entry.selected`);
-    if (fileEntry.state?.tab !== tab) {
-      throw new Error(`active tab has no associated selected file? O_o`);
-    }
     const fileName = fileEntry.path;
     format.hidden = true;
     const result = await API.files.format(projectSlug5, fileName);
     if (result instanceof Error) return;
     format.hidden = false;
-    const { view } = fileEntry.state;
-    const content2 = await fetchFileContents(projectSlug5, fileName);
-    fileEntry.setState({ content: content2 });
-    view.dispatch({
-      changes: {
-        from: 0,
-        to: view.state.doc.length,
-        insert: content2
-      }
-    });
+    const { editorEntry } = fileEntry.state;
+    editorEntry.setContent(await fetchFileContents(projectSlug5, fileName));
+    updateViewMaintainScroll2(editorEntry);
   });
 }
 function enableRewindFunctions(projectSlug5) {
@@ -32575,10 +32597,10 @@ function addTabScrollHandling() {
 }
 
 // src/client/entry-point.js
-var { projectId: projectId2, projectSlug: projectSlug4 } = document.body.dataset;
+var { projectId, projectSlug: projectSlug4 } = document.body.dataset;
 new class Editor {
   constructor() {
-    Object.assign(this, { projectId: projectId2, projectSlug: projectSlug4 });
+    Object.assign(this, { projectId, projectSlug: projectSlug4 });
     this.init();
   }
   async init() {

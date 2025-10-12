@@ -5,6 +5,20 @@ export const noop = () => {};
 const { min } = Math;
 
 /**
+ * nicer than always typing document.quertySelector
+ */
+export function find(qs) {
+  return document.querySelector(qs);
+}
+
+/**
+ * nicer than always typing document.quertySelectorAll
+ */
+export function findAll(qs) {
+  return document.querySelectorAll(qs);
+}
+
+/**
  * nicer than always typing document.createElement
  */
 export function create(tag, attributes = {}, evts = {}) {
@@ -64,16 +78,16 @@ export function listEquals(a1, a2) {
  *
  * TODO: ideally we can preserve scroll position cleanly? https://github.com/Pomax/make-webbly-things/issues/105
  *
- * @param {*} entry
+ * @param {*} editorEntry
  * @param {*} content
  */
 export async function updateViewMaintainScroll(
-  entry,
-  content = entry.content,
-  editable = true,
+  editorEntry,
+  content = editorEntry.content,
+  editable = editorEntry.editable,
 ) {
-  const { view } = entry;
-  entry.setEditable(editable);
+  const { view } = editorEntry;
+  editorEntry.setEditable(editable);
   const { doc, selection } = view.state;
   const cursor = doc.lineAt(selection.main.head);
   const line = doc.line(cursor.number);

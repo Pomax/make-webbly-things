@@ -27,24 +27,26 @@ export class Rewinder {
   points = [];
 
   constructor(basePath, fileEntry) {
+    const { editorEntry } = fileEntry.state;
     Rewinder.rewinders.push(this);
     Object.assign(this, {
       basePath,
       fileEntry,
-      content: fileEntry.state.content,
+      content: editorEntry.content,
     });
   }
 
   hide() {
+    const { fileEntry, ui } = this;
     this.open = false;
-    this.ui.classList.toggle(`hidden`, true);
-    this.fileEntry.state.setEditable(true);
+    ui.classList.toggle(`hidden`, true);
+    fileEntry.state.editorEntry.setEditable(true);
   }
 
   show() {
     const { fileEntry, points, ui } = this;
     Rewinder.rewinders.forEach((r) => r.hide());
-    fileEntry.state.setEditable(false);
+    fileEntry.state.editorEntry.setEditable(false);
     ui.classList.toggle(`hidden`, false);
     points[this.pos]?.click();
     this.open = true;
@@ -142,11 +144,10 @@ export class Rewinder {
    */
   setupKeyListeners(ui, points) {
     const { fileEntry } = this;
-    const { tab } = fileEntry.state;
 
     const handleKeyInput = ({ key }) => {
       const { pos } = this;
-      if (!tab.classList.contains(`active`)) {
+      if (!fileEntry.classList.contains(`selected`)) {
         return; // obviously =)
       }
       if (key === `ArrowLeft`) {
@@ -169,6 +170,8 @@ export class Rewinder {
   back() {
     // going back in time means increasing the history position
     const { fileEntry, history, pos } = this;
+    const { editorEntry } = fileEntry.state;
+
     if (pos === history.length - 1) return;
     // console.log(`applying reverse from [${pos}]`);
     const { hash, reverse } = history[pos];
@@ -189,7 +192,7 @@ export class Rewinder {
       }
     }
 
-    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    updateViewMaintainScroll(editorEntry, newContent, false);
     this.content = newContent;
 
     this.pos = this.pos + 1;
@@ -226,7 +229,7 @@ export class Rewinder {
       }
     }
 
-    updateViewMaintainScroll(fileEntry.state, newContent, false);
+    updateViewMaintainScroll(fileEntry.state.editorEntry, newContent, false);
     this.content = newContent;
 
     if (this.pos === 0) {

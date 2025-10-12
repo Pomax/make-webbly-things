@@ -31,7 +31,7 @@ describe(`Helper function tests`, async () => {
 
   test(`getFileSum`, () => {
     // NOTE: if you update the readme, this test will need to get updated too =)
-    assert.equal(Helpers.getFileSum(`.`, `README.md`), 530223);
+    assert.equal(Helpers.getFileSum(`.`, `README.md`), 555840);
   });
 
   test(`getFreePort`, async () => {
