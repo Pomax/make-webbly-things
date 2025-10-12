@@ -16,7 +16,7 @@ export function removeCaddyEntry(project, env = process.env) {
   const re = new RegExp(`\\n${host}\\s*\\{[\\w\\W]+?\\n\\}\\n`, `gm`);
   const data = readFileSync(caddyFile).toString().replace(re, ``);
   writeFileSync(caddyFile, data);
-  spawn(`caddy`, [`reload`, `--config`, caddyFile], {
+  spawn(`caddy reload --config ${caddyFile}`, {
     shell: true,
     // stdio: `inherit`,
   });
@@ -48,7 +48,7 @@ export function startCaddy() {
     .toString()
     .match(/{[\s\r\n]*debug[\s\r\n]*}/);
 
-  spawn(`caddy`, [`start`, `--config`, caddyFile], {
+  spawn(`caddy start --config ${caddyFile}`, {
     shell: true,
     stdio: DEBUG ? `inherit` : `ignore`,
   });

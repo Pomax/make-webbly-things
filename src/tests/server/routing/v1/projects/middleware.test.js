@@ -185,7 +185,7 @@ describe(`project middlerware tests`, async () => {
     };
     await new Promise((resolve) => {
       Middleware.updateProjectSettings(req, res, async (err) => {
-        console.log(err);
+        if (err) console.log(err);
         assert.equal(!!err, false);
         // TODO: We'll need tests for all the possible setting update paths...
         //       so for now we simply touch the code path without testing it.

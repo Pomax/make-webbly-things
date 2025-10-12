@@ -1,5 +1,5 @@
 import { resolve, join } from "node:path";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 import * as User from "../server/database/user.js";
@@ -76,10 +76,7 @@ export async function createDockerProject(run = true, gracePeriod = 500) {
   // And a cleanup function...
   const cleanup = async (forceStop = false) => {
     if (run || forceStop) await Project.stopProject(project);
-    rmSync(join(CONTENT_DIR, slug), {
-      recursive: true,
-      force: true,
-    });
+    // the cleanup script will take care of the dangling dirs
   };
 
   // And then resolve after a grace period (if we started a container)

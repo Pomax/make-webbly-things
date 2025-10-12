@@ -17,7 +17,7 @@ function cwd(projectSlug) {
 export function addGitTracking(dir, msg = `initial commit`) {
   const cmd = [
     `cd ${dir}`,
-    `git init`,
+    `git init --initial-branch=main`,
     `git add .`,
     `git commit --allow-empty -m "${msg}"`,
   ];

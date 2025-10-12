@@ -371,7 +371,7 @@ export function suspendProject(project, reason, notes = ``) {
     return ProjectSuspension.create({ project_id: project.id, reason, notes });
   } catch (e) {
     console.error(e);
-    console.log(u, reason, notes);
+    console.log({ project, reason, notes });
   }
 }
 

@@ -334,7 +334,7 @@ export function suspendUser(user, reason, notes = ``) {
     return suspension;
   } catch (e) {
     console.error(e);
-    console.log(user, reason, notes);
+    console.log({ user, reason, notes });
   }
 }
 
