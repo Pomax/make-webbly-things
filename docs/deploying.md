@@ -215,3 +215,34 @@ Congratulations, you're done!
 
 Well, almost: go remix one of the starter projects, because you'll want to verify that your app domain works, too. For example, pick the `basic-html` project and click the remix button, which should open the editor interface with your remix's code as well as a preview on the right that's not actually a preview, but the actual website that got built for your project. Click the "new tab" button to load it on its own.
 
+
+# Updating your deployed instance
+
+To update your instance, you have two options:
+
+## Update to the latest release
+
+Hit up the https://github.com/Pomax/make-webbly-things/tags page and look at what the latest release is, then in the repository directory on your server, run:
+
+```
+git reset --hard
+git fetch origin
+git checkcout vX.Y.Z
+npm install
+node setup
+pm2 restart jobnumber
+```
+
+Where `vX.Y.Z` is the latest release number from the tags page, and the pm2 "jobnumber" is whichever job number `pm2 list` shows is the platform's `npm start` task. By default this is probably 0, but if you're doing some other things with pm2, it might not be.
+
+## Update to the latest commit
+
+If you just want to be on "whatever's currently on the main branch", even if it's not part of an official release yet, you can run:
+
+```
+git reset --hard
+git pull origin main
+npm install
+node setup
+pm2 restart jobnumber
+```
