@@ -44,8 +44,7 @@ describe(`Setup script tests`, async () => {
       recursive,
     );
     cpSync(join(ROOT_DIR, `data`), join(SETUP_ROOT_DIR, `data`), recursive);
-    rmSync(join(SETUP_ROOT_DIR, `data`, `data.sqlite3`));
-    rmSync(join(SETUP_ROOT_DIR, `data`, `test.sqlite3`));
+    rmSync(join(SETUP_ROOT_DIR, `data`, `data.sqlite3`), { force: true });
     await tryFor(() => {
       if (!pathExists(SETUP_ROOT_DIR)) {
         throw new Error(`come on`);

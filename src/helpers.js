@@ -150,8 +150,8 @@ export function readContentDir(dir, fileMatcher = `*`, excludes = []) {
       dirs.push(path);
       return false;
     } catch (e) {
-      // transient files like a .journal files may
-      // disappear between "ls" and "stat" operations.
+      // transient files like .journal files may
+      // vanish between "ls" and "stat" operations.
       return false;
     }
   });

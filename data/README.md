@@ -13,9 +13,7 @@ While the code already does this, if you want to do any sqlite3 debugging, remem
 
 # Testing
 
-the `test.sqlite` database is a preconfigured database for running the unit and integration tests.
-
-If you write new migrations, make sure to apply those to the test database using the sqlite3 CLI and the `.read` instruction. A migration PR should include an updated test.sqlite3!
+Each test creates a transient `uuid.test.sqlite3` file, which gets created, seeded, tested on, and then deleted as part of the `npm test` run. If your tests pass, these all get cleaned up. If your tests fail, you'll have a bunch of lingering files that can be cleaned up using `node src/tests/test-cleanup`.
 
 # pre-migration backups
 
