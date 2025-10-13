@@ -8,6 +8,7 @@ import { unzip } from "/vendor/unzipit.module.js";
 import { CustomWebsocketInterface } from "./websocket-interface.js";
 import { Rewinder } from "./rewind.js";
 import { handleFileHistory } from "./websocket-interface.js";
+import { supportFileExtension } from "./inject-file-tree-icons.js";
 
 const RETRY_INTERVAL = 3000;
 const MAX_RETRIES = 5;
@@ -26,6 +27,10 @@ const col1 = document.querySelector(`.left.column`);
  */
 fileTree.addEventListener(`tree:ready`, async () => {
   let fileEntry;
+
+  fileTree
+    .findAll(`file-entry`)
+    .forEach(({ extension }) => supportFileExtension(extension));
 
   if (defaultFile) {
     fileEntry = fileTree.querySelector(`file-entry[path="${defaultFile}"]`);
@@ -294,9 +299,10 @@ async function addFileCreate(fileTree, projectSlug) {
 
       // Single file upload
       else {
-        const entry = await uploadFile(fileTree, path, content, grant);
+        const fileEntry = await uploadFile(fileTree, path, content, grant);
         if (!bulk && !bulkUploadPaths.includes(path)) {
-          getOrCreateFileEditTab(entry, projectSlug, path);
+          supportFileExtension(fileEntry.extension);
+          getOrCreateFileEditTab(fileEntry, projectSlug, path);
         }
       }
 
@@ -307,6 +313,7 @@ async function addFileCreate(fileTree, projectSlug) {
     else {
       const runCreate = () => {
         const fileEntry = grant();
+        supportFileExtension(fileEntry.extension);
         getOrCreateFileEditTab(fileEntry, projectSlug, path);
       };
 
@@ -369,6 +376,7 @@ async function addFileMove(fileTree, projectSlug) {
 
     const runMove = () => {
       const fileEntry = grant();
+      supportFileExtension(fileEntry.extension);
       updateEditorBindings(fileEntry);
     };
 
