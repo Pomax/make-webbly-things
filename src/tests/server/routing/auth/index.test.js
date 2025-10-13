@@ -78,10 +78,7 @@ describe(`Auth function tests`, async () => {
 
   test(`addEmailAuth`, () => {
     const app = {
-      use: (path, router) => {
-        console.log(`addEmailAuth`, { path, router });
-        app[path] = router;
-      },
+      use: (path, router) => (app[path] = router),
     };
     Auth.addEmailAuth(app, {
       secret: `irrelevant`,

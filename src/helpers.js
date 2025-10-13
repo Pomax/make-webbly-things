@@ -144,10 +144,16 @@ export function readContentDir(dir, fileMatcher = `*`, excludes = []) {
     cwd: dir,
     ignore: [`.git/**`, ...excludes],
   }).filter((path) => {
-    const s = lstatSync(join(dir, path));
-    if (s.isFile()) return true;
-    dirs.push(path);
-    return false;
+    try {
+      const s = lstatSync(join(dir, path));
+      if (s.isFile()) return true;
+      dirs.push(path);
+      return false;
+    } catch (e) {
+      // transient files like a .journal files may
+      // disappear between "ls" and "stat" operations.
+      return false;
+    }
   });
 
   if (isWindows) {

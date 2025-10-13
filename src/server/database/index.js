@@ -16,6 +16,7 @@ import {
   MEMBER,
   Models,
   db,
+  dbPath,
 } from "./models.js";
 
 export { UNKNOWN_USER, NOT_ACTIVATED, OWNER, EDITOR, MEMBER, Models };
@@ -131,10 +132,6 @@ export async function getMigrationStatus() {
  */
 export async function initTestDatabase() {
   if (!TESTING) return;
-
-  // Ensure the test database is up to date
-  await applyMigrations(join(dataPath, `test.sqlite3`));
-
   const now = scrubDateTime(new Date().toISOString());
 
   // Create an admin user

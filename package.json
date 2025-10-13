@@ -18,7 +18,7 @@
     "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
     "start": "npm run precheck && node src/server/index.js",
     "test": "npm run precheck && npm run build && npm run test:node && npm run test:cleanup",
-    "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test --test-concurrency=1,1 \"./src/tests/**/*.test.js\"",
+    "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
     "lint": "npm run prettier && npm run prettier:html",
     "test:cleanup": "node ./src/tests/test-cleanup.js",
     "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/"

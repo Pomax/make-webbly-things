@@ -1,6 +1,9 @@
 import sqlite3 from "better-sqlite3";
 import { composeWhere } from "./utils.js";
 import { scrubDateTime, TESTING } from "../../helpers.js";
+import { randomUUID } from "node:crypto";
+import { resolve } from "node:path";
+import { applyMigrations } from "./utils.js";
 
 const DEBUG_SQL = false;
 
@@ -13,14 +16,24 @@ export const EDITOR = 20; // edit access, cannot delete projects, can edit proje
 export const MEMBER = 10; // edit access, cannot edit project settings
 
 // We're in ./src/server/database, and we want ./data
-const dbName = TESTING ? `test.sqlite3` : `data.sqlite3`;
-const dbPath = `${import.meta.dirname}/../../../data/${dbName}`;
+const dbName = TESTING ? `${randomUUID()}.test.sqlite3` : `data.sqlite3`;
+export const dbPath = resolve(`${import.meta.dirname}/../../../data/${dbName}`);
 
-// TESTING WARNING: REMEMBER TO CLOSE THIS DATABASE
-// OR THE TESTS WILL HANG INSTEAD OF EXITING CLEANLY.
-export const db = sqlite3(dbPath);
-
+let db = sqlite3(dbPath);
 db.pragma(`foreign_keys = ON`);
+
+if (TESTING) {
+  db.close();
+  await applyMigrations(dbPath);
+  db = sqlite3(dbPath);
+  db.pragma(`foreign_keys = ON`);
+  // ====================================================
+  //   TESTING WARNING: REMEMBER TO CLOSE THIS DATABASE
+  //   OR THE TESTS WILL HANG INSTEAD OF EXITING CLEANLY
+  // ====================================================
+}
+
+export { db };
 
 /**
  * Generic "run me this SQL" function, because sometimes you need complex queries.

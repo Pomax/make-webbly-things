@@ -10,7 +10,8 @@ import {
 } from "node:fs";
 import * as Helpers from "../../helpers.js";
 import sqlite3 from "better-sqlite3";
-const { readContentDir } = Helpers;
+import { randomUUID } from "node:crypto";
+const { readContentDir, TESTING } = Helpers;
 
 /**
  * Uplift a database, based on its `user_version` pragma,
@@ -26,7 +27,7 @@ export async function applyMigrations(dbPath) {
 
   // Do we need to bootstrap this db? (note that this may include
   // simply creating a missing table, not rebuilding the full db)
-  if (version === 0) {
+  if (!version) {
     const baseline = join(dbDir, `schema.sql`);
     execSync(`sqlite3 ${dbPath} ".read ${baseline}"`);
     version = 1;
@@ -48,13 +49,13 @@ export async function applyMigrations(dbPath) {
 
       // Are we dealing with a sql migration? If so, just apply it
       if (existsSync(sqlPath)) {
-        console.log(`- applying ${sqlPath}`);
+        if (!TESTING) console.log(`- applying ${sqlPath}`);
         execSync(`sqlite3 ${dbPath} ".read ${sqlPath}"`);
       }
 
       // If not, is it a JS migration? If so, run it.
       else if (existsSync(jsPath)) {
-        console.log(`- applying ${jsPath}`);
+        if (!TESTING) console.log(`- applying ${jsPath}`);
         await migrate(dbPath, jsPath, version);
       }
 
@@ -69,7 +70,8 @@ Please have a look at what's going on there: I'm erroring out now.
       }
     }
   }
-  console.log(`Database ${basename(dbPath)} is at version ${version}`);
+  if (!TESTING)
+    console.log(`Database ${basename(dbPath)} is at version ${version}`);
 }
 
 /**
@@ -102,20 +104,24 @@ export function composeWhere(where, suffix = []) {
 export async function migrate(dbPath, migrationScript, migrationNumber) {
   const dir = dirname(dbPath);
   const file = basename(dbPath);
-  const sqlPath = join(dir, `data.sql`);
+  const sqlTmpPath = join(dir, `${randomUUID()}.data.sql`);
   const oldDb = join(dir, `v${migrationNumber}.${file}`);
-  rmSync(sqlPath, { force: true });
-  execSync(`sqlite3 ${dbPath} .dump > ${sqlPath}`);
-  let data = readFileSync(sqlPath).toString(`utf-8`).replaceAll(/\r\n/g, `\n`);
+  rmSync(sqlTmpPath, { force: true });
+  execSync(`sqlite3 ${dbPath} .dump > ${sqlTmpPath}`);
+  let data = readFileSync(sqlTmpPath)
+    .toString(`utf-8`)
+    .replaceAll(/\r\n/g, `\n`);
   const update = await import(pathToFileURL(migrationScript)).then(
     (lib) => lib.default,
   );
   data =
     (await update(data, Helpers)) +
     `\n\PRAGMA user_version = ${migrationNumber + 1};\n`;
-  writeFileSync(sqlPath, data);
+  writeFileSync(sqlTmpPath, data);
+  await new Promise((resolve) => setTimeout(resolve, 500));
   cpSync(dbPath, oldDb);
   rmSync(dbPath);
-  execSync(`sqlite3 ${dbPath} ".read ${sqlPath}"`);
-  rmSync(sqlPath);
+  execSync(`sqlite3 ${dbPath} ".read ${sqlTmpPath}"`);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  rmSync(sqlTmpPath);
 }

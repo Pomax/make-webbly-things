@@ -14,6 +14,10 @@ execSync(`rm -rf ./content/docker-*`);
 // And screenshots
 execSync(`rm -rf ./content/__screenshots/docker-*`);
 
+// And test data
+execSync(`rm -rf ./data/*.data.sql`);
+execSync(`rm -rf ./data/*.test.sqlite3`);
+
 // Then clean up any test containers
 getAllRunningContainers()
   .filter((e) => e.image.startsWith(`docker-project-`))
