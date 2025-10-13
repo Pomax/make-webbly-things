@@ -1,5 +1,9 @@
 # Release notes
 
+## version 1.6 (13 October, 2025)
+
+This release adds extension-specific icons to the file tree, so that users can much more easily tell text files from programming source code, or images, etc. This uses the icons from https://www.npmjs.com/package/file-icon-vectors, made available through the MIT license.
+
 ## version 1.5 (12 October, 2025)
 
 Projects in user profiles are, just like the main page, ordered in reverse chronological order based on "last updated" timestamp
