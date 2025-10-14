@@ -1,12 +1,20 @@
 import { sep } from "node:path";
-import { getFreePort, TESTING } from "../../helpers.js";
+import {
+  CONTENT_BASE,
+  getFreePort,
+  STARTER_BASE,
+  TESTING,
+} from "../../helpers.js";
 import { exec, execSync } from "child_process";
 import {
   portBindings,
   removeCaddyEntry,
   updateCaddyFile,
 } from "../caddy/caddy.js";
-import { getProjectEnvironmentVariables } from "../database/index.js";
+import {
+  getProjectEnvironmentVariables,
+  isStarterProject,
+} from "../database/index.js";
 import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
 /**
@@ -130,6 +138,7 @@ export async function restartContainer(project, rebuild = false) {
 export async function runContainer(project, slug = project.slug) {
   // note: we assume the caller already checked for project
   // suspension, so we don't try to use the database here.
+  const isStarter = isStarterProject(project);
 
   console.log(`attempting to run container ${slug}`);
   let port = await getFreePort();
@@ -163,13 +172,15 @@ export async function runContainer(project, slug = project.slug) {
   if (!foundProject()) {
     console.log(`- Starting container on port ${port}`);
     const runFlags = `--detach --rm --stop-timeout 0 --name ${slug}`;
-    const bindMount = `--mount type=bind,src=.${sep}content${sep}${slug},dst=/app`;
+    const base = isStarter ? STARTER_BASE : CONTENT_BASE;
+    const bindMount = `--mount type=bind,src=.${sep}${base}${sep}${slug},dst=/app`;
     const envVars = Object.entries(getProjectEnvironmentVariables(project))
       .map(([k, v]) => `-e ${k}="${v}"`)
       .join(` `);
     const entry = `/bin/sh .container/run.sh`;
     const runCommand = `docker run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${slug} ${entry}`;
-    if (TESTING) console.log({ runCommand });
+    // if (TESTING)
+    console.log({ runCommand });
     execSync(runCommand);
   }
 
@@ -206,7 +217,14 @@ export async function runStaticServer(project) {
   console.log(`attempting to run static server for ${slug} on port ${port}`);
   const s = project.settings;
   const root = s.root_dir === null ? `` : s.root_dir;
-  const runCommand = `node src/server/static.js --project ${slug} --port ${port} --root "${root}"`;
+  const isStarter = isStarterProject(project);
+  const opts = [
+    `--project ${slug}`,
+    `--port ${port}`,
+    `--root "${root}"`,
+    isStarter ? `--starter` : ``,
+  ].join(` `);
+  const runCommand = `node src/server/static.js ${opts}`;
   console.log({ runCommand });
   const child = exec(runCommand, { shell: true, stdio: `inherit` });
   const binding = updateCaddyFile(project, port);

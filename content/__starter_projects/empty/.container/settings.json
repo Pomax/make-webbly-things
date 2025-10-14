@@ -1,5 +1,5 @@
 {
-  "description": "An completely empty project, with Node.js and Python preinstalled",
+  "description": "A completely empty project, with Node.js and Python preinstalled",
   "run_script": "# This is an empty project, with an empty run profile. If\n# you know what you're doing, this project is for you.\n# Just remember that you *need* run instructions if you \n# want your project to even do anything.\nexit\n",
   "app_type": "docker"
 }

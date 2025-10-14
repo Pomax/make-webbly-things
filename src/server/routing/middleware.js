@@ -198,6 +198,7 @@ export async function bindCommonValues(req, res, next) {
     try {
       res.locals.lookups.project = getProject(slug);
     } catch (e) {
+      // is this a starter?
       console.error(e);
       return next(e);
     }

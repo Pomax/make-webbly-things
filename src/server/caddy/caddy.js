@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { execSync, spawn } from "node:child_process";
 import { join } from "node:path";
+import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
 const caddyFile = join(import.meta.dirname, `Caddyfile`);
 const defaultCaddyFile = join(import.meta.dirname, `Caddyfile.default`);
@@ -124,6 +125,8 @@ ${host} {
     shell: true,
     stdio: `ignore`,
   });
+
+  scheduleScreenShot(project);
 
   return portBindings[slug];
 }

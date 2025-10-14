@@ -283,9 +283,8 @@ html {
       cursor: pointer;
     }
 
-    & file-entry:hover > .buttons {
+    &:not([readonly]) file-entry:hover > .buttons {
       display: inline-block;
-      height: var(--line-height);
     }
   }
 

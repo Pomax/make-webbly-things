@@ -27,16 +27,6 @@ export const files = Router();
 const prechecks = [bindCommonValues, verifyLogin, verifyEditRights];
 
 /**
- *  Get the project files for populating the <file-tree>, making sure to filter
- *  out any files that should be filtered out based on the requesting user's
- *  permissions for this project (e.g. don't show the "data" dir to viewers,
- *  don't show the .env file to collaborators, don't filter for owners)
- */
-files.get(`/dir/:project`, bindCommonValues, getDirListing, (_req, res) =>
-  res.json(res.locals.dirData),
-);
-
-/**
  * Get a file's content.
  */
 files.get(
@@ -68,6 +58,16 @@ files.delete(
   ...prechecks,
   deleteFile,
   (req, res) => res.send(`ok`),
+);
+
+/**
+ *  Get the project files for populating the <file-tree>, making sure to filter
+ *  out any files that should be filtered out based on the requesting user's
+ *  permissions for this project (e.g. don't show the "data" dir to viewers,
+ *  don't show the .env file to collaborators, don't filter for owners)
+ */
+files.get(`/dir/:project`, bindCommonValues, getDirListing, (_req, res) =>
+  res.json(res.locals.dirData),
 );
 
 /**

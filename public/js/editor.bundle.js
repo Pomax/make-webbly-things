@@ -30651,6 +30651,9 @@ var FileTreeElement = class extends HTMLElement {
   eventControllers = [];
   constructor() {
     super();
+    this.addUIElements();
+  }
+  addUIElements() {
     this.icon = this.find(`& > .icon`);
     if (!this.icon) {
       const icon = this.icon = create2(`span`);
@@ -30662,11 +30665,13 @@ var FileTreeElement = class extends HTMLElement {
       const heading2 = this.heading = create2(`entry-heading`);
       this.appendChild(heading2);
     }
-    this.buttons = this.find(`& > span.buttons`);
-    if (!this.buttons) {
-      const buttons = this.buttons = create2(`span`);
-      buttons.classList.add(`buttons`);
-      this.appendChild(buttons);
+    if (!this.readonly) {
+      this.buttons = this.find(`& > span.buttons`);
+      if (!this.buttons) {
+        const buttons = this.buttons = create2(`span`);
+        buttons.classList.add(`buttons`);
+        this.appendChild(buttons);
+      }
     }
   }
   addExternalListener(target, eventName, handler, options = {}) {
@@ -31170,21 +31175,24 @@ async function processUpload(root, items, dirPath = ``) {
 
 // node_modules/custom-file-tree/src/utils/make-drop-zone.js
 function makeDropZone(dirEntry) {
+  const { readonly } = dirEntry.root;
   const abortController = new AbortController();
-  dirEntry.draggable = true;
   const unmark = () => {
     dirEntry.findAllInTree(`.drop-target`).forEach((d) => d.classList.remove(`drop-target`));
   };
+  dirEntry.draggable = true;
   dirEntry.addEventListener(
     `dragstart`,
     (evt) => {
       evt.stopPropagation();
+      if (dirEntry.root.readonly) return;
       dirEntry.classList.add(`dragging`);
       dirEntry.dataset.id = `${Date.now()}-${Math.random()}`;
       evt.dataTransfer.setData("id", dirEntry.dataset.id);
     },
     { signal: abortController.signal }
   );
+  if (readonly) return;
   dirEntry.addEventListener(
     `dragenter`,
     (evt) => {
@@ -31249,9 +31257,9 @@ function processDragMove(dirEntry, entryId) {
 // node_modules/custom-file-tree/src/classes/dir-entry.js
 var DirEntry = class extends FileTreeElement {
   isDir = true;
-  constructor(rootDir = false) {
+  constructor(root, rootDir = false) {
     super();
-    this.addButtons(rootDir);
+    if (!root.readonly) this.addButtons(rootDir);
   }
   get path() {
     return super.path;
@@ -31470,11 +31478,14 @@ registry.define(`dir-entry`, DirEntry);
 // node_modules/custom-file-tree/src/classes/file-entry.js
 var FileEntry = class extends FileTreeElement {
   isFile = true;
-  constructor(fileName, fullPath) {
+  constructor(root, fileName, fullPath) {
     super(fileName, fullPath);
+    if (!root.readonly) this.addButtons();
+    this.addEventHandling(root.readonly);
+  }
+  addButtons() {
     this.addRenameButton();
     this.addDeleteButton();
-    this.addEventHandling();
   }
   addRenameButton() {
     if (this.hasButton(`rename-file`)) return;
@@ -31513,7 +31524,7 @@ var FileEntry = class extends FileTreeElement {
       }
     });
   }
-  addEventHandling() {
+  addEventHandling(readonly) {
     this.addEventListener(`click`, (evt) => {
       evt.preventDefault();
       evt.stopPropagation();
@@ -31522,6 +31533,7 @@ var FileEntry = class extends FileTreeElement {
     this.draggable = true;
     this.addEventListener(`dragstart`, (evt) => {
       evt.stopPropagation();
+      if (readonly) return;
       this.classList.add(`dragging`);
       this.dataset.id = `${Date.now()}-${Math.random()}`;
       evt.dataTransfer.setData("id", this.dataset.id);
@@ -31569,15 +31581,18 @@ var FileTree = class extends FileTreeElement {
   get parentDir() {
     return this.rootDir;
   }
+  get readonly() {
+    return this.hasAttribute(`readonly`);
+  }
   get removeEmptyDir() {
-    return !!this.getAttribute(`remove-empty-dir`);
+    return this.hasAttribute(`remove-empty-dir`);
   }
   clear() {
     this.ready = false;
     this.emit(`tree:clear`);
     Object.keys(this.entries).forEach((key) => delete this.entries[key]);
     if (this.rootDir) this.removeChild(this.rootDir);
-    const rootDir = this.rootDir = new DirEntry(true);
+    const rootDir = this.rootDir = new DirEntry(this, true);
     rootDir.path = `.`;
     this.appendChild(rootDir);
   }
@@ -31726,7 +31741,7 @@ var FileTree = class extends FileTreeElement {
       const subDirPath = (dir.path === `.` ? `` : dir.path) + fragment + `/`;
       let subDir = this.find(`[path="${subDirPath}"`);
       if (!subDir) {
-        subDir = new DirEntry();
+        subDir = new DirEntry(this);
         subDir.path = subDirPath;
         dir.addEntry(subDir);
         entries[subDirPath] = subDir;
@@ -31769,7 +31784,7 @@ var FileTree = class extends FileTreeElement {
   __create(path2, isFile) {
     const { entries } = this;
     const EntryType = isFile ? FileEntry : DirEntry;
-    const entry2 = entries[path2] = new EntryType();
+    const entry2 = entries[path2] = new EntryType(this);
     entry2.path = path2;
     this.#mkdir(entry2).addEntry(entry2);
     return entry2;

@@ -230,54 +230,57 @@ export async function loadProject(req, res, next) {
   const { project } = lookups;
   const { slug, settings } = project;
   const dir = join(CONTENT_DIR, slug);
+  const isStarter = isStarterProject(project);
 
-  if (!pathExists(dir)) {
+  if (!pathExists(dir) && !isStarter) {
     // not sure this is possible, but...
     return next(new Error(`No such project`));
   }
 
-  // ensure there's a git dir, just in case someone
-  // writes their own "delete the .git dir" code...
-  if (!pathExists(`${dir}/.git`)) {
-    console.log(`adding git tracking for ${dir}`);
-    addGitTracking(dir, `initial commit`);
-  }
-
   let suspended = false;
 
-  const suspensions = getProjectSuspensions(project);
-  if (suspensions.length) {
-    suspended = true;
-    if (!user?.admin)
-      return next(
-        new Error(
-          `This project has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
-        ),
-      );
-  }
-
-  if (projectSuspendedThroughOwner(project)) {
-    suspended = true;
-    if (!user?.admin) {
-      return next(
-        new Error(
-          `This project has been suspended because its project owner is suspended`,
-        ),
-      );
-    } else {
-      console.log(`Suspended project load by admin`);
+  if (!isStarter) {
+    // ensure there's a git dir, just in case someone
+    // writes their own "delete the .git dir" code...
+    if (!pathExists(`${dir}/.git`)) {
+      console.log(`adding git tracking for ${dir}`);
+      addGitTracking(dir, `initial commit`);
     }
-  }
 
-  // ensure git knows who we are.
-  setupGit(dir, slug);
+    const suspensions = getProjectSuspensions(project);
+    if (suspensions.length) {
+      suspended = true;
+      if (!user?.admin)
+        return next(
+          new Error(
+            `This project has been suspended (${suspensions.map((s) => `"${s.reason}"`).join(`, `)})`,
+          ),
+        );
+    }
+
+    if (projectSuspendedThroughOwner(project)) {
+      suspended = true;
+      if (!user?.admin) {
+        return next(
+          new Error(
+            `This project has been suspended because its project owner is suspended`,
+          ),
+        );
+      } else {
+        console.log(`Suspended project load by admin`);
+      }
+    }
+
+    // ensure git knows who we are.
+    setupGit(dir, slug);
+  }
 
   // Then get a container running
   if (!suspended) {
     const { app_type } = settings;
     const staticType = app_type === null || app_type === `static`;
     const inEditor = req.originalUrl?.startsWith(`/v1/projects/edit/`);
-    const mayEdit = getAccessFor(user, project) >= MEMBER;
+    const mayEdit = isStarter ? false : getAccessFor(user, project) >= MEMBER;
     const noStatic = inEditor && user && mayEdit;
     if (!staticType || noStatic) {
       stopStaticServer(project);
@@ -288,7 +291,7 @@ export async function loadProject(req, res, next) {
   }
 
   // is this a logged in user?
-  if (user) {
+  if (user && !isStarter) {
     // if this their project?
     const a = getAccessFor(user, project);
     if (a >= MEMBER) {
@@ -299,6 +302,7 @@ export async function loadProject(req, res, next) {
     }
   }
 
+  res.locals.starter = isStarter;
   res.locals.projectSettings = settings;
   res.locals.viewFile = req.query?.view ?? project.settings.default_file;
 

@@ -1,6 +1,11 @@
 import mime from "mime";
 import { basename, dirname, extname, join, sep } from "node:path";
-import { getAccessFor, MEMBER, touch } from "../../../database/index.js";
+import {
+  getAccessFor,
+  isStarterProject,
+  MEMBER,
+  touch,
+} from "../../../database/index.js";
 import { applyPatch } from "../../../../../public/vendor/diff.js";
 import {
   existsSync,
@@ -13,37 +18,57 @@ import {
   writeFileSync,
 } from "node:fs";
 import {
-  ROOT_DIR,
+  CONTENT_BASE,
   CONTENT_DIR,
-  createRewindPoint,
   execPromise,
   getFileSum,
   npm,
   pathExists,
   readContentDir,
+  ROOT_DIR,
+  STARTER_BASE,
+  STARTER_DIR,
 } from "../../../../helpers.js";
 import * as GitUtils from "../../../git/git-utils.js";
+const { createRewindPoint } = GitUtils;
 
 const contentDir = join(ROOT_DIR, CONTENT_DIR);
+const starterDir = join(ROOT_DIR, STARTER_DIR);
 
 /**
  * ...docs go here...
  */
 export async function confirmAccessToFile(req, res, next) {
-  const { filename, fullPath } = res.locals;
+  const { filename, lookups } = res.locals;
+  const { project } = lookups;
+  const isStarter = isStarterProject(project);
+
+  let { fullPath } = res.locals;
+  if (isStarter) {
+    fullPath = res.locals.fullPath = fullPath.replace(
+      CONTENT_BASE,
+      STARTER_BASE,
+    );
+  }
+
   const nope = (msg = `Unknown file`) => next(new Error(msg));
+
   if (!existsSync(fullPath)) {
     return nope();
   }
+
   if (lstatSync(fullPath).isDirectory()) {
     return nope(`Path is not a file`);
   }
+
   if (filename.startsWith(`.git${sep}`)) {
     return nope();
   }
+
   if (filename.startsWith(`.container${sep}`)) {
     return nope();
   }
+
   if (filename.startsWith(`.data${sep}`)) {
     const { user } = res.locals;
     const { project } = res.locals.lookups;
@@ -52,6 +77,7 @@ export async function confirmAccessToFile(req, res, next) {
     const access = getAccessFor(user, project);
     if (access < MEMBER) return nope();
   }
+
   next();
 }
 
@@ -142,12 +168,13 @@ export async function getDirListing(req, res, next) {
   const { user, lookups } = res.locals;
   const userName = user?.name;
   const { project } = lookups;
+  const isStarter = isStarterProject(project);
 
-  const dirName = join(contentDir, project.slug);
+  const dirName = join(isStarter ? starterDir : contentDir, project.slug);
 
   // Remove any "private" data from the dir listing if
   // the user has no access rights to them.
-  const accessLevel = userName ? getAccessFor(user, project) : -1;
+  const accessLevel = !isStarter && userName ? getAccessFor(user, project) : -1;
 
   const excludes = [`.container/**`];
   if (accessLevel < MEMBER) excludes.push(`.data/**`);

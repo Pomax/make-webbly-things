@@ -45,7 +45,7 @@
             {% endif %}
           </div>
           <div>
-            {% if user %}
+            {% if user and not starter %}
               {% if user.admin or projectOwner %}
                 <button
                   class="project-settings"
@@ -67,7 +67,10 @@
           </div>
         </div>
 
-        <file-tree id="filetree"></file-tree>
+        <file-tree
+          id="filetree"
+          {% if not projectMember %}readonly{% endif %}
+        ></file-tree>
       </div>
 
       <div class="full resize">

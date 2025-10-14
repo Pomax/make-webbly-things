@@ -74,6 +74,11 @@ html {
       flex-wrap: wrap;
       gap: 0.5em;
 
+      &.one-row {
+        height: 400px;
+        overflow: auto;
+      }
+
       li {
         position: relative;
         background: #fffdfa;

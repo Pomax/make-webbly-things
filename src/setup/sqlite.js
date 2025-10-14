@@ -1,5 +1,5 @@
 import sqlite3 from "better-sqlite3";
-import { mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { slugify } from "../helpers.js";
 import { applyMigrations } from "../server/database/utils.js";
@@ -29,12 +29,10 @@ export async function setupSqlite() {
 
   await Promise.all(
     starters.map((name) => {
-      const settingsFile = join(
-        starterDir,
-        name,
-        `.container`,
-        `settings.json`,
-      );
+      const starterContainerDir = join(starterDir, name, `.container`);
+      const settingsFile = join(starterContainerDir, `settings.json`);
+      const runsh = join(starterContainerDir, `run.sh`);
+
       const slug = slugify(name);
       const settings = JSON.parse(readFileSync(settingsFile).toString());
       const {
@@ -46,6 +44,8 @@ export async function setupSqlite() {
         app_type,
         root_dir,
       } = settings;
+
+      writeFileSync(runsh, run_script);
 
       // Create or update the project record:
       let result = db

@@ -1,5 +1,9 @@
 # Release notes
 
+## version 1.7 (14 October 2025)
+
+Users can now load the starter projects in the editor like any other project, which also means they are now available as normal "project cards" on a logged in users's main page, rather than being a drop down selector. Starter project cards both link to the editor, and directly to the remix URL if users already know they want to remix it.
+
 ## version 1.6 (13 October, 2025)
 
 This release adds extension-specific icons to the file tree, so that users can much more easily tell text files from programming source code, or images, etc. This uses the icons from https://www.npmjs.com/package/file-icon-vectors, made available through the MIT license.

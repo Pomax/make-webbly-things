@@ -8,7 +8,7 @@
         >{{ project.name }}</a
       >
     </h3>
-    {% if not profileUser %}
+    {% if not profileUser and not starter %}
       <h4>
         by
         {% for user in project.owners %}
@@ -54,20 +54,29 @@
     </picture>
   {% endif %}
 
-  <p class="date">
-    Created {{ project.created_at | year }}, last updated
-    {{
-      project.updated_at
-      | year
-    }}
-  </p>
+  {% if starter %}
+    <p>
+      <a
+        href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/remix/{{ project.slug }}"
+        >Click here to start a new project based on this starter!</a
+      >
+    </p>
+  {% else %}
+    <p class="date">
+      Created {{ project.created_at | year }}, last updated
+      {{
+        project.updated_at
+        | year
+      }}
+    </p>
 
-  <p>
-    <a
-      class="website"
-      href="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}"
-      target="_blank"
-      >Open as website in a new tab</a
-    >
-  </p>
+    <p>
+      <a
+        class="website"
+        href="https://{{ project.slug }}.{{ WEB_EDITOR_APPS_HOSTNAME }}"
+        target="_blank"
+        >Open as website in a new tab</a
+      >
+    </p>
+  {% endif %}
 </li>

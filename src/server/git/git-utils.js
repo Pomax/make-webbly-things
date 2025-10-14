@@ -1,10 +1,19 @@
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import * as Helpers from "../../helpers.js";
+import { isStarterProject } from "../database/project.js";
 
-const { TESTING } = Helpers;
+const { scrubDateTime, ROOT_DIR, TESTING } = Helpers;
 const CONTENT_DIR = TESTING ? `.` : Helpers.CONTENT_DIR;
 
+// Set up the things we need for scheduling git commits when
+// content changes, or the user requests an explicit rewind point:
+export const COMMIT_TIMEOUT_MS = 10_000;
+
+// We can't save timeouts to req.session so we need a separate tracker
+const COMMIT_TIMEOUTS = {};
+
+// helper function for setting the current working directory
 function cwd(projectSlug) {
   return {
     cwd: join(CONTENT_DIR, projectSlug),
@@ -22,6 +31,38 @@ export function addGitTracking(dir, msg = `initial commit`) {
     `git commit --allow-empty -m "${msg}"`,
   ];
   return execSync(cmd.join(` && `));
+}
+
+/**
+ * Schedule a git commit to capture all changes since the last time we did that.
+ * @param {*} project
+ * @param {*} reason
+ */
+export function createRewindPoint(
+  project,
+  reason = `Autosave ${scrubDateTime(new Date().toISOString())}`,
+  bypass = TESTING || isStarterProject(project),
+) {
+  if (bypass) return;
+
+  console.log(`scheduling rewind point`);
+
+  const { slug } = project;
+  const dir = join(ROOT_DIR, CONTENT_DIR, slug);
+  const debounce = COMMIT_TIMEOUTS[slug];
+  if (debounce) clearTimeout(debounce);
+
+  COMMIT_TIMEOUTS[slug] = setTimeout(async () => {
+    console.log(`creating rewind point`);
+    const cmd = `cd ${dir} && git add . && git commit --allow-empty -m "${reason}"`;
+    console.log(`running:`, cmd);
+    try {
+      execSync(cmd, { shell: true, stdio: `inherit` });
+    } catch (e) {
+      console.error(e);
+    }
+    COMMIT_TIMEOUTS[slug] = undefined;
+  }, COMMIT_TIMEOUT_MS);
 }
 
 /**

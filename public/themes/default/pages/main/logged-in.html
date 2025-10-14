@@ -8,24 +8,15 @@
 </p>
 
 {% if user.enabled_at %}
-  <h2>Start a new project</h2>
+  <h2>Start a new project!</h2>
 
   <div id="create-project-form">
-    Remix:
-    <select name="starter">
-      {% for s in starters %}
-        {% set name = s.name %}
-        <option
-          value="{{ name }}"
-          data-description="{{ s.description }}"
-          {% if name=="basic-nodejs" %}selected{% endif %}
-        >
-          {{ name }}
-        </option>
+    <ul class="one-row">
+      {% for project in starters %}
+        {% set starter = true %}
+        {% include "fragments/project-card.html" %}
       {% endfor %}
-    </select>
-    <span class="description"></span> as a new project
-    <button disabled>Let's go!</button>
+    </ul>
   </div>
 
   {% if projectList.length %}
@@ -34,10 +25,7 @@
     <ul>
       {% for project in projectList %}
         {% set ownProject = true %}
-        {%
-          include
-          "fragments/project-card.html"
-        %}
+        {% include "fragments/project-card.html" %}
       {% endfor %}
     </ul>
   {% endif %}

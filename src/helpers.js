@@ -28,12 +28,8 @@ process.env.CONTENT_BASE = CONTENT_BASE;
 export const CONTENT_DIR = isWindows ? CONTENT_BASE : `./${CONTENT_BASE}`;
 process.env.CONTENT_DIR = CONTENT_DIR;
 
-// Set up the things we need for scheduling git commits when
-// content changes, or the user requests an explicit rewind point:
-export const COMMIT_TIMEOUT_MS = 10_000;
-
-// We can't save timeouts to req.session so we need a separate tracker
-const COMMIT_TIMEOUTS = {};
+export const STARTER_BASE = join(CONTENT_BASE, `__starter_projects`);
+export const STARTER_DIR = isWindows ? STARTER_BASE : `./${STARTER_BASE}`;
 
 // Make sure all the CSP directives that need clearing are set to cleared
 const CSP_DIRECTIVES = {
@@ -49,38 +45,6 @@ const CSP_DIRECTIVES = {
   scriptSrcElem: `* data: blob: 'unsafe-inline'`,
   styleSrc: `* data: blob: 'unsafe-inline'`,
 };
-
-/**
- * Schedule a git commit to capture all changes since the last time we did that.
- * @param {*} project
- * @param {*} reason
- */
-export function createRewindPoint(
-  project,
-  reason = `Autosave ${scrubDateTime(new Date().toISOString())}`,
-  bypass = TESTING,
-) {
-  if (bypass) return;
-
-  console.log(`scheduling rewind point`);
-
-  const { slug } = project;
-  const dir = join(ROOT_DIR, CONTENT_DIR, slug);
-  const debounce = COMMIT_TIMEOUTS[slug];
-  if (debounce) clearTimeout(debounce);
-
-  COMMIT_TIMEOUTS[slug] = setTimeout(async () => {
-    console.log(`creating rewind point`);
-    const cmd = `cd ${dir} && git add . && git commit --allow-empty -m "${reason}"`;
-    console.log(`running:`, cmd);
-    try {
-      execSync(cmd, { shell: true, stdio: `inherit` });
-    } catch (e) {
-      console.error(e);
-    }
-    COMMIT_TIMEOUTS[slug] = undefined;
-  }, COMMIT_TIMEOUT_MS);
-}
 
 /**
  * A little wrapper that turns exec() into an async rather than callback call.

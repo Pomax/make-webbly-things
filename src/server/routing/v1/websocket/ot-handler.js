@@ -1,11 +1,7 @@
 import { join, dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { comms } from "./comms.js";
-import {
-  CONTENT_DIR,
-  createRewindPoint,
-  readContentDir,
-} from "../../../../helpers.js";
+import { CONTENT_DIR, readContentDir } from "../../../../helpers.js";
 import { getProject, hasAccessToProject } from "../../../database/index.js";
 import { applyPatch } from "../../../../../public/vendor/diff.js";
 import {
@@ -15,7 +11,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { getFileHistory } from "../../../git/git-utils.js";
+import { createRewindPoint, getFileHistory } from "../../../git/git-utils.js";
 import { FILE_TREE_PREFIX } from "custom-file-tree";
 
 export { FILE_TREE_PREFIX };
