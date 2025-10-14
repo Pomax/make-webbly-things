@@ -179,8 +179,7 @@ export async function runContainer(project, slug = project.slug) {
       .join(` `);
     const entry = `/bin/sh .container/run.sh`;
     const runCommand = `docker run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${slug} ${entry}`;
-    // if (TESTING)
-    console.log({ runCommand });
+    if (TESTING) console.log({ runCommand });
     execSync(runCommand);
   }
 
@@ -225,7 +224,7 @@ export async function runStaticServer(project) {
     isStarter ? `--starter` : ``,
   ].join(` `);
   const runCommand = `node src/server/static.js ${opts}`;
-  console.log({ runCommand });
+  if (TESTING) console.log({ runCommand });
   const child = exec(runCommand, { shell: true, stdio: `inherit` });
   const binding = updateCaddyFile(project, port);
   binding.serverProcess = child;
