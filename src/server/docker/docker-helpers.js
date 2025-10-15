@@ -146,7 +146,8 @@ export async function runContainer(project, slug = project.slug) {
   // Do we have an image?
   console.log(`- Checking for image`);
   let result = execSync(`docker image list`).toString().trim();
-  const foundProject = () => result.match(new RegExp(`^${slug}\\b`, `gm`));
+  const foundProject = () =>
+    result.match(new RegExp(`(^|\\s)${slug}\\b`, `gm`));
 
   // If not, build one.
   if (!foundProject()) {

@@ -85,6 +85,10 @@ process.on("SIGINT", () => {
  */
 export function updateCaddyFile(project, port, env = process.env) {
   const { slug } = project;
+
+  portBindings[slug] ??= {};
+  portBindings[slug].port = port;
+
   const data = readFileSync(caddyFile).toString();
   const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const index = data.indexOf(host);
@@ -116,9 +120,6 @@ ${host} {
 `;
 
     writeFileSync(caddyFile, data + entry);
-
-    portBindings[slug] ??= {};
-    portBindings[slug].port = port;
   }
 
   spawn(`caddy reload --config ${caddyFile}`, {
