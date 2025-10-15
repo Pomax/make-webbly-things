@@ -16,8 +16,12 @@
   <body>
     <h1>Admin interface</h1>
 
-    <p>Currently logged in as admin {{ user.name }}. Superuser status: <strong>{% if admin.superuser %}en{% else %}dis{% endif %}abled</strong>.
-      (<a href="/v1/admin/toggle/superuser">{% if admin.superuser %}dis{% else %}en{% endif %}able now</a>).
+    <p>
+      Currently logged in as admin {{ user.name }}. Superuser status:
+      <strong>{% if admin.superuser %}en{% else %}dis{% endif %}abled</strong>.
+      (<a href="/v1/admin/toggle/superuser"
+        >{% if admin.superuser %}dis{% else %}en{% endif %}able now</a
+      >).
     </p>
 
     <p>
