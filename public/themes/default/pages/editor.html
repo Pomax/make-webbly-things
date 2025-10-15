@@ -45,8 +45,8 @@
             {% endif %}
           </div>
           <div>
-            {% if user and not starter %}
-              {% if user.admin or projectOwner %}
+            {% if user %}
+              {% if user.superuser or projectOwner %}
                 <button
                   class="project-settings"
                   title="change your project settings"
@@ -54,12 +54,12 @@
                   settings
                 </button>
               {% endif %}
-              {% if user.enabled_at %}
+              {% if user.enabled_at and not starter %}
                 <button id="download" title="Download this project as a .zip">
                   💾
                 </button>
               {% endif %}
-              {% if user.admin or projectMember %}
+              {% if user.superuser or projectMember %}
                 <button id="format" title="Make my code pretty!">🤩</button>
                 <button id="rewind" title="Use the time machine!">🔄</button>
               {% endif %}

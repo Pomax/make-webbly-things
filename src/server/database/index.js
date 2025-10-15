@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import { applyMigrations } from "./utils.js";
 
 import {
   readContentDir,
@@ -16,7 +15,6 @@ import {
   MEMBER,
   Models,
   db,
-  dbPath,
 } from "./models.js";
 
 export { UNKNOWN_USER, NOT_ACTIVATED, OWNER, EDITOR, MEMBER, Models };
@@ -34,6 +32,8 @@ import {
   getUserSuspensions,
   hasAccessToUserRecords,
   hasAccessToProject,
+  isSuperUser,
+  toggleSuperUser,
   processUserLogin,
   processUserSignup,
   removeAuthProvider,
@@ -54,6 +54,8 @@ export {
   getUserSuspensions,
   hasAccessToUserRecords,
   hasAccessToProject,
+  isSuperUser,
+  toggleSuperUser,
   processUserLogin,
   processUserSignup,
   removeAuthProvider,

@@ -49,10 +49,6 @@ describe(`admin middlerware tests`, async () => {
   });
 
   describe(`container tests`, async () => {
-    test(`deleteContainer`, () => {
-      // TODO: implement
-    });
-
     test(`stopContainer`, () => {
       // we just care that the code path completes
       Middleware.stopContainer({ params: { image: `testing` } }, null, () => {

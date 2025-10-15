@@ -10,8 +10,8 @@
   </td>
   <td>{{ user.created_at | year }}</td>
   <td>{{ user.enabled_at | year }}</td>
-  <!-- needs toggle -->
   <td>{{ user.admin }}</td>
+  <td>{{ user.superuser }}</td>
   <!-- needs toggle -->
   <td>
     {% if not user.admin %}

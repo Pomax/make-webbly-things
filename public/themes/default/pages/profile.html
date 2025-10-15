@@ -6,7 +6,7 @@
     {% set profileUser = lookups.user %}
     {%
       set allowEdit = profile.ownProfile
-      or user.admin
+      or user.superuser
     %}
     <title>Profile for {{ profileUser.name }}</title>
     <link rel="icon" type="image/png" href="/favicon.png" />

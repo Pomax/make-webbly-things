@@ -6,7 +6,6 @@ import {
 
 import {
   back,
-  deleteContainer,
   deleteProject,
   deleteUser,
   disableUser,
@@ -14,6 +13,7 @@ import {
   loadAdminData,
   stopContainer,
   stopServer,
+  toggleSuperUser,
   suspendProject,
   suspendUser,
   unsuspendProject,
@@ -29,9 +29,9 @@ admin.get(`/`, ...prechecks, loadAdminData, (req, res) =>
   res.render(`admin.html`, { ...res.locals, ...req.session, ...process.env }),
 );
 
-admin.post(`/server/stop/:name`, ...prechecks, stopServer, back);
+admin.get(`/toggle/superuser`, ...prechecks, toggleSuperUser, back);
 
-admin.post(`/container/remove/:id`, ...prechecks, deleteContainer, back);
+admin.post(`/server/stop/:name`, ...prechecks, stopServer, back);
 admin.post(`/container/stop/:image`, ...prechecks, stopContainer, back);
 
 admin.post(`/user/delete/:uid`, ...prechecks, deleteUser, back);

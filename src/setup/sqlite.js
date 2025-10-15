@@ -15,7 +15,6 @@ mkdirSync(dirname(dbPath), { recursive: true });
 export async function setupSqlite() {
   // Make sure both the primary and test dbs are at the right version
   await applyMigrations(dbPath);
-  await applyMigrations(dbPath.replace(`data.sqlite`, `test.sqlite`));
 
   // Make sure all the starters from the content/__starter_projects have
   // database entries, and that the database is up to date with respect
