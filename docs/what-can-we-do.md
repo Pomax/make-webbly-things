@@ -25,7 +25,8 @@ As a registered user whose account has not yet been activated, you can do the sa
 
 - Download projects when you're in the editor. This will let you download the public files as a convenient .zip file.
 - Add additional auth providers so you won't be locked out of your account if you lose access to the primary provider you picked when you signed up.
-- Log using any of your chosen providers, which will "land" you on your personal page. Although the only thing that'll let you do is log out, or open your profile page.
+- Log in using any of your chosen providers, which will "land" you on your personal page. Although the only thing that'll let you do is log out, or open your profile page.
+- Generate "direct login links" so you can log yourself in on other devices by sending yourself a link (these are single-use links that expire after 12 hours).
 - Edit your profile in terms of your bio (which you can write using markdown) and the links you want people to see (like your homepage, github profile url, mastodon account, etc. etc)
 
 ## registered, activated user

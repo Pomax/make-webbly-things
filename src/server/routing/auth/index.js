@@ -37,7 +37,7 @@ const envPath = join(import.meta.dirname, `../../../../.env`);
 dotenv.config({ path: envPath, quiet: true });
 const { WEB_EDITOR_HOSTNAME } = process.env;
 
-const PERSONAL_LINK_TTL = 24 * 3600 * 1000; // 24h in milliseconds
+const PERSONAL_LINK_TTL = 12 * 3600 * 1000; // 12h in milliseconds
 
 /**
  * Is this a provider that we actually have auth for?

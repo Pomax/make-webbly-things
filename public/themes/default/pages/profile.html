@@ -29,8 +29,11 @@
 
     <p>
       {% if profile.ownProfile %}You{% else %}{{ profileUser.name }}{% endif %}
-      joined {{ profileUser.created_at | year }} and created
-      {{ profile.projects.length }} projects since then!
+      joined
+      {{ profileUser.created_at | year }}{% if profile.projects.length > 0 %}
+        and created at least {{ profile.projects.length }}
+        project{% if profile.projects.length != 1 %}s{% endif %} since then!
+      {% endif %}
     </p>
 
     {% if profile.ownProfile %}
@@ -66,25 +69,22 @@
         </ul>
 
         <p>
-          If you need to log in on a device that does is not itself logged into
-          any of the auth providers you're using, you can generate a direct
-          login link here. These links act like a normal login, setting up a
+          If you need to log in on a device that is not itself logged into any
+          of the auth providers you're using, you can generate a direct login
+          link here. These links act like a normal login, setting up a
           persistent cookie-based session, but the links themselves are
-          one-time-use, and expire after 24 hours (as well as whenever the
-          server restarts). Also note that <em>anyone</em> can use this link, so
-          if you need one: generate it, send it to yourself, and immediately use
-          it to log in.
+          one-time-use and expire after 12 hours (as well as whenever the server
+          restarts).
         </p>
 
-        <button class="generate">generate a link</button>
-        <input type="text" class="auth-link" />
-
         <p>
-          <em
-            >And remember not to send it to yourself using something that loads
-            URLs to see if it can get convenient embed/opengraph information
-            from it. Because that <strong>will</strong> void the link!</em
-          >
+          Also note that <em>anyone</em> can use your link, so if you need one:
+          generate it, send it to yourself, and immediately use it to log in.
+        </p>
+
+        <p style="text-align: center">
+          <button class="generate">generate a link</button>
+          <input type="text" class="auth-link" />
         </p>
       </section>
     {% endif %}
