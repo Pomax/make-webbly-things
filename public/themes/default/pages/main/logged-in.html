@@ -36,8 +36,10 @@
 <script defer>
   const loadLinks = document.querySelectorAll(`a.load-project`);
   loadLinks.forEach((a) =>
-    a.addEventListener(`click`, () => {
-      a.closest(`li`).classList.add(`loading`);
+    a.addEventListener(`click`, ({}) => {
+      const li = a.closest(`li`);
+      li.classList.add(`loading`);
+      setTimeout(() => li.classList.remove(`loading`), 5000);
     }),
   );
 </script>

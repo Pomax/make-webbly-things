@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log in</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/themes/default/css/layout.css" />
+    <link rel="stylesheet" href="/themes/default/css/editor.css" />
+    <link rel="stylesheet" href="/themes/default/css/main.css" />
+  </head>
+  <body>
+    <h1>Just one more step</h1>
+
+    <p>
+      In order to make sure link-previewers can't log in as you simply by
+      loading this page, you'll still need to click this link:
+    </p>
+
+    <a class="login-button" href="/auth/personal/confirm/{{ uuid }}"
+      >Log me in!</a
+    >
+  </body>
+</html>

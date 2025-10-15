@@ -194,7 +194,9 @@ export function addPersonalAuthLinks(app) {
     next();
   }
 
+  // Generate a one-time-use auth link
   personal.get(
+    // TODO: this probably wants some kind of express-rate-limit
     `/link`,
     bindCommonValues,
     verifyLogin,
@@ -202,22 +204,44 @@ export function addPersonalAuthLinks(app) {
     (req, res) => res.send(res.locals.authLink),
   );
 
+  // Generate the confirmation-seeking page (so that
+  // link previewers don't log in for you!)
+  personal.get(
+    // TODO: this probably wants some kind of express-rate-limit
+    `/login/:uuid`,
+    bindCommonValues,
+    (req, res) =>
+      res.render(`direct-login.html`, {
+        ...req.params,
+      }),
+  );
+
   function validatePersonalLogin(req, res, next) {
     const { uuid } = req.params;
-    if (!transientCodes[uuid]) return next(new Error(`Invalid auth code`));
+    if (!transientCodes[uuid]) {
+      // Invalid auth code... but we don't actually want to
+      // inform users that they're using an invalid auth code,
+      // so they can't just script themselves some access.
+      return next();
+    }
     const { user, createdAt, ttl } = transientCodes[uuid];
     delete transientCodes[uuid];
     if (createdAt + ttl < Date.now()) {
-      return next(new Error(`Auth code expired`));
+      // Expired auth code... but again, we don't want to
+      // announce that to the world. We just silently fail.
+      return next();
     }
     req.session.user = user;
     req.session.save();
     next();
   }
 
+  // Confirm the link uuid, and if it's good, log this user in.
+  // If not, just send them to the front page and you'll wonder
+  // why they didn't end up logged in.
   personal.get(
     // TODO: this probably wants some kind of express-rate-limit
-    `/login/:uuid`,
+    `/confirm/:uuid`,
     bindCommonValues,
     validatePersonalLogin,
     (req, res) => res.redirect(`/`),
