@@ -35,6 +35,7 @@ export async function setupSqlite() {
       const slug = slugify(name);
       const settings = JSON.parse(readFileSync(settingsFile).toString());
       const {
+        name: starterName,
         description,
         run_script,
         env_vars,
@@ -48,12 +49,12 @@ export async function setupSqlite() {
 
       // Create or update the project record:
       let result = db
-        .prepare(`SELECT * FROM projects WHERE name = ?`)
-        .get(name);
+        .prepare(`SELECT * FROM projects WHERE slug = ?`)
+        .get(slug);
       if (!result) {
         db.prepare(
           `INSERT INTO projects (name, slug, description) VALUES (?, ?, ?)`,
-        ).run(name, slug, description);
+        ).run(starterName, slug, description);
         result = db.prepare(`SELECT * FROM projects WHERE name = ?`).get(name);
         const { id } = result;
         db.prepare(
@@ -72,7 +73,8 @@ export async function setupSqlite() {
         );
       } else {
         const { id } = result;
-        db.prepare(`UPDATE projects SET description=? WHERE id=?`).run(
+        db.prepare(`UPDATE projects SET name=?, description=? WHERE id=?`).run(
+          starterName,
           description,
           id,
         );

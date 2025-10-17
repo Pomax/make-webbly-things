@@ -168,8 +168,17 @@
   This instance comes with a bunch of starter projects that you can remix so you
   don't have to start from scratch, including a basic "single page" HTML/CSS/JS
   website, a Node.js site that uses Express to run a simple webserver, and even
-  a web graphics demo that lets you write interactive graphics code in JS.
+  a web graphics demo that lets you write interactive graphics code in JS:
 </p>
+
+<ul>
+  {% for project in starters %}
+    {% if project.slug != "empty" %}
+      {% set starter = true %}
+      {% include "../fragments/project-card.html" %}
+    {% endif %}
+  {% endfor %}
+</ul>
 
 <p>
   And if none of that sounds appealing, there's also an "empty project" that

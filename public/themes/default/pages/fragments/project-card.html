@@ -55,12 +55,14 @@
   {% endif %}
 
   {% if starter %}
+    {% if user %}
     <p>
       <a
         href="https://{{ WEB_EDITOR_HOSTNAME }}/v1/projects/remix/{{ project.slug }}"
         >Click here to start a new project based on this starter!</a
       >
     </p>
+    {% endif %}
   {% else %}
     <p class="date">
       Created {{ project.created_at | year }}, last updated
