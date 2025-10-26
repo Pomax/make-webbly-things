@@ -1,3 +1,5 @@
+@import '../variables.css';
+
 body {
   .notice {
     position: fixed;
@@ -7,24 +9,24 @@ body {
     padding-right: 3em;
 
     font-family: Arial;
-    box-shadow: 2px 2px 10px 0px black;
+    box-shadow: 2px 2px 10px 0px var(--notice-box-shadow);
     border-radius: 0.5em;
     z-index: 10;
     opacity: 1;
     transition: opacity 0.5s linear;
 
     &.info {
-      background: #99ffaf;
-      text-shadow: 1px 1px 1px #ececec;
+      background: var(--notice-info);
+      text-shadow: 1px 1px 1px var(--notice-light-box-shadow);
     }
     &.warning {
-      background: #fff2aa;
-      text-shadow: 1px 1px 1px #ececec;
+      background: var(--notice-warning);
+      text-shadow: 1px 1px 1px var(--notice-light-box-shadow);
     }
     &.error {
-      background: #db3939;
-      color: white;
-      text-shadow: 1px 1px 1px black;
+      background: var(--notice-error);
+      color: var(--white);
+      text-shadow: 1px 1px 1px var(--notice-dark-text-shadow);
     }
 
     .close {
@@ -34,8 +36,8 @@ body {
       right: 0.5em;
       width: 1.5em;
       height: 1.5em;
-      background: #e8e8e8;
-      color: black;
+      background: var(--close-button-background);
+      color: var(--black);
       cursor: pointer;
     }
   }

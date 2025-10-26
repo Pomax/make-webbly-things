@@ -1,0 +1,16 @@
+:root {
+  --white: white;
+  --black: black;
+
+
+  /* NOTICES */
+  --notice-info:#99ffaf;
+  --notice-warning:#fff2aa;
+  --notice-error: #db3939;
+  --notice-text-shadow-sizing: 1px 1px 1px;
+  --notice-box-shadow: black;
+  --notice-light-text-shadow: var(--text-shadow-sizing) #ececec;
+  --notice-dark-box-shadow: black;
+  --notice-dark-text-shadow: black;
+  --close-button-background: #e8e8e8;
+}
