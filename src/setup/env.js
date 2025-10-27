@@ -7,6 +7,8 @@ import {
   setupMastodonAuth,
 } from "./auth-providers.js";
 
+const BYPASS_TLS_QUESTIONS = process.argv.includes(`--no-tls`);
+
 /**
  * (Re)generate the .env file that we need.
  */
@@ -99,7 +101,7 @@ have a Docker image by that name, so...
     await setupMastodonAuth(process.env, autoFill);
 
   // Is this a hosted instance?
-  if (!TLS_DNS_API_KEY) {
+  if (!BYPASS_TLS_QUESTIONS && !TLS_DNS_API_KEY) {
     TLS_DNS_PROVIDER = `false`;
     TLS_DNS_API_KEY = `false`;
 
