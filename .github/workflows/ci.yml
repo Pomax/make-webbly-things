@@ -18,18 +18,17 @@ jobs:
           sudo apt-get update
           sudo rm /var/lib/man-db/auto-update
           sudo apt-get install -y caddy sqlite3 curl
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install 24
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run first time setup
         run: |
-          nvm use 24
           cp .env.ci .env
           npm install
           node setup
