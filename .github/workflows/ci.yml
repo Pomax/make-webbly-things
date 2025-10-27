@@ -13,9 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -26,10 +23,13 @@ jobs:
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
           nvm install 24
-          nvm use 24
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Run first time setup
         run: |
+          nvm use 24
           cp .env.ci .env
           npm install
           node setup
