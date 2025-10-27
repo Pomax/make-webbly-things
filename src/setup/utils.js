@@ -33,7 +33,7 @@ export function closeReader() {
  */
 export function checkFor(cmd, missing = []) {
   try {
-    return execSync(`${cmd} --version`, { env: process.env }).toString().trim();
+    return execSync(`${cmd} --help`, { env: process.env }).toString().trim();
   } catch (e) {
     missing.push(cmd);
     console.log(e);
