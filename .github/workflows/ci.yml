@@ -1,5 +1,3 @@
-name: Continuous Integration Testing
-
 on:
   push:
     branches:
@@ -10,8 +8,8 @@ on:
 
 jobs:
   test_first_time_setup:
+    name: Continuous Integration Testing
     runs-on: ubuntu-latest
-
     steps:
       - name: Install dependencies
         run: |
