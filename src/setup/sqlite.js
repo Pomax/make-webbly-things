@@ -55,7 +55,7 @@ export async function setupSqlite() {
         db.prepare(
           `INSERT INTO projects (name, slug, description) VALUES (?, ?, ?)`,
         ).run(starterName, slug, description);
-        result = db.prepare(`SELECT * FROM projects WHERE name = ?`).get(starterName);
+        result = db.prepare(`SELECT * FROM projects WHERE name = ?`).get(name);
         const { id } = result;
         db.prepare(
           `INSERT INTO project_settings (project_id, default_file, default_collapse, run_script, env_vars, app_type, root_dir) VALUES (?,?,?,?,?,?,?)`,
