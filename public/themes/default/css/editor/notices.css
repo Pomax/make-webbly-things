@@ -17,21 +17,16 @@ body {
 
     &.info {
       background: var(--notice-info-background);
-      color: var(--black);
-      text-shadow: var(--notice-text-shadow-sizing)
-        var(--notice-light-text-shadow);
+      text-shadow: 1px 1px 1px var(--notice-light-text-shadow);
     }
     &.warning {
       background: var(--notice-warning-background);
-      color: var(--black);
-      text-shadow: var(--notice-text-shadow-sizing)
-        var(--notice-light-text-shadow);
+      text-shadow: 1px 1px 1px var(--notice-light-text-shadow);
     }
     &.error {
       background: var(--notice-error-background);
       color: var(--white);
-      text-shadow: var(--notice-text-shadow-sizing)
-        var(--notice-dark-text-shadow);
+      text-shadow: 1px 1px 1px var(--notice-dark-text-shadow);
     }
 
     .close {
