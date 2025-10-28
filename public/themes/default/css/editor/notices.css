@@ -9,24 +9,29 @@ body {
     padding-right: 3em;
 
     font-family: Arial;
-    box-shadow: 2px 2px 10px 0px var(--notice-box-shadow);
+    box-shadow: 2px 2px 10px 0px var(--notice-light-box-shadow);
     border-radius: 0.5em;
     z-index: 10;
     opacity: 1;
     transition: opacity 0.5s linear;
 
     &.info {
-      background: var(--notice-info);
-      text-shadow: 1px 1px 1px var(--notice-light-box-shadow);
+      background: var(--notice-info-background);
+      color: var(--black);
+      text-shadow: var(--notice-text-shadow-sizing)
+        var(--notice-light-text-shadow);
     }
     &.warning {
-      background: var(--notice-warning);
-      text-shadow: 1px 1px 1px var(--notice-light-box-shadow);
+      background: var(--notice-warning-background);
+      color: var(--black);
+      text-shadow: var(--notice-text-shadow-sizing)
+        var(--notice-light-text-shadow);
     }
     &.error {
-      background: var(--notice-error);
+      background: var(--notice-error-background);
       color: var(--white);
-      text-shadow: 1px 1px 1px var(--notice-dark-text-shadow);
+      text-shadow: var(--notice-text-shadow-sizing)
+        var(--notice-dark-text-shadow);
     }
 
     .close {
