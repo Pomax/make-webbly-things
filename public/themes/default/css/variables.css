@@ -12,4 +12,8 @@
   --notice-dark-box-shadow: black;
   --notice-dark-text-shadow: black;
   --close-button-background: #e8e8e8;
+
+  /* PROFILE */
+  --bio-border-color: grey;
+  --bio-background: white;
 }

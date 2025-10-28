@@ -33,9 +33,9 @@ html {
       }
 
       .bio {
-        border: 1px solid grey;
+        border: 1px solid var(--bio-border-color);
         border-radius: 0.5em;
-        background: white;
+        background: var(--bio-background);
         padding: 1em;
         margin: 1em;
       }
