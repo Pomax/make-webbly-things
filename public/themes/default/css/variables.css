@@ -24,4 +24,23 @@
   --admin-enabled-button-box-shadow: lime;
   --admin-enabling-button-background: red;
   --admin-table-header-border-color: grey;
+
+  /* rewind */
+  --rewinding-file-tree-background: #00ffb71c;
+  --rewinding-rewind-background:#00ffcf;
+  --rewinding-cm-editor-background: #f001;
+  --rewinding-history-background: #00abff;
+
+  --history-point-background: white;
+  --history-point-border-color: black;
+  --history-point-callout-background: #44ffd8;
+  --history-point-callout-border-color: #3b3b3c;
+  --history-point-callout-text: black;
+  --history-point-callout-text-shadow: white;
+  --history-point-callout-box-shadow: white;
+
+  --history-selected-point-background: #ff00cb;
+  --history-selected-point-callout-background: #ff00b3;
+  --history-selected-point-callout-text: white;
+  --history-selected-point-callout-text-shadow: black;
 }

@@ -1,3 +1,5 @@
+@import '../variables.css';
+
 @keyframes fade-in-out {
   0% {
     opacity: 1;
@@ -9,7 +11,7 @@
 html {
   body {
     file-tree.rewinding {
-      background: #00ffb71c;
+      background: var(--rewind-file-tree-background);
       border: 5px solid #00ffc3 !important;
       box-sizing: border-box;
       dir-entry[path="."] {
@@ -26,11 +28,11 @@ html {
 
     &:has(file-tree.rewinding) {
       #rewind {
-        background: #00ffcf;
+        background: var(--rewinding-rewind-background);
       }
       #editors {
         .cm-editor {
-          background: #f001;
+          background: var(--rewinding-cm-editor-background);
         }
       }
     }
@@ -45,7 +47,7 @@ html {
       bottom: 0;
       width: 100%;
       height: 1.7em;
-      background: #00abff;
+      background: var(--rewinding-history-background);
 
       display: flex;
       align-content: center;
@@ -58,10 +60,10 @@ html {
       .point {
         cursor: pointer;
         padding: 0 0.5em;
-        background: white;
+        background: var(--history-point-background);
         border-radius: 100%;
         margin-right: 4em;
-        border: 1.5px solid black;
+        border: 1.5px solid var(--history-point-border-color);
         box-sizing: content-box;
         display: inline-block;
         width: 0em;
@@ -71,11 +73,11 @@ html {
         transition: transform 0.1s ease-in-out;
 
         &.selected {
-          background: #ff00cb;
+          background: var(--history-selected-point-background);
           &:before {
-            background: #ff00b3;
-            color: white;
-            text-shadow: 0 0 3px black;
+            background: var(--history-selected-point-callout-background);
+            color: var(--history-selected-point-callout-text);
+            text-shadow: 0 0 3px var(--history-selected-point-callout-text-shadow);
           }
         }
 
@@ -86,15 +88,15 @@ html {
           position: absolute;
           transform: rotate(-22deg) translate(0.5em, -1em);
           transform-origin: top left;
-          background: #44ffd8;
+          background: var(--history-point-callout-background);
           padding: 0.2em 0.5em;
           border-radius: 0.8em;
-          border: 1px solid #3b3b3c;
-          color: black;
-          text-shadow: 0 0 3px white;
+          border: 1px solid var(--history-point-callout-border-color);
+          color: var(--history-point-callout-text);
+          text-shadow: 0 0 3px var(--history-point-callout-text-shadow);
           font-family: Arial;
           font-weight: bold;
-          box-shadow: 0px 5px 0px 0px white;
+          box-shadow: 0px 5px 0px 0px var(--history-point-callout-box-shadow);
         }
 
         &:nth-child(n + 2):before {
