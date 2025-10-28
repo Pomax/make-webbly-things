@@ -19,4 +19,9 @@
 
   /* cm6 */
   --edit-dialog-background: rgba(0, 179, 128, 0.399);
+
+  /* admin */
+  --admin-enabled-button-box-shadow: lime;
+  --admin-enabling-button-background: red;
+  --admin-table-header-border-color: grey;
 }

@@ -18,7 +18,7 @@ html {
       }
 
       button.enabled {
-        box-shadow: 0 0 1px 1px lime;
+        box-shadow: 0 0 1px 1px var(--admin-enabled-button-box-shadow);
       }
 
       &[disabled] button.enabling {
@@ -28,7 +28,7 @@ html {
     table {
       tr {
         th:not(:empty) {
-          border-bottom: 1px solid grey;
+          border-bottom: 1px solid var(--admin-table-header-border-color);
         }
         td {
           padding: 0 1em;
@@ -48,11 +48,11 @@ html {
   0% {
     opacity: 0.5;
     color: inherit;
-    box-shadow: 0 0 0 0 red;
+    box-shadow: 0 0 0 0 var(--admin-enabling-button-background);
   }
   100% {
     opacity: 1;
     color: black;
-    box-shadow: 0 0 10px 0 red;
+    box-shadow: 0 0 10px 0 var(--admin-enabling-button-background);
   }
 }
