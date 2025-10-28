@@ -1,6 +1,8 @@
+@import '../variables.css';
+
 dialog {
   &::backdrop {
-    background: rgba(0, 179, 128, 0.399);
+    background: var(--edit-dialog-background);
   }
   form {
     fieldset {

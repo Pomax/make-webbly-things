@@ -16,4 +16,7 @@
   /* PROFILE */
   --bio-border-color: grey;
   --bio-background: white;
+
+  /* cm6 */
+  --edit-dialog-background: rgba(0, 179, 128, 0.399);
 }
