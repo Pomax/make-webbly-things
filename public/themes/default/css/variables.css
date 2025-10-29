@@ -2,10 +2,9 @@
   --white: white;
   --black: black;
 
-
   /* NOTICES */
-  --notice-info-background:#99ffaf;
-  --notice-warning-background:#fff2aa;
+  --notice-info-background: #99ffaf;
+  --notice-warning-background: #fff2aa;
   --notice-error-background: #db3939;
   --notice-light-box-shadow: black;
   --notice-light-text-shadow: #ececec;
@@ -27,7 +26,7 @@
 
   /* rewind */
   --rewinding-file-tree-background: #00ffb71c;
-  --rewinding-rewind-background:#00ffcf;
+  --rewinding-rewind-background: #00ffcf;
   --rewinding-cm-editor-background: #f001;
   --rewinding-history-background: #00abff;
 
@@ -58,4 +57,54 @@
   --three-column-footer-box-shadow: black;
   --three-column-footer-link-color: black;
   --three-column-footer-link-text-shadow: white;
+
+  /* editor */
+  --file-tree-border: #444;
+  --file-tree-drop-background: #cceeff44;
+  --file-tree-drop-color: #333;
+
+  --revised-file-entry-text: red;
+
+  --editor-nav-top-background: white;
+  --editor-nav-top-text: black;
+
+  --editor-utilities-bar-background: #662584;
+  --editor-utilities-button-background: white;
+  --editor-utilities-button-border-color: #30ae97;
+  --editor-utilities-button-box-shadow: #00ffcf;
+
+  --editor-project-name-background: #662584;
+  --editor-project-name-text-shadow: black;
+  --editor-project-name-text: white;
+
+  --editor-dir-color: #666;
+  --editor-file-color: #222;
+  --editor-unhovered-edge-li: #666; /* FIXME: terrible name, but not sure where this even is */
+
+  --editor-tab-close-border-color: gray;
+  --editor-tab-close-background: #e2bc491f;
+  --editor-tab-close-hovered-background: red;
+  --editor-tab-close-hovered-color: white;
+  --editor-tab-border-color: black;
+  --editor-active-tab-background: #e3f6ff;
+  --editor-active-tab-text: #333;
+  --editor-moving-tab-background: #e7e3ff;
+
+  --editors-group-border-color: grey;
+
+  --preview-group-border-color: gray;
+  --preview-group-background: #fff;
+  --preview-restarting-iframe-background: #fde;
+
+  --graphics-element-table-slider-wrapper-background: #ececec;
+
+  --editor-button-border-color: #555;
+  --editor-clear-button-border-color: #444;
+  --editor-clear-button-text: #999;
+  --editor-active-button-color: white;
+  --editor-active-button-background: darkgreen;
+  --editor-active-button-border-color: green;
+  --editor-active-button-hovered-background: rgb(0, 50, 0);
+  --editor-active-button-active-color: darkgreen;
+  --editor-active-button-active-background: white;
 }
