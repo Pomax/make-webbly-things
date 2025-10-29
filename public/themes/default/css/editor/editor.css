@@ -144,7 +144,7 @@ html {
           }
 
           &:not(:has(ul)):hover {
-            color: var(--editor-unhovered-edge-li);
+            color: var(--editor-unhovered-li);
             cursor: pointer;
             &.dir {
               cursor: auto;
