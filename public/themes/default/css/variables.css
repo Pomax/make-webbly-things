@@ -43,4 +43,19 @@
   --history-selected-point-callout-background: #ff00b3;
   --history-selected-point-callout-text: white;
   --history-selected-point-callout-text-shadow: black;
+
+  /* three column */
+  --three-column-highlight-color: blue;
+  --column-background: white;
+  --divider-handle-background: white;
+  --divider-handle-color: orange;
+  --divider-handle-border-color: grey;
+  --divider-handle-hovered-background: #eee;
+  --divider-handle-dot-background: grey;
+  --divider-active-handle-background: #d0e4f0;
+  --three-column-footer-border-color: grey;
+  --three-column-footer-background: #44ffd8;
+  --three-column-footer-box-shadow: black;
+  --three-column-footer-link-color: black;
+  --three-column-footer-link-text-shadow: white;
 }

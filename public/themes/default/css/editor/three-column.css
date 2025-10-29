@@ -1,3 +1,5 @@
+@import '../variables.css';
+
 .full {
   position: relative;
   padding: 0;
@@ -8,8 +10,6 @@
 
 :root {
   body {
-    --hlc: blue;
-
     main.three-column {
       --divider-width: 1px;
 
@@ -43,11 +43,13 @@
       display: grid;
       grid-gap: 0;
       grid-template-rows: 1fr;
-      grid-template-columns: var(--w1) var(--divider-width) var(--w2) var(--divider-width) var(--w3);
-      grid-template-areas: "left . middle . right";
+      grid-template-columns: var(--w1) var(--divider-width) var(--w2) var(
+          --divider-width
+        ) var(--w3);
+      grid-template-areas: 'left . middle . right';
 
       .column {
-        background: white;
+        background: var(--column-background);
         height: 100%;
         overflow: hidden;
         padding: 0 0.2em;
@@ -97,35 +99,35 @@
           align-items: center;
           justify-content: space-evenly;
 
-          background: white;
-          color: black;
+          background: var(--divider-handle-background);
+          color: var(--divider-handle-color);
           font-family: Verdana;
           text-align: center;
 
           box-sizing: border-box;
-          border: 1px solid grey;
+          border: 1px solid var(--divider-handle-border-color);
           border-radius: 1em;
 
           &:hover {
-            background: #eee;
+            background: var(--divider-handle-hovered-background);
           }
 
           i {
             width: 0.25em;
             height: 0.25em;
             border-radius: 100%;
-            background: grey;
+            background: var(--divider-handle-dot-background);
             color: transparent;
           }
         }
 
         &.highlight {
           span {
-            background-color: #d0e4f0;
-            border-color: var(--hlc);
-            color: var(--hlc);
+            background-color: var(--divider-active-handle-background);
+            border-color: var(--three-column-highlight-color);
+            color: var(--three-column-highlight-color);
             i {
-              background: var(--hlc);
+              background: var(--three-column-highlight-color);
             }
           }
         }
@@ -134,7 +136,7 @@
   }
 
   &:has(.highlight.resize) {
-    background: var(--hlc);
+    background: var(--three-column-highlight-color);
     .column {
       user-select: none;
     }
@@ -149,18 +151,18 @@
     z-index: 1;
     right: 0.5em;
     bottom: 0.5em;
-    border: 1px solid grey;
+    border: 1px solid var(--three-column-footer-border-color);
     border-radius: 0.5em;
     padding: 0.5em;
-    background: #44ffd8;
-    box-shadow: 2px 2px 0 3px black;
+    background: var(--three-column-footer-background);
+    box-shadow: 2px 2px 0 3px var(--three-column-footer-box-shadow);
 
     a,
     a:visited {
       font-family: Arial;
       text-decoration: none;
-      color: black;
-      text-shadow: 0 0 1px white;
+      color: var(--three-column-footer-link-color);
+      text-shadow: 0 0 1px var(--three-column-footer-link-text-shadow);
     }
   }
 }
