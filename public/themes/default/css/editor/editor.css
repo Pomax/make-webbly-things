@@ -1,7 +1,7 @@
-@import '../variables.css';
+@import "../variables.css";
 
-@import './notices.css';
-@import './rewind.css';
+@import "./notices.css";
+@import "./rewind.css";
 
 html {
   height: 100%;
@@ -32,7 +32,7 @@ html {
 
         &:not([show-top-level]) {
           --highlight-background-bw: #44ffd8;
-          dir-entry[path='.'] {
+          dir-entry[path="."] {
             & > .buttons {
               width: calc(100% + 1em);
               padding-bottom: 0.25em;
