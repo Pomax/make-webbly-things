@@ -2,10 +2,9 @@
   --white: white;
   --black: black;
 
-
   /* NOTICES */
-  --notice-info-background:#99ffaf;
-  --notice-warning-background:#fff2aa;
+  --notice-info-background: #99ffaf;
+  --notice-warning-background: #fff2aa;
   --notice-error-background: #db3939;
   --notice-light-box-shadow: black;
   --notice-light-text-shadow: #ececec;
@@ -27,7 +26,7 @@
 
   /* rewind */
   --rewinding-file-tree-background: #00ffb71c;
-  --rewinding-rewind-background:#00ffcf;
+  --rewinding-rewind-background: #00ffcf;
   --rewinding-cm-editor-background: #f001;
   --rewinding-history-background: #00abff;
 

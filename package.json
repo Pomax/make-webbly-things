@@ -15,12 +15,14 @@
     "build:es": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm --target=esnext src/client/entry-point.js > public/js/editor.bundle.js",
     "prettier": "prettier --write \"./src/**/*.js\"",
     "prettier:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
+    "prettier:css": "prettier --write \"./public/**/*.css\"",
     "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
     "start": "npm run precheck && node src/server/index.js",
     "test": "npm run precheck && npm run build && npm run test:node && npm run test:cleanup",
     "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
-    "lint": "npm run prettier && npm run prettier:html",
+    "lint": "npm run prettier && npm run prettier:html && npm run prettier:css",
     "test:cleanup": "node ./src/tests/test-cleanup.js",
+    "precommit": "npm run lin",
     "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/"
   },
   "dependencies": {

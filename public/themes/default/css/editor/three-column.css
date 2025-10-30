@@ -1,4 +1,4 @@
-@import '../variables.css';
+@import "../variables.css";
 
 .full {
   position: relative;
@@ -43,10 +43,10 @@
       display: grid;
       grid-gap: 0;
       grid-template-rows: 1fr;
-      grid-template-columns: var(--w1) var(--divider-width) var(--w2) var(
-          --divider-width
-        ) var(--w3);
-      grid-template-areas: 'left . middle . right';
+      grid-template-columns:
+        var(--w1) var(--divider-width) var(--w2) var(--divider-width)
+        var(--w3);
+      grid-template-areas: "left . middle . right";
 
       .column {
         background: var(--column-background);

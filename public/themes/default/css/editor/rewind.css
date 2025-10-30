@@ -1,4 +1,4 @@
-@import '../variables.css';
+@import "../variables.css";
 
 @keyframes fade-in-out {
   0% {
@@ -77,7 +77,8 @@ html {
           &:before {
             background: var(--history-selected-point-callout-background);
             color: var(--history-selected-point-callout-text);
-            text-shadow: 0 0 3px var(--history-selected-point-callout-text-shadow);
+            text-shadow: 0 0 3px
+              var(--history-selected-point-callout-text-shadow);
           }
         }
 
