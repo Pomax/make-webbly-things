@@ -293,7 +293,7 @@ export function addEmailAuth(app, settings = magicSettings) {
     },
   );
 
-  magic.get(`/check`, function (req, res) {
+  magic.get(`/check`, (req, res) => {
     console.log(`user should check their email`);
     res.send(`For now, check the console for the link.`);
   });

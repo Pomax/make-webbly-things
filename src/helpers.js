@@ -1,6 +1,6 @@
 import net from "node:net";
 import { join, resolve, sep, posix } from "node:path";
-import { exec, execSync } from "node:child_process";
+import { exec } from "node:child_process";
 import { existsSync, globSync, lstatSync, readFileSync } from "node:fs";
 import * as AuthSettings from "./server/routing/auth/settings.js";
 import express from "express";
@@ -159,7 +159,7 @@ export function setDefaultAspects(app) {
  * Make git not guess at the name and email for commits.
  */
 export async function setupGit(dir, projectSlug) {
-  for (let cfg of [
+  for (const cfg of [
     `init.defaultBranch main`,
     `user.name "${projectSlug}"`,
     `user.email "actions@makewebblythings.local"`,
@@ -176,7 +176,7 @@ export function slugify(text) {
   text = asciify(text).toLowerCase();
   return text
     .replace(/\s+/g, `-`)
-    .replace(/[<\._>]/g, ``)
+    .replace(/[<._>]/g, ``)
     .replace(
       /[\u0021-\u002C\u002E-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u00BF]+/g,
       ``,

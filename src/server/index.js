@@ -1,7 +1,7 @@
 // Load our server dependencies...
 import express from "express";
 import { join } from "node:path";
-import { setDefaultAspects, execPromise, ROOT_DIR } from "../helpers.js";
+import { setDefaultAspects, ROOT_DIR } from "../helpers.js";
 import { setupRoutes } from "./routing/index.js";
 import { watchForRebuild } from "./watcher.js";
 import { setupCaddy, startCaddy } from "./caddy/caddy.js";

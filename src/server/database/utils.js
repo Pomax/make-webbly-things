@@ -21,7 +21,7 @@ export async function applyMigrations(dbPath) {
   const dbDir = dirname(dbPath);
 
   // First, which version is this db on?
-  let db = sqlite3(dbPath);
+  const db = sqlite3(dbPath);
   let version = db.prepare(`PRAGMA user_version`).get().user_version;
   db.close();
 
@@ -78,7 +78,7 @@ Please have a look at what's going on there: I'm erroring out now.
  * ...docs go here...
  */
 export function composeWhere(where, suffix = []) {
-  let ua = where.updated_at;
+  const ua = where.updated_at;
   if (where.updated_at) delete where.updated_at;
   let filter = Object.entries(where)
     .map(([k, v]) => {
@@ -116,7 +116,7 @@ export async function migrate(dbPath, migrationScript, migrationNumber) {
   );
   data =
     (await update(data, Helpers)) +
-    `\n\PRAGMA user_version = ${migrationNumber + 1};\n`;
+    `\nPRAGMA user_version = ${migrationNumber + 1};\n`;
   writeFileSync(sqlTmpPath, data);
   await new Promise((resolve) => setTimeout(resolve, 500));
   cpSync(dbPath, oldDb);

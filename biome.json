@@ -1,0 +1,21 @@
+{
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUnusedFunctionParameters": "off",
+        "noUnusedVariables": {
+          "options": {
+            "ignoreRestSiblings": false
+          }
+        }
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "useAdjacentOverloadSignatures": "off",
+        "noAsyncPromiseExecutor": "off",
+        "noGlobalAssign": "off",
+        "useIterableCallbackReturn": "off"
+      }
+    }
+  }
+}

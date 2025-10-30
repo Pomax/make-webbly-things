@@ -1,6 +1,6 @@
 import { API } from "../utils/api.js";
 import { setupView } from "./code-mirror-6.js";
-import { fetchFileContents, create, find } from "../utils/utils.js";
+import { fetchFileContents, create } from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent } from "../files/sync.js";
 import { ErrorNotice, Notice } from "../utils/notifications.js";
@@ -29,33 +29,33 @@ export class EditorEntry {
   static entries = [];
 
   static addEntry(entry) {
-    this.entries.push(entry);
+    EditorEntry.entries.push(entry);
   }
 
   static removeEntry(entry) {
-    const pos = this.entries.indexOf(entry);
-    this.entries.splice(pos, 1);
+    const pos = EditorEntry.entries.indexOf(entry);
+    EditorEntry.entries.splice(pos, 1);
   }
 
   static getEntries() {
-    return this.entries;
+    return EditorEntry.entries;
   }
 
   static getNext(reference) {
-    const { entries } = this;
+    const { entries } = EditorEntry;
     const pos = entries.indexOf(reference);
     if (pos === entries.length - 1) return entries.at(pos - 1);
     return entries.at(pos + 1);
   }
 
   static getOrCreateFileEditTab(fileEntry) {
-    const entry = this.entries.find((e) => e.fileEntry === fileEntry);
+    const entry = EditorEntry.entries.find((e) => e.fileEntry === fileEntry);
     if (entry) return entry.select();
     return new EditorEntry(fileEntry);
   }
 
   static sortFromTabs() {
-    const { entries } = this;
+    const { entries } = EditorEntry;
     const ordering = [...tabs.querySelectorAll(`.editor.tab`)];
     entries.sort((a, b) => {
       a = ordering.indexOf(a.tab);

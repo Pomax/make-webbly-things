@@ -63,7 +63,7 @@ export async function scheduleContainerCheck() {
     if (!(d = project(image))) return;
 
     const created = Date.parse(createdAt);
-    const lastUpdate = Date.parse(d.updated_at + ` +0000`);
+    const lastUpdate = Date.parse(`${d.updated_at} +0000`);
     const diff = getTimingDiffInMinutes(max(created, lastUpdate));
 
     // Only stop a container if it's both "old enough" *and* the last edit

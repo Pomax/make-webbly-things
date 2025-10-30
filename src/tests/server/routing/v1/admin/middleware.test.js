@@ -30,8 +30,8 @@ describe(`admin middlerware tests`, async () => {
   });
 
   test(`loadAdminData`, () => {
-    let req = {};
-    let res = { locals: {} };
+    const req = {};
+    const res = { locals: {} };
     Middleware.loadAdminData(req, res, () => {
       const { admin } = res.locals;
       assert.equal(admin.userList.length, 2);

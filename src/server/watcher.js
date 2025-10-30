@@ -7,7 +7,7 @@ const isWindows = process.platform === `win32`;
 const npm = isWindows ? `npm.cmd` : `npm`;
 
 let rebuildLock = false;
-let fileHashes = {};
+const fileHashes = {};
 
 /**
  * Trigger a rebuild by telling npm to run the `build` script from package.json.
@@ -16,7 +16,7 @@ function rebuild() {
   console.log(`rebuilding`);
   const start = Date.now();
   execSync(`${npm} run build:es`, { stdio: `inherit` });
-  (console.log(`Build took ${Date.now() - start}ms`), 8);
+  console.log(`Build took ${Date.now() - start}ms`);
   rebuildLock = false;
 }
 

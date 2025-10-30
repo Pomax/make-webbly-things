@@ -47,7 +47,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
       .map((v) => v.trim())
       .filter(Boolean);
     entries.forEach((path) => {
-      let entry = fileTree.querySelector(`dir-entry[path="${path}/"]`);
+      const entry = fileTree.querySelector(`dir-entry[path="${path}/"]`);
       entry?.toggle(true);
     });
   }
@@ -275,7 +275,7 @@ async function uploadArchive(path, content, bulkUploadPaths) {
     path = basePath + path;
     const arrayBuffer = await entry.arrayBuffer();
     const isFile = !entry.isDirectory;
-    let content = undefined;
+    let content;
     if (isFile && arrayBuffer.byteLength > 0) {
       content = new TextDecoder().decode(arrayBuffer);
     }

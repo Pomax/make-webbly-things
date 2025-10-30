@@ -108,7 +108,7 @@ describe(`Setup script tests`, async () => {
     // confirm the database was written correctly?
     const dbPath = join(SETUP_ROOT_DIR, `data`, `data.sqlite3`);
     const db = sqlite3(dbPath);
-    let version = db.prepare(`PRAGMA user_version`).get().user_version;
+    const version = db.prepare(`PRAGMA user_version`).get().user_version;
     db.close();
     assert.equal(version, 6);
   });

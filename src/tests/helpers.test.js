@@ -48,7 +48,7 @@ describe(`Helper function tests`, async () => {
 
   test(`readContentDir`, async () => {
     const { dirs, files } = Helpers.readContentDir(`./data`);
-    let found = [
+    const found = [
       `data.sqlite3`,
       `migrations/0001.sql`,
       `migrations/0002.js`,

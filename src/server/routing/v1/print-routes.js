@@ -24,14 +24,14 @@ function split(thing) {
   } else if (thing.fast_slash) {
     return "";
   } else {
-    var match = thing
+    const match = thing
       .toString()
       .replace("\\/?", "")
       .replace("(?=\\/|$)", "$")
-      .match(/^\/\^((?:\\[.*+?^${}()|[\]\\\/]|[^.*+?^${}()|[\]\\\/])*)\$\//);
+      .match(/^\/\^((?:\\[.*+?^${}()|[\]\\/]|[^.*+?^${}()|[\]\\/])*)\$\//);
     return match
       ? match[1].replace(/\\(.)/g, "$1").split("/")
-      : "<complex:" + thing.toString() + ">";
+      : `<complex:${thing.toString()}>`;
   }
 }
 

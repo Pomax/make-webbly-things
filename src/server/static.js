@@ -10,7 +10,7 @@ const app = express();
 setDefaultAspects(app);
 
 const base = isStarter ? `content/__starter_projects` : `content`;
-let staticDir = join(base, projectSlug, root.replaceAll(`"`, ``));
+const staticDir = join(base, projectSlug, root.replaceAll(`"`, ``));
 
 app.use(`/`, express.static(staticDir, { etag: false }));
 app.listen(port, () =>

@@ -11,15 +11,15 @@ export class Rewinder {
   static rewinders = [];
 
   static enable() {
-    this.active = true;
+    Rewinder.active = true;
   }
 
   static close() {
-    const { rewinders } = this;
+    const { rewinders } = Rewinder;
     for (const r of rewinders) {
       r.close();
     }
-    this.active = false;
+    Rewinder.active = false;
   }
 
   open = false;
