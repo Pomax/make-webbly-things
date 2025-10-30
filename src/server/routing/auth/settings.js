@@ -1,10 +1,3 @@
-import { join } from "node:path";
-
-// Explicit env loading as we rely on env
-// at the module's top level scope...
-import dotenv from "@dotenvx/dotenvx";
-const envPath = join(import.meta.dirname, `../../../../.env`);
-dotenv.config({ path: envPath, quiet: true });
 const { env } = process;
 
 const LOCAL_DEV = env.LOCAL_DEVTESTING === `true`;

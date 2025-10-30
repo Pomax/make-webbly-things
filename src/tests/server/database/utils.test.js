@@ -1,11 +1,6 @@
 import test, { describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import * as Utils from "../../../server/database/utils.js";
-import { ROOT_DIR } from "../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 describe(`util test`, async () => {
   test(`composeWhere`, () => {

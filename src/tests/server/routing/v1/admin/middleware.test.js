@@ -1,6 +1,5 @@
 import test, { after, before, describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import {
   initTestDatabase,
   concludeTesting,
@@ -9,10 +8,6 @@ import {
 import * as Project from "../../../../../server/database/project.js";
 import * as User from "../../../../../server/database/user.js";
 import * as Middleware from "../../../../../server/routing/v1/admin/middleware.js";
-import { ROOT_DIR } from "../../../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 describe(`admin middlerware tests`, async () => {
   before(async () => await initTestDatabase());
@@ -30,8 +25,9 @@ describe(`admin middlerware tests`, async () => {
   });
 
   test(`loadAdminData`, () => {
+    const user = User.getUser(`test-admin`);
     const req = {};
-    const res = { locals: {} };
+    const res = { locals: { user } };
     Middleware.loadAdminData(req, res, () => {
       const { admin } = res.locals;
       assert.equal(admin.userList.length, 2);

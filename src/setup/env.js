@@ -82,21 +82,21 @@ have a Docker image by that name, so...
   }
 
   // Github login setup?
-  const GITHUB_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/github/callback`;
+  const GITHUB_CALLBACK_URL = `https://${WEB_EDITOR_HOSTNAME}/auth/github/callback`;
   const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = await setupGithubAuth(
     process.env,
     autoFill,
   );
 
   // Google login setup?
-  const GOOGLE_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/google/callback`;
+  const GOOGLE_CALLBACK_URL = `https://${WEB_EDITOR_HOSTNAME}/auth/google/callback`;
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = await setupGoogleAuth(
     process.env,
     autoFill,
   );
 
   // Mastodon login setup?
-  const MASTODON_CALLBACK_URL = `https://\${WEB_EDITOR_HOSTNAME}/auth/mastodon/callback`;
+  const MASTODON_CALLBACK_URL = `https://${WEB_EDITOR_HOSTNAME}/auth/mastodon/callback`;
   const { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET } =
     await setupMastodonAuth(process.env, autoFill);
 
@@ -131,7 +131,7 @@ This will require knowing your DNS provider and your API key for that provider.
     }
   }
 
-  LOCAL_DEV_TESTING = `${!!LOCAL_DEV_TESTING}`;
+  LOCAL_DEV_TESTING = `${LOCAL_DEV_TESTING === true || LOCAL_DEV_TESTING === `true`}`;
 
   if (USE_WEBSOCKETS === undefined) {
     const defaulValue = `y`;

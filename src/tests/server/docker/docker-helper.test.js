@@ -1,9 +1,4 @@
 import { describe } from "node:test";
-import { resolve, join } from "node:path";
-import { ROOT_DIR } from "../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 /*
 export function checkContainerHealth(project, slug = project.slug) {

@@ -1,7 +1,7 @@
 import test, { after, before, describe } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, resolve, join, dirname } from "node:path";
+import { basename, join, dirname } from "node:path";
 import {
   initTestDatabase,
   concludeTesting,
@@ -11,11 +11,7 @@ import * as ProjectMiddleware from "../../../../../server/routing/v1/projects/mi
 import { createDockerProject } from "../../../../test-helpers.js";
 import { closeReader } from "../../../../../setup/utils.js";
 import { createPatch } from "../../../../../../public/vendor/diff.js";
-
-import dotenv from "@dotenvx/dotenvx";
 import { ROOT_DIR, CONTENT_DIR } from "../../../../../helpers.js";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 const WITHOUT_RUNNING = false;
 const FORCE_CLEANUP = true;

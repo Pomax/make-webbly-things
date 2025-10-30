@@ -1,16 +1,11 @@
 import test, { after, before, describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import {
   initTestDatabase,
   concludeTesting,
 } from "../../../../../server/database/index.js";
 import * as User from "../../../../../server/database/user.js";
 import * as Middleware from "../../../../../server/routing/v1/users/middleware.js";
-import { ROOT_DIR } from "../../../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 describe(`user middlerware tests`, async () => {
   before(async () => await initTestDatabase());

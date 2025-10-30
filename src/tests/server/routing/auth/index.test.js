@@ -1,16 +1,11 @@
 import test, { describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import * as Auth from "../../../../server/routing/auth/index.js";
 import * as User from "../../../../server/database/user.js";
-import { ROOT_DIR } from "../../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
 import {
   initTestDatabase,
   concludeTesting,
 } from "../../../../server/database/index.js";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 const genericSettings = {
   clientID: `irrelevant`,

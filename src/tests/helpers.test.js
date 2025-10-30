@@ -1,11 +1,6 @@
 import test, { describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import * as Helpers from "../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-
-const envPath = resolve(join(Helpers.ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 /*
   export function createRewindPoint( project, reason)
@@ -31,7 +26,7 @@ describe(`Helper function tests`, async () => {
 
   test(`getFileSum`, () => {
     // NOTE: if you update the readme, this test will need to get updated too =)
-    assert.equal(Helpers.getFileSum(`.`, `README.md`), 565071);
+    assert.equal(Helpers.getFileSum(`.`, `README.md`), 564666);
   });
 
   test(`getFreePort`, async () => {
