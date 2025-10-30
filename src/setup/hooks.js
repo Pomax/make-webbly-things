@@ -1,5 +1,5 @@
 /* node:coverage disable */
-import { writeFileSync } from "node:fs";
+import { cpSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { SETUP_ROOT_DIR } from "./utils.js";
 
@@ -11,5 +11,6 @@ const hooksDir = join(SETUP_ROOT_DIR, `.git`, `hooks`);
  */
 export function setupHooks() {
   console.log(`Setting up git hooks...`);
+  cpSync(join(hooksDir, `pre-commit.sample`), join(hooksDir, `pre-commit`));
   writeFileSync(join(hooksDir, `pre-commit`), hookContent);
 }
