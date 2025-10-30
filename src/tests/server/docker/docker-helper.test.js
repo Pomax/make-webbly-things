@@ -1,11 +1,4 @@
-import test, { describe } from "node:test";
-import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
-import * as Docker from "../../../server/docker/docker-helpers.js";
-import { ROOT_DIR } from "../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
+import { describe } from "node:test";
 
 /*
 export function checkContainerHealth(project, slug = project.slug) {

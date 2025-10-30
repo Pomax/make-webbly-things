@@ -20,10 +20,6 @@ import {
 
 import { slugify } from "../../helpers.js";
 
-import dotenv from "@dotenvx/dotenvx";
-const envPath = join(import.meta.dirname, `../../../.env`);
-dotenv.config({ path: envPath, quiet: true });
-
 export { UNKNOWN_USER, NOT_ACTIVATED, OWNER, EDITOR, MEMBER };
 
 const {

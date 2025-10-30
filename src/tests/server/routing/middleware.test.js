@@ -1,6 +1,5 @@
 import test, { after, before, describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import * as Middleware from "../../../server/routing/middleware.js";
 
 import {
@@ -11,11 +10,6 @@ import {
   getProjectOwners,
 } from "../../../server/database/index.js";
 import { closeReader } from "../../../setup/utils.js";
-
-import { ROOT_DIR } from "../../../helpers.js";
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
 
 describe(`Universal middleware tests`, async () => {
   before(async () => await initTestDatabase());
@@ -137,14 +131,14 @@ describe(`Universal middleware tests`, async () => {
         user,
       },
     };
-    Middleware.loadProjectList(null, res, (err) => {
+    Middleware.loadProjectList(null, res, () => {
       assert.deepEqual(res.locals.projectList, [project]);
     });
   });
 
   test("loadProviders", async () => {
     const res = { locals: {} };
-    Middleware.loadProviders(null, res, (err) => {
+    Middleware.loadProviders(null, res, () => {
       assert.deepEqual(res.locals.availableProviders, [
         {
           service: "github",
@@ -165,7 +159,7 @@ describe(`Universal middleware tests`, async () => {
   test("loadStarters", async () => {
     const starter = getProject(`test-starter`, false);
     const res = { locals: {} };
-    Middleware.loadStarters(null, res, (err) => {
+    Middleware.loadStarters(null, res, () => {
       assert.deepEqual(res.locals.starters, [starter]);
     });
   });
@@ -179,7 +173,7 @@ describe(`Universal middleware tests`, async () => {
         user,
       },
     };
-    Middleware.loadProjectList(null, res, (err) => {
+    Middleware.loadProjectList(null, res, () => {
       assert.deepEqual(res.locals.projectList, [project]);
     });
   });

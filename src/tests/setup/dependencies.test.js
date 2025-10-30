@@ -10,7 +10,7 @@ describe(`Setup dependency test`, async () => {
     try {
       const result = checkDependencies();
       assert.equal(result, undefined);
-    } catch (e) {
+    } catch {
       assert.fail(`checkDependencies threw, and it really shouldn't have`);
     }
   });

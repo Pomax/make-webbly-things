@@ -8,14 +8,7 @@ import nocache from "nocache";
 import helmet from "helmet";
 import asciify from "any-ascii";
 
-// Explicit env loading as we rely on process.env
-// at the module's top level scope...
-import dotenv from "@dotenvx/dotenvx";
-const envPath = join(import.meta.dirname, `../.env`);
-dotenv.config({ path: envPath, quiet: true });
-
 export const TESTING = process.env.NODE_ENV === `TESTING`;
-
 export const isWindows = process.platform === `win32`;
 export const npm = isWindows ? `npm.cmd` : `npm`;
 export const npx = isWindows ? `npx.cmd` : `npx`;

@@ -9,7 +9,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "precheck": "node check-deps",
+    "precheck": "node --env-file=.env check-deps",
     "admin": "npm start -- --admin-mode",
     "build": "npm run lint && npm run build:es",
     "build:es": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm --target=esnext src/client/entry-point.js > public/js/editor.bundle.js",
@@ -17,9 +17,9 @@
     "prettier:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
     "prettier:css": "prettier --write \"./public/**/*.css\"",
     "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
-    "start": "npm run precheck && node src/server/index.js",
-    "test": "npm run precheck && npm run build && npm run test:node && npm run test:cleanup",
-    "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
+    "start": "npm run precheck && node --env-file=.env src/server/index.js",
+    "test": "npm run test:cleanup && npm run precheck && npm run build && npm run test:node && npm run test:cleanup",
+    "test:node": "cross-env NODE_ENV=TESTING node --env-file=.env --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
     "lint": "npm run prettier && npm run prettier:html && npm run prettier:css",
     "test:cleanup": "node ./src/tests/test-cleanup.js",
     "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/"
@@ -30,7 +30,6 @@
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-markdown": "^6.2.5",
     "@codemirror/state": "^6.4.1",
-    "@dotenvx/dotenvx": "^1.48.4",
     "@playwright/test": "^1.45.1",
     "any-ascii": "^0.3.3",
     "archiver": "^7.0.1",
@@ -39,7 +38,6 @@
     "codemirror": "^6.0.1",
     "cross-env": "^10.0.0",
     "custom-file-tree": "^6.1.0",
-    "dotenv": "^17.2.1",
     "express": "^4.21.2",
     "express-session": "^1.18.2",
     "esbuild": "^0.25.8",

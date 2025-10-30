@@ -1,6 +1,5 @@
 import test, { after, before, describe } from "node:test";
 import assert from "node:assert/strict";
-import { resolve, join } from "node:path";
 import {
   initTestDatabase,
   concludeTesting,
@@ -12,11 +11,7 @@ import * as Project from "../../../server/database/project.js";
 import { portBindings } from "../../../server/caddy/caddy.js";
 import { createDockerProject, tryFor } from "../../test-helpers.js";
 import { closeReader } from "../../../setup/utils.js";
-import { scrubDateTime, ROOT_DIR } from "../../../helpers.js";
-
-import dotenv from "@dotenvx/dotenvx";
-const envPath = resolve(join(ROOT_DIR, `.env`));
-dotenv.config({ quiet: true, path: envPath });
+import { scrubDateTime } from "../../../helpers.js";
 
 describe(`project testing`, async () => {
   before(async () => await initTestDatabase());
