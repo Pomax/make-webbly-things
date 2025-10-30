@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { join } from "node:path";
 import { processUserSignup, processUserLogin } from "../../database/index.js";
 
 import { passport } from "./middleware.js";
