@@ -9,20 +9,22 @@
     "node": ">=24"
   },
   "scripts": {
-    "precheck": "node --env-file=.env check-deps",
     "admin": "npm start -- --admin-mode",
-    "build": "npm run lint && npm run build:es",
-    "build:es": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm --target=esnext src/client/entry-point.js > public/js/editor.bundle.js",
-    "prettier": "prettier --write \"./src/**/*.js\"",
-    "prettier:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
-    "prettier:css": "prettier --write \"./public/**/*.css\"",
-    "prettier:single": "prettier --no-config --ignore-path \"\" --write ",
+    "build": "npm run format && npm run lint && npm run bundle",
+    "bundle": "esbuild --log-level=info --bundle --external:/vendor/* --format=esm --target=esnext src/client/entry-point.js > public/js/editor.bundle.js",
+    "format:css": "prettier --write \"./public/**/*.css\"",
+    "format:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
+    "format:js": "prettier --write \"./src/**/*.js\"",
+    "format:single": "prettier --no-config --ignore-path \"\" --write ",    
+    "format": "npm run format:js && npm run format:html && npm run format:css",
+    "lint": "biome lint --write src --max-diagnostics=none",
+    "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/",
+    "precheck": "node --env-file=.env check-deps",
     "start": "npm run precheck && node --env-file=.env src/server/index.js",
-    "test": "npm run test:cleanup && npm run precheck && npm run build && npm run test:node && npm run test:cleanup",
-    "test:node": "cross-env NODE_ENV=TESTING node --env-file=.env --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
-    "lint": "npm run prettier && npm run prettier:html && npm run prettier:css && biome lint --write src --max-diagnostics=none",
     "test:cleanup": "node ./src/tests/test-cleanup.js",
-    "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/"
+    "test:node": "cross-env NODE_ENV=TESTING node --env-file=.env --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
+    "test:suite": "npm run precheck && npm run build && npm run test:node",
+    "test": "npm run test:cleanup && npm run test:suite && npm run test:cleanup"
   },
   "dependencies": {
     "@biomejs/biome": "^2.3.2",

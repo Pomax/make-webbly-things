@@ -138,7 +138,9 @@ export async function formatFile(req, res, next) {
 
   if ([`.js`, `.css`, `.html`].includes(ext)) {
     try {
-      await execPromise(`${npm} run prettier:single -- "${fullPath}"`);
+      const ninja =
+        ext === `html` ? `--plugin prettier-plugin-jinja-template` : ``;
+      await execPromise(`${npm} run format:single -- "${fullPath}" ${ninja}`);
       formatted = true;
     } catch (e) {
       return next(
