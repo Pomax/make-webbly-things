@@ -22,7 +22,6 @@
     "test:node": "cross-env NODE_ENV=TESTING node --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
     "lint": "npm run prettier && npm run prettier:html && npm run prettier:css",
     "test:cleanup": "node ./src/tests/test-cleanup.js",
-    "precommit": "npm run lint",
     "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/"
   },
   "dependencies": {
