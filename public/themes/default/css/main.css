@@ -1,9 +1,11 @@
+@import "./variables.css";
+
 html {
   height: unset;
   overflow: unset;
 
   width: 100%;
-  background: #fbdd85;
+  background: var(--home-background);
   display: flex;
   align-content: center;
   justify-content: center;
@@ -12,10 +14,10 @@ html {
 
   body {
     margin: 0;
-    background: #fff4d9;
+    background: var(--body-background);
     max-width: 960px;
     min-height: 100vh;
-    box-shadow: 0 0 4em 0 #ff8300;
+    box-shadow: 0 0 4em 0 var(--body-box-shadow);
 
     overflow: auto !important;
     padding: 1em;
@@ -28,9 +30,9 @@ html {
     h2,
     footer {
       font-size: 2em;
-      background: white;
-      color: #333;
-      border: 1px solid black;
+      background: var(--heading-background);
+      color: var(--heading-color);
+      border: 1px solid var(--heading-border-color);
       border-width: 1px 0;
       position: relative;
       left: -1em;
@@ -50,8 +52,8 @@ html {
 
     form {
       input.taken {
-        border-color: red;
-        background: rgba(255, 0, 0, 0.2);
+        border-color: var(--username-input-taken-border-color);
+        background: var(--username-input-taken-background);
       }
       button:not([disabled]) {
         cursor: pointer;
@@ -81,8 +83,8 @@ html {
 
       li {
         position: relative;
-        background: #fffdfa;
-        border: 1px solid black;
+        background: var(--li-background);
+        border: 1px solid var(--li-border-color);
         padding: 1em;
         margin-top: 0.5em;
         border-radius: 0.5em;
@@ -96,17 +98,17 @@ html {
 
         h3 {
           width: 100%;
-          background: white;
+          background: var(--li-header-background);
           font-size: 2em;
           margin: 0;
           text-align: center;
-          border: 1px solid #666;
+          border: 1px solid var(--li-header-border-color);
         }
 
         iframe {
           display: block;
-          background: white;
-          border: 3px solid grey;
+          background: var(--li-iframe-background);
+          border: 3px solid var(--li-iframe-border-color);
           transform: scale(calc(400 / 1000));
           width: 1000px;
           height: 600px;
@@ -122,7 +124,7 @@ html {
         picture.screenshot {
           margin: 1em 0 0 0;
           img {
-            border: 1px solid grey;
+            border: 1px solid var(--li-screenshot-border-color);
             width: 100%;
           }
         }
@@ -136,14 +138,14 @@ html {
 
         .edit-project-settings {
           left: 0;
-          background: blue;
-          color: white;
+          background: var(--li-edit-project-settings-button-background);
+          color: var(--li-edit-project-settings-button-color);
         }
 
         .delete-project {
           right: 0;
-          background: red;
-          color: white;
+          background: var(--li-delete-project-button-background);
+          color: var(--li-delete-project-button-color);
         }
 
         p {
@@ -153,7 +155,7 @@ html {
           &.date {
             font-family: Verdana;
             font-size: 0.8rem;
-            color: grey;
+            color: var(--li-date-color);
             text-align: center;
             margin-top: 0;
           }

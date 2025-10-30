@@ -1,3 +1,5 @@
+@import "../variables.css";
+
 @import "./notices.css";
 @import "./rewind.css";
 
@@ -21,7 +23,7 @@ html {
 
       #filetree {
         display: block;
-        border: 1px solid #444;
+        border: 1px solid var(--file-tree-border);
         font-family: Arial;
         padding: 0 1em 0.25em 0;
         overflow-x: auto;
@@ -42,14 +44,14 @@ html {
         }
 
         &.drop {
-          background: #cceeff44;
-          color: #333;
+          background: var(--file-tree-drop-background);
+          color: var(--file-tree-drop-color);
         }
 
         file-entry {
           white-space: nowrap;
           &.revision {
-            color: red;
+            color: var(--revised-file-entry-text);
             &:before {
               content: attr(data-revision);
             }
@@ -60,7 +62,7 @@ html {
       #buttons {
         display: flex;
         flex-direction: column;
-        background: #662584;
+        background: var(--editor-utilities-bar-background);
 
         & > div {
           position: relative;
@@ -70,7 +72,7 @@ html {
           align-items: center;
 
           &:nth-child(1) {
-            background: white;
+            background: var(--editor-nav-top-background);
           }
 
           &:nth-child(2) {
@@ -79,7 +81,7 @@ html {
 
           .link-back,
           .link-remix {
-            color: black;
+            color: var(--editor-nav-top-text);
             margin: 0.25em;
             margin-bottom: 0;
             height: 100%;
@@ -90,15 +92,15 @@ html {
             max-width: calc(100% - 6em);
             overflow: hidden;
             text-overflow: ellipsis;
-            color: white;
+            color: var(--editor-project-name-text);
             padding: 0.25em 5px 3px;
             border-radius: 4px 4px 0 0;
             margin-left: 0.25em;
             font-weight: bold;
-            text-shadow: 0 0 2px black;
+            text-shadow: 0 0 2px var(--editor-project-name-text-shadow);
             text-align: center;
             text-overflow: ellipsis;
-            background: #662584;
+            background: var(--editor-project-name-background);
           }
 
           .project-settings {
@@ -108,10 +110,11 @@ html {
           button {
             height: 1.75em;
             cursor: pointer;
-            border: 1px solid #30ae97;
-            background: white;
+            border: 1px solid var(--editor-utilities-button-border-color);
+            background: var(--editor-utilities-button-background);
             border-radius: 0.5em;
-            box-shadow: 1px 2px 0px 0px #00ffcf;
+            box-shadow: 1px 2px 0px 0px
+              var(--editor-utilities-button-box-shadow);
           }
         }
       }
@@ -129,20 +132,19 @@ html {
           white-space: nowrap;
 
           &.dir {
-            color: #666;
+            color: var(--editor-dir-color);
             font-weight: bolder;
             font-variant: small-caps;
           }
 
           &.file {
-            color: #222;
+            color: var(--editor-file-color);
             font-weight: normal;
             font-variant: normal;
           }
 
           &:not(:has(ul)):hover {
-            background: #eee;
-            color: #666;
+            color: var(--editor-unhovered-li);
             cursor: pointer;
             &.dir {
               cursor: auto;
@@ -176,7 +178,7 @@ html {
 
           .editor.tab {
             cursor: pointer;
-            border: 1px solid black;
+            border: 1px solid var(--editor-tab-border-color);
             border-radius: 0.5em 0.5em 0 0;
             padding: 0.25em 0.75em;
             border-bottom: none;
@@ -190,12 +192,12 @@ html {
             }
 
             &.active {
-              background: #e3f6ff;
-              color: #333;
+              background: var(--editor-active-tab-background);
+              color: var(--editor-active-tab-text);
             }
 
             &.moving {
-              background: #e7e3ff;
+              background: var(--editor-moving-tab-background);
             }
 
             .close {
@@ -203,13 +205,13 @@ html {
               top: -0.3em;
               left: 1.1em;
               background: inherit;
-              border: 1px solid gray;
+              border: 1px solid var(--editor-tab-close-border-color);
               border-radius: 25%;
-              background: #e2bc491f;
+              background: var(--editor-tab-close-background);
 
               &:hover {
-                background: red;
-                color: white;
+                background: var(--editor-tab-close-hovered-background);
+                color: var(--editor-tab-close-hovered-color);
                 cursor: pointer;
               }
             }
@@ -223,7 +225,7 @@ html {
         min-height: var(--editor-height);
         max-height: var(--editor-height);
         overflow: auto;
-        border: 1px solid grey;
+        border: 1px solid var(--editors-group-border-color);
         width: calc(100% - 2px);
 
         .editor.panel {
@@ -250,15 +252,15 @@ html {
           left: 0;
           width: calc(100% - 1px);
           height: 100%;
-          border: 1px solid gray;
+          border: 1px solid var(--preview-group-border-color);
           box-sizing: border-box;
-          background-color: #fff;
+          background-color: var(--preview-group-background);
           transition:
             opacity 0.25s,
             background-color 0.25s linear;
         }
         &.restarting iframe {
-          background-color: #fde;
+          background-color: var(--preview-restarting-iframe-background);
         }
         #preview-buttons {
           position: absolute;
@@ -270,7 +272,7 @@ html {
 
       graphics-element {
         table.slider-wrapper {
-          background: #ececec;
+          background: var(--graphics-element-table-slider-wrapper-background);
           margin-bottom: 0.25em;
         }
       }
@@ -291,32 +293,32 @@ html {
   button {
     border-radius: 5px;
     margin: 2px 5px;
-    border: 1px solid #555;
+    border: 1px solid var(--editor-button-border-color);
     border-radius: 3px;
 
     border-radius: 3px;
 
     &.clear {
       background: none;
-      border: 1px solid #444;
-      color: #999;
+      border: 1px solid var(--editor-clear-button-border-color);
+      color: var(--editor-clear-button-text);
       right: 1em;
       top: 1em;
       cursor: pointer;
     }
 
     &.active {
-      color: white;
-      background: darkgreen;
-      border: 2px solid green;
+      color: var(--editor-active-button-color);
+      background: var(--editor-active-button-background);
+      border: 2px solid var(--editor-active-button-border-color);
       border-radius: 5px;
 
       &:hover {
-        background: rgb(0, 50, 0);
+        background: var(--editor-active-button-hovered-background);
       }
       &:active {
-        color: darkgreen;
-        background: white;
+        color: var(--editor-active-button-active-color);
+        background: var(--editor-active-button-active-background);
       }
     }
   }

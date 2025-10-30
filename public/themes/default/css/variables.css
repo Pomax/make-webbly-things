@@ -19,12 +19,12 @@
   /* cm6 */
   --edit-dialog-background: rgba(0, 179, 128, 0.399);
 
-  /* admin */
+  /* ADMIN */
   --admin-enabled-button-box-shadow: lime;
   --admin-enabling-button-background: red;
   --admin-table-header-border-color: grey;
 
-  /* rewind */
+  /* REWIND */
   --rewinding-file-tree-background: #00ffb71c;
   --rewinding-rewind-background: #00ffcf;
   --rewinding-cm-editor-background: #f001;
@@ -43,7 +43,7 @@
   --history-selected-point-callout-text: white;
   --history-selected-point-callout-text-shadow: black;
 
-  /* three column */
+  /* THREE COLUMN */
   --three-column-highlight-color: blue;
   --column-background: white;
   --divider-handle-background: white;
@@ -57,4 +57,80 @@
   --three-column-footer-box-shadow: black;
   --three-column-footer-link-color: black;
   --three-column-footer-link-text-shadow: white;
+
+  /* EDITOR */
+  --file-tree-border: #444;
+  --file-tree-drop-background: #cceeff44;
+  --file-tree-drop-color: #333;
+
+  --revised-file-entry-text: red;
+
+  --editor-nav-top-background: white;
+  --editor-nav-top-text: black;
+
+  --editor-utilities-bar-background: #662584;
+  --editor-utilities-button-background: white;
+  --editor-utilities-button-border-color: #30ae97;
+  --editor-utilities-button-box-shadow: #00ffcf;
+
+  --editor-project-name-background: #662584;
+  --editor-project-name-text-shadow: black;
+  --editor-project-name-text: white;
+
+  --editor-dir-color: #666;
+  --editor-file-color: #222;
+  --editor-unhovered-li: #666;
+
+  --editor-tab-close-border-color: gray;
+  --editor-tab-close-background: #e2bc491f;
+  --editor-tab-close-hovered-background: red;
+  --editor-tab-close-hovered-color: white;
+  --editor-tab-border-color: black;
+  --editor-active-tab-background: #e3f6ff;
+  --editor-active-tab-text: #333;
+  --editor-moving-tab-background: #e7e3ff;
+
+  --editors-group-border-color: grey;
+
+  --preview-group-border-color: gray;
+  --preview-group-background: #fff;
+  --preview-restarting-iframe-background: #fde;
+
+  --graphics-element-table-slider-wrapper-background: #ececec;
+
+  --editor-button-border-color: #555;
+  --editor-clear-button-border-color: #444;
+  --editor-clear-button-text: #999;
+  --editor-active-button-color: white;
+  --editor-active-button-background: darkgreen;
+  --editor-active-button-border-color: green;
+  --editor-active-button-hovered-background: rgb(0, 50, 0);
+  --editor-active-button-active-color: darkgreen;
+  --editor-active-button-active-background: white;
+
+  /* MAIN */
+  --home-background: #fbdd85;
+  --body-background: #fff4d9;
+  --body-box-shadow: #ff8300;
+  --heading-background: white;
+  --heading-color: #333;
+  --heading-border-color: black;
+
+  --username-input-taken-background: rgba(255, 0, 0, 0.2);
+  --username-input-taken-border-color: red;
+
+  /* These could use more semantic of names, but right now they are scoped
+  inside an `li` so until we refactor that, this is the clearest */
+  --li-background: #fffdfa;
+  --li-border-color: black;
+  --li-header-background: white;
+  --li-header-border-color: #666;
+  --li-iframe-background: white;
+  --li-iframe-border-color: grey;
+  --li-screenshot-border-color: grey;
+  --li-edit-project-settings-button-background: blue;
+  --li-edit-project-settings-button-color: white;
+  --li-delete-project-button-background: red;
+  --li-delete-project-button-color: white;
+  --li-date-color: grey;
 }
