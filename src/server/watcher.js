@@ -15,7 +15,7 @@ const fileHashes = {};
 function rebuild() {
   console.log(`rebuilding`);
   const start = Date.now();
-  execSync(`${npm} run build:es`, { stdio: `inherit` });
+  execSync(`${npm} run bundle`, { stdio: `inherit` });
   console.log(`Build took ${Date.now() - start}ms`);
   rebuildLock = false;
 }
