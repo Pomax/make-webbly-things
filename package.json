@@ -27,6 +27,7 @@
     "test:node:ci": "npm run test:node:ci:setup && npm run test:node:ci:server:caddy",
     "test:node:ci:setup": "cross-env NODE_ENV=TESTING node --env-file=.env --test \"./src/tests/setup/**/*.test.js\"",
     "test:node:ci:server:caddy": "cross-env NODE_ENV=TESTING node --env-file=.env --test \"./src/tests/server/caddy/**/*.test.js\"",
+    "test:node:ci:server:database": "cross-env NODE_ENV=TESTING node --env-file=.env --test \"./src/tests/server/database/**/*.test.js\"",
     "test": "npm run test:cleanup && npm run test:suite && npm run test:cleanup"
   },
   "dependencies": {
