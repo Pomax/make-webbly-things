@@ -19,6 +19,7 @@ dotenv.config({ quiet: true });
 
 import { checkNodeVersion, runNpmInstall, SETUP_ROOT_DIR } from "./utils.js";
 import { checkDependencies } from "./dependencies.js";
+import { setupHooks } from "./hooks.js";
 import { setupEnv } from "./env.js";
 import { setupCaddy } from "../server/caddy/caddy.js";
 import { setupDocker } from "./docker.js";
@@ -38,6 +39,7 @@ export function runSetup() {
     checkNodeVersion,
     runNpmInstall,
     checkDependencies,
+    setupHooks,
     setupEnv,
     setupDocker,
     DOCKER_MAINTENANCE ? noop : () => setupCaddy(process.env),
