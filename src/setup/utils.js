@@ -1,6 +1,6 @@
 import readline from "node:readline";
 import { join } from "node:path";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { TESTING, ROOT_DIR } from "../helpers.js";
 
@@ -20,6 +20,24 @@ export const stdin = readline.createInterface({
 
 // used by various execSync operations
 export const STDIO = process.argv.includes(`--debug`) ? `inherit` : `ignore`;
+
+// Parse an .env file
+export function parseEnvironment(envFile = join(SETUP_ROOT_DIR, `.env`)) {
+  console.log(`Using ${envFile}`);
+  if (existsSync(envFile)) {
+    const data = readFileSync(envFile).toString();
+    const entries = Object.fromEntries(
+      data
+        .split(`\n`)
+        .filter(Boolean)
+        .map((e) => e.split(`=`).map((v) => v.trim().replaceAll(`"`, ``))),
+    );
+    const keys = Object.keys(entries);
+    for (const k of keys) {
+      process.env[k] = entries[k];
+    }
+  }
+}
 
 // Rather important for testing:
 export function closeReader() {
