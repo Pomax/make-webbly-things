@@ -1,4 +1,4 @@
-import { createPatch, applyPatch } from "/vendor/diff.js";
+import { createPatch } from "/vendor/diff.js";
 import {
   fetchFileContents,
   getFileSum,

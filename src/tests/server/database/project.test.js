@@ -157,11 +157,7 @@ describe(`project testing`, async () => {
     const found = await tryFor(async () => {
       const { port } = portBindings[project.slug];
       const website = `http://localhost:${port}`;
-      try {
-        await fetch(website).then((r) => r.text());
-      } catch (e) {
-        throw e;
-      }
+      await fetch(website).then((r) => r.text());
       return true;
     });
     Project.stopProject(project);
@@ -174,11 +170,7 @@ describe(`project testing`, async () => {
     const found = await tryFor(async () => {
       const { port } = portBindings[project.slug];
       const website = `http://localhost:${port}`;
-      try {
-        await fetch(website).then((r) => r.text());
-      } catch (e) {
-        throw e;
-      }
+      await fetch(website).then((r) => r.text());
       return true;
     });
     await cleanup();
@@ -194,11 +186,7 @@ describe(`project testing`, async () => {
     const found = await tryFor(async () => {
       const { port } = portBindings[project.slug];
       const website = `http://localhost:${port}`;
-      try {
-        await fetch(website).then((r) => r.text());
-      } catch (e) {
-        throw e;
-      }
+      await fetch(website).then((r) => r.text());
       return true;
     });
     Project.stopProject(project);

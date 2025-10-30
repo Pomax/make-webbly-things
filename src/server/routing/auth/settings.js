@@ -4,7 +4,7 @@ const LOCAL_DEV = env.LOCAL_DEVTESTING === `true`;
 
 const settings = {};
 
-export const githubSettings = (settings[`github`] = env.GITHUB_CLIENT_ID
+export const githubSettings = (settings.github = env.GITHUB_CLIENT_ID
   ? {
       clientID: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
@@ -13,7 +13,7 @@ export const githubSettings = (settings[`github`] = env.GITHUB_CLIENT_ID
     }
   : undefined);
 
-export const googleSettings = (settings[`google`] = env.GOOGLE_CLIENT_ID
+export const googleSettings = (settings.google = env.GOOGLE_CLIENT_ID
   ? {
       clientID: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
@@ -22,7 +22,7 @@ export const googleSettings = (settings[`google`] = env.GOOGLE_CLIENT_ID
     }
   : undefined);
 
-export const magicSettings = (settings[`email`] =
+export const magicSettings = (settings.email =
   LOCAL_DEV && env.MAGIC_LINK_SECRET
     ? {
         secret: env.MAGIC_LINK_SECRET,
@@ -32,7 +32,7 @@ export const magicSettings = (settings[`email`] =
       }
     : undefined);
 
-export const mastodonSettings = (settings[`mastodon`] = env.MASTODON_CLIENT_ID
+export const mastodonSettings = (settings.mastodon = env.MASTODON_CLIENT_ID
   ? {
       clientID: env.MASTODON_CLIENT_ID,
       clientSecret: env.MASTODON_CLIENT_SECRET,

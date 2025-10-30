@@ -1,5 +1,3 @@
-import { join } from "node:path";
-
 import {
   runContainer,
   runStaticServer,
@@ -42,7 +40,7 @@ const {
     // and if this is a project-with-settings,
     // temporarily strip that so we only insert
     // data that belongs in the project table.
-    let s = fields.settings;
+    const s = fields.settings;
     delete fields.settings;
     const result = operation(fields);
     fields.settings = s;
@@ -331,7 +329,7 @@ export function recordProjectRemix(original, newProject) {
  */
 export async function runProject(project) {
   const { settings } = project;
-  const lastUpdate = Date.parse(project.updated_at + ` +0000`);
+  const lastUpdate = Date.parse(`${project.updated_at} +0000`);
   const diff = getTimingDiffInMinutes(lastUpdate);
   const noStatic = diff < dockerDueToEdit;
 

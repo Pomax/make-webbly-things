@@ -29781,7 +29781,7 @@ function setupView(editorEntry, data3) {
 }
 
 // src/client/files/sync.js
-import { createPatch, applyPatch as applyPatch3 } from "/vendor/diff.js";
+import { createPatch } from "/vendor/diff.js";
 
 // public/vendor/diff.js
 function Diff() {
@@ -30407,14 +30407,14 @@ var FORCE_SYNC = true;
 var Rewinder = class _Rewinder {
   static rewinders = [];
   static enable() {
-    this.active = true;
+    _Rewinder.active = true;
   }
   static close() {
-    const { rewinders } = this;
+    const { rewinders } = _Rewinder;
     for (const r of rewinders) {
       r.close();
     }
-    this.active = false;
+    _Rewinder.active = false;
   }
   open = false;
   pos = 0;
@@ -31936,28 +31936,28 @@ var EditorEntry = class _EditorEntry {
   // Static properties and methods
   static entries = [];
   static addEntry(entry2) {
-    this.entries.push(entry2);
+    _EditorEntry.entries.push(entry2);
   }
   static removeEntry(entry2) {
-    const pos = this.entries.indexOf(entry2);
-    this.entries.splice(pos, 1);
+    const pos = _EditorEntry.entries.indexOf(entry2);
+    _EditorEntry.entries.splice(pos, 1);
   }
   static getEntries() {
-    return this.entries;
+    return _EditorEntry.entries;
   }
   static getNext(reference) {
-    const { entries } = this;
+    const { entries } = _EditorEntry;
     const pos = entries.indexOf(reference);
     if (pos === entries.length - 1) return entries.at(pos - 1);
     return entries.at(pos + 1);
   }
   static getOrCreateFileEditTab(fileEntry) {
-    const entry2 = this.entries.find((e2) => e2.fileEntry === fileEntry);
+    const entry2 = _EditorEntry.entries.find((e2) => e2.fileEntry === fileEntry);
     if (entry2) return entry2.select();
     return new _EditorEntry(fileEntry);
   }
   static sortFromTabs() {
-    const { entries } = this;
+    const { entries } = _EditorEntry;
     const ordering = [...tabs.querySelectorAll(`.editor.tab`)];
     entries.sort((a, b) => {
       a = ordering.indexOf(a.tab);
@@ -32237,7 +32237,7 @@ fileTree3.addEventListener(`tree:ready`, async () => {
     const entries = defaultCollapse.split(`
 `).map((v) => v.trim()).filter(Boolean);
     entries.forEach((path2) => {
-      let entry2 = fileTree3.querySelector(`dir-entry[path="${path2}/"]`);
+      const entry2 = fileTree3.querySelector(`dir-entry[path="${path2}/"]`);
       entry2?.toggle(true);
     });
   }
@@ -32396,7 +32396,7 @@ async function uploadArchive(path2, content2, bulkUploadPaths) {
     path3 = basePath + path3;
     const arrayBuffer = await entry2.arrayBuffer();
     const isFile = !entry2.isDirectory;
-    let content3 = void 0;
+    let content3;
     if (isFile && arrayBuffer.byteLength > 0) {
       content3 = new TextDecoder().decode(arrayBuffer);
     }
@@ -32670,7 +32670,7 @@ function enableRewindFunctions() {
       const fileEntry = document.querySelector(`file-entry[path="${path2}"]`);
       if (fileEntry) {
         const { rewind } = fileEntry.state ?? {};
-        if (rewind && rewind.open) {
+        if (rewind?.open) {
           fileTree4.classList.remove(`rewinding`);
           Rewinder.close();
         } else {

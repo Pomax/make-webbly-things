@@ -129,7 +129,7 @@ function __processFirstTimeUserLogin(userObject) {
  */
 export function addLoginProviderForUser(user, userObject) {
   const { service, service_id, service_domain } = userObject;
-  let login = Login.find({ user_id: user.id, service });
+  const login = Login.find({ user_id: user.id, service });
   if (login) {
     return processUserLoginNormally(userObject);
   }
@@ -267,9 +267,9 @@ export function getUserSettings(user) {
   const a = Admin.find({ user_id: user.id });
   return {
     name: user.name,
-    admin: a ? true : false,
-    enabled: user.enabled_at ? true : false,
-    suspended: s ? true : false,
+    admin: !!a,
+    enabled: !!user.enabled_at,
+    suspended: !!s,
   };
 }
 

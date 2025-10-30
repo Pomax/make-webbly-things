@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
 import {
@@ -139,7 +138,7 @@ export async function createProjectDownload(req, res, next) {
   const zipDir = resolve(join(CONTENT_DIR, `__archives`));
   if (!pathExists(zipDir)) mkdirSync(zipDir);
 
-  const dest = resolve(zipDir, slug) + `.zip`;
+  const dest = `${resolve(zipDir, slug)}.zip`;
   res.locals.zipFile = dest;
 
   const output = createWriteStream(dest);

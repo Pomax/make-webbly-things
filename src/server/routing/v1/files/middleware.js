@@ -138,11 +138,13 @@ export async function formatFile(req, res, next) {
 
   if ([`.js`, `.css`, `.html`].includes(ext)) {
     try {
-      await execPromise(`${npm} run prettier:single -- "${fullPath}"`);
+      const ninja =
+        ext === `html` ? `--plugin prettier-plugin-jinja-template` : ``;
+      await execPromise(`${npm} run format:single -- "${fullPath}" ${ninja}`);
       formatted = true;
     } catch (e) {
       return next(
-        new Error(`Prettier could not format file.\n` + e.toString()),
+        new Error(`Prettier could not format file.\n${e.toString()}`),
       );
     }
   }
@@ -152,7 +154,7 @@ export async function formatFile(req, res, next) {
       await execPromise(`black "${fullPath}"`);
       formatted = true;
     } catch (e) {
-      return next(new Error(`Black could not format file:\n` + e.toString()));
+      return next(new Error(`Black could not format file:\n${e.toString()}`));
     }
   }
 
@@ -232,7 +234,7 @@ export async function patchFile(req, res, next) {
   const { lookups, fullPath } = res.locals;
   const { project } = lookups;
   touch(project);
-  let data = readFileSync(fullPath).toString(`utf8`);
+  const data = readFileSync(fullPath).toString(`utf8`);
   const patch = req.body;
   const patched = applyPatch(data, patch);
   if (patched) writeFileSync(fullPath, patched);

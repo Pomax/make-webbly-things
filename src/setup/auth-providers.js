@@ -7,7 +7,7 @@ const NO_AUTH_PROVIDERS = process.argv.includes(`--no-auth`);
  */
 export async function setupGithubAuth(env, autoFill = {}) {
   // Are we already done?
-  let { WEB_EDITOR_HOSTNAME } = env;
+  const { WEB_EDITOR_HOSTNAME } = env;
   let { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = autoFill;
 
   GITHUB_CLIENT_ID ??= env.GITHUB_CLIENT_ID;
@@ -48,7 +48,7 @@ codebase will read in every time it starts up.
  */
 export async function setupGoogleAuth(env, autoFill = {}) {
   // Are we already done?
-  let { WEB_EDITOR_HOSTNAME } = env;
+  const { WEB_EDITOR_HOSTNAME } = env;
   let { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = autoFill;
 
   GOOGLE_CLIENT_ID ??= env.GOOGLE_CLIENT_ID;
@@ -89,7 +89,7 @@ codebase will read in every time it starts up.
  * Add Mastodon as auth provider
  */
 export async function setupMastodonAuth(env, autoFill = {}) {
-  let { WEB_EDITOR_HOSTNAME } = env;
+  const { WEB_EDITOR_HOSTNAME } = env;
 
   let { MASTODON_OAUTH_DOMAIN, MASTODON_CLIENT_ID, MASTODON_CLIENT_SECRET } =
     autoFill;

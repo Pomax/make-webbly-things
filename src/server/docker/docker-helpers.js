@@ -5,7 +5,7 @@ import {
   STARTER_BASE,
   TESTING,
 } from "../../helpers.js";
-import { exec, execSync } from "child_process";
+import { exec, execSync } from "node:child_process";
 import {
   portBindings,
   removeCaddyEntry,

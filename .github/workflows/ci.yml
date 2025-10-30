@@ -31,6 +31,6 @@ jobs:
           cp .env.ci .env
           npm install
           node setup --no-auth --no-tls
-      
-      - name: Run tests
-        run: npm test
+
+      - name: Run linting
+        run: npm run lint

@@ -106,7 +106,7 @@ function enableRewindFunctions() {
       const fileEntry = document.querySelector(`file-entry[path="${path}"]`);
       if (fileEntry) {
         const { rewind } = fileEntry.state ?? {};
-        if (rewind && rewind.open) {
+        if (rewind?.open) {
           fileTree.classList.remove(`rewinding`);
           Rewinder.close();
         } else {
