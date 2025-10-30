@@ -77,7 +77,7 @@ export function getAllRunningContainers() {
     obj = Object.fromEntries(
       Object.entries(obj).map(([k, v]) => {
         return [k[0].toLowerCase() + k.substring(1), v];
-      }),
+      })
     );
     const { image, command, state, iD: id, status, size, createdAt } = obj;
     containerData.push({ image, id, command, state, status, size, createdAt });
@@ -96,6 +96,23 @@ export function getAllRunningStaticServers() {
       return { name, port };
     })
     .filter(Boolean);
+}
+
+/**
+ * Get a container's log ouput, optionally "since some specific time"
+ */
+export function getContainerLogs(project, since = new Date(0).toISOString()) {
+  const { slug } = project;
+  const now = new Date().toISOString();
+  const cmd = `docker container logs --since '${since}' ${slug}`;
+  try {
+    return {
+      output: execSync(cmd).toString(),
+      datetime: now,
+    };
+  } catch {
+    return false;
+  }
 }
 
 /**

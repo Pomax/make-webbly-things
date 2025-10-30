@@ -28,6 +28,7 @@ import {
 import {
   checkContainerHealth,
   deleteContainerAndImage,
+  getContainerLogs,
   renameContainer,
   restartContainer,
   runContainer,
@@ -334,6 +335,20 @@ export async function loadProjectHistory(req, res, next) {
     });
     res.locals.history = parsed;
   }
+  next();
+}
+
+/**
+ * Get a project's console logs
+ */
+export async function getProjectLogs(req, res, next) {
+  const { project } = res.locals.lookups;
+  const { since } = req.params;
+  let logs = getContainerLogs(project, since);
+  if (!logs) {
+    // ...code goes here...
+  }
+  res.locals.logs = logs;
   next();
 }
 
