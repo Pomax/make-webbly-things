@@ -1,22 +1,7 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import * as Utils from "./src/setup/utils.js";
 
-// Parse the .env file
-const envFile = join(Utils.SETUP_ROOT_DIR, `.env`);
-if (existsSync(envFile)) {
-  const data = readFileSync(envFile).toString();
-  const entries = Object.fromEntries(
-    data
-      .split(`\n`)
-      .filter(Boolean)
-      .map((e) => e.split(`=`).map((v) => v.trim().replaceAll(`"`, ``)))
-  );
-  const keys = Object.keys(entries);
-  for (const k of keys) {
-    process.env[k] = entries[k];
-  }
-}
+// Make sure we've updated process.env
+Utils.parseEnvironment();
 
 // Are we on the right version of Node?
 Utils.checkNodeVersion();
