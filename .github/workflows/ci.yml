@@ -39,4 +39,4 @@ jobs:
         run: npm run build
 
       - name: Run test suite
-        run: npm run npm run test:node
+        run: npm run test:node
