@@ -6,6 +6,7 @@ import {
   initTestDatabase,
   concludeTesting,
 } from "../../../../server/database/index.js";
+import { randomUUID } from "node:crypto";
 
 const genericSettings = {
   clientID: `irrelevant`,
@@ -19,7 +20,7 @@ describe(`Auth function tests`, async () => {
     await initTestDatabase();
     const user = User.getUser(`test-user`);
     const userObject = {
-      service: `someservice`,
+      service: `someservice-${randomUUID()}`,
       service_id: 12345,
     };
     User.addLoginProviderForUser(user, userObject);
