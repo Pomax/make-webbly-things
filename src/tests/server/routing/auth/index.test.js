@@ -18,12 +18,14 @@ const genericSettings = {
 describe(`Auth function tests`, async () => {
   test(`processOAuthLogin`, async () => {
     await initTestDatabase();
+    console.log(`111`);
     const user = User.getUser(`test-user`);
     const userObject = {
       service: `someservice-${randomUUID()}`,
       service_id: 12345,
     };
     User.addLoginProviderForUser(user, userObject);
+    console.log(`222`);
     const req = {
       session: {
         save: () => {},
@@ -34,11 +36,13 @@ describe(`Auth function tests`, async () => {
       provider: userObject.service,
       id: userObject.service_id,
     };
+    console.log(`333`);
     Auth.processOAuthLogin(req, null, null, profile, (err, loginUser) => {
       assert.equal(!!err, false);
       assert.deepEqual(loginUser, { ...user, admin: false });
       concludeTesting();
     });
+    console.log(`444`);
     // TODO: there are two more code paths: sign up, and adding a provider
   });
 

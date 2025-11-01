@@ -89,6 +89,7 @@ let __processUserLogin = pathExists(firstTimeSetup)
 // are added to the database but they are not enabled
 // by default, and an admin will have to approve them.
 function processUserLoginNormally(userObject) {
+  console.log(`processUserLoginNormally`);
   const { service, service_id } = userObject;
   const login = Login.find({ service, service_id });
   if (!login) {
@@ -128,6 +129,7 @@ function __processFirstTimeUserLogin(userObject) {
  * Add a login provider for a user account
  */
 export function addLoginProviderForUser(user, userObject) {
+  console.log(`addLoginProviderForUser`);
   const { service, service_id, service_domain } = userObject;
   const login = Login.find({ user_id: user.id, service });
   if (login) {

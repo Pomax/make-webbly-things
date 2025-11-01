@@ -99,12 +99,14 @@ export function processOAuthLogin(
   // If we have a new provider name, we need to add this
   // as an additional login provider for this user's account
   else if (newProvider) {
+    console.log(`555`);
     user = addLoginProviderForUser(sessionUser, userObject);
   }
 
   // If not, this is a regular login, where we need to find
   // the user that belongs to this service profile.
   else {
+    console.log(`666`);
     user = processUserLogin(userObject);
   }
 
