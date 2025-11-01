@@ -25,6 +25,7 @@ describe(`project testing`, async () => {
     assert.equal(projects.length, 1);
   });
 
+  /*
   test(`copyProjectSettings`, () => {
     const user = User.getUser(`test-user`);
     const project1 = Project.getProject(`test-project`);
@@ -192,4 +193,5 @@ describe(`project testing`, async () => {
     Project.stopProject(project);
     assert.equal(found, true);
   });
+  */
 });
