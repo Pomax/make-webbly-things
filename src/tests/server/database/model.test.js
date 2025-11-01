@@ -6,10 +6,14 @@ import {
   initTestDatabase,
   concludeTesting,
 } from "../../../server/database/index.js";
+import { closeReader } from "../../../setup/utils.js";
 
 describe(`Model tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   test(`constants`, () => {
     assert.equal(Models.UNKNOWN_USER, -1);
