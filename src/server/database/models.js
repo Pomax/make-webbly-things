@@ -152,9 +152,9 @@ class Model {
    * a default value may be left off.
    */
   insert(colVals) {
-    const exists = this.find(colVals);
-    if (exists) return exists;
-    
+    colVals = Object.fromEntries(
+      Object.entries(colVals).filter(([_k, v]) => v !== undefined),
+    );
     const keys = Object.keys(colVals);
     const values = Object.values(colVals);
     const sql = `INSERT INTO ${this.table} (${keys.join(`,`)}) VALUES (${keys.map((v) => `?`).join(`,`)})`;
