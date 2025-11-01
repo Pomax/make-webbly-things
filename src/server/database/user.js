@@ -101,7 +101,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
       );
     }
   }
@@ -112,12 +112,15 @@ function processUserLoginNormally(userObject) {
 // login to automatically become an enabled user account with
 // admin rights, so that you can run setup, log in, and get going.
 function __processFirstTimeUserLogin(userObject) {
+  console.log(`__processFirstTimeUserLogin`, userObject);
   unlinkSync(firstTimeSetup);
   __processUserLogin = processUserLoginNormally;
   const { profileName, service, service_id, service_domain } = userObject;
   console.log(`First time login: marking ${profileName} as admin`);
-  let user = User.find({ name: profileName });
-  if (!user) user = User.create({ name: profileName });
+
+  let user = User.findOrCreate({ name: profileName });
+  console.log(`initial user:`, user);
+
   Login.create({ user_id: user.id, service, service_id, service_domain });
   Admin.create({ user_id: user.id });
   user.enabled_at = user.created_at;
@@ -400,6 +403,6 @@ export function updateUserProfile(user, profile) {
       name,
       url: linkHrefs[i],
       sort_order: parseFloat(linkOrder[i]),
-    }),
+    })
   );
 }
