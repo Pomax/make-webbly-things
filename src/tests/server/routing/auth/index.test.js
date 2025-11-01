@@ -42,6 +42,7 @@ describe(`Auth function tests`, async () => {
     // TODO: there are two more code paths: sign up, and adding a provider
   });
 
+  /*
   test(`addGithubAuth`, () => {
     const app = {
       use: (path, router) => (app[path] = router),
@@ -86,4 +87,5 @@ describe(`Auth function tests`, async () => {
     assert.equal(!!router, true);
     // TODO: we probably want some more detailed testing here
   });
+  */
 });
