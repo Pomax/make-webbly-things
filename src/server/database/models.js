@@ -5,7 +5,8 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { applyMigrations } from "./utils.js";
 
-const DEBUG_SQL = true;
+const DEBUG_SQL = false;
+const DEBUG_ERRORS = DEBUG_SQL || true;
 
 // not quite a fan of this, so this solution may change in the future:
 export const UNKNOWN_USER = -1;
@@ -43,7 +44,7 @@ export function runQuery(sql, values = []) {
   try {
     return db.prepare(sql).all(...values);
   } catch (e) {
-    console.error(e, { sql, values });
+    console.error(`RUN QUERY ERROR:`, e, { sql, values });
   }
   return [];
 }
@@ -68,7 +69,11 @@ class Model {
     if (sortKeys) {
       sql = `${sql} ORDER BY ${sortKeys.join(`,`)} ${sortDir}`;
     }
-    return db.prepare(sql).all();
+    try {
+      return db.prepare(sql).all();
+    } catch (e) {
+      if (DEBUG_ERRORS) console.error(`SELECT ALL ERROR:`, e, { sql, values });
+    }
   }
 
   /**
@@ -96,7 +101,11 @@ class Model {
     const { filter, values } = composeWhere(where);
     const sql = `DELETE FROM ${this.table} WHERE ${filter}`;
     if (DEBUG_SQL) console.log(`DELETE:`, sql, values);
-    return db.prepare(sql).run(values);
+    try {
+      return db.prepare(sql).run(values);
+    } catch (e) {
+      if (DEBUG_ERRORS) console.error(`DELETE ERROR:`, e, { sql, values });
+    }
   }
 
   /**
@@ -122,7 +131,7 @@ class Model {
       if (DEBUG_SQL) console.log(`FIND ALL RESULTS:`, results);
       return results;
     } catch (e) {
-      console.error(e, { sql, values });
+      if (DEBUG_ERRORS) console.error(`FIND ALL RESULTS:`, e, { sql, values });
     }
     return [];
   }
@@ -147,7 +156,11 @@ class Model {
     const values = Object.values(colVals);
     const sql = `INSERT INTO ${this.table} (${keys.join(`,`)}) VALUES (${keys.map((v) => `?`).join(`,`)})`;
     if (DEBUG_SQL) console.log(`INSERT:`, sql, values);
-    db.prepare(sql).run(...values);
+    try {
+      db.prepare(sql).run(...values);
+    } catch (e) {
+      if (DEBUG_ERRORS) console.error(`INSERT ERROR:`, e, { sql, values });
+    }
   }
 
   /**
@@ -166,7 +179,11 @@ class Model {
     const values = Object.values(record);
     const sql = `UPDATE ${this.table} SET ${update} WHERE ${primaryKey} = ?`;
     if (DEBUG_SQL) console.log(`UPDATE:`, sql, values);
-    db.prepare(sql).run(...values, pval);
+    try {
+      db.prepare(sql).run(...values, pval);
+    } catch (e) {
+      if (DEBUG_ERRORS) console.error(`SAVE ERROR:`, e, { sql, values });
+    }
     record[primaryKey] = pval;
   }
 }
