@@ -25,7 +25,6 @@ describe(`project testing`, async () => {
     assert.equal(projects.length, 1);
   });
 
-  /*
   test(`copyProjectSettings`, () => {
     const user = User.getUser(`test-user`);
     const project1 = Project.getProject(`test-project`);
@@ -50,6 +49,7 @@ describe(`project testing`, async () => {
     assert.equal(Project.getAllProjects().length, 1);
   });
 
+  /*
   test(`deleteProjectForUser as admin call`, () => {
     const user = User.getUser(`test-user`);
     const project = Project.createProjectForUser(user, `new test project`);

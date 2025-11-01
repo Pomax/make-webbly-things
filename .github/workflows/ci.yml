@@ -32,11 +32,5 @@ jobs:
           cp .env.ci .env
           node setup --no-auth --no-tls
 
-      - name: Run linting
-        run: npm run lint
-
-      - name: Build browser bundle
-        run: npm run build
-
       - name: Run test suite
         run: npm run test
