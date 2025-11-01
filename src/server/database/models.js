@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { applyMigrations } from "./utils.js";
 
-const DEBUG_SQL = false;
+const DEBUG_SQL = true;
 
 // not quite a fan of this, so this solution may change in the future:
 export const UNKNOWN_USER = -1;
