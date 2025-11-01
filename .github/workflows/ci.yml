@@ -28,8 +28,8 @@ jobs:
 
       - name: Run first time setup
         run: |
-          cp .env.ci .env
           npm install
+          cp .env.ci .env
           node setup --no-auth --no-tls
 
       - name: Run linting

@@ -39,7 +39,7 @@ export { db };
  * Generic "run me this SQL" function, because sometimes you need complex queries.
  */
 export function runQuery(sql, values = []) {
-  if (DEBUG_SQL) console.log(`RUN QUERY`, sql, values);
+  if (DEBUG_SQL) console.log(`RUN QUERY:`, sql, values);
   try {
     return db.prepare(sql).all(...values);
   } catch (e) {
@@ -78,7 +78,7 @@ class Model {
    * code to use findOrCreate instead in that codepath.
    */
   create(where = {}) {
-    if (DEBUG_SQL) console.log(`CREATE with`, where);
+    if (DEBUG_SQL) console.log(`CREATE with:`, where);
     const record = this.find(where);
     if (record) throw new Error(`record already exists`);
     this.insert(where);
@@ -95,7 +95,7 @@ class Model {
   delete(where) {
     const { filter, values } = composeWhere(where);
     const sql = `DELETE FROM ${this.table} WHERE ${filter}`;
-    if (DEBUG_SQL) console.log(`DELETE`, sql, values);
+    if (DEBUG_SQL) console.log(`DELETE:`, sql, values);
     return db.prepare(sql).run(values);
   }
 
@@ -116,9 +116,11 @@ class Model {
     if (sortKeys) {
       sql = `${sql} ORDER BY ${sortKeys.join(`,`)} ${sortDir}`;
     }
-    if (DEBUG_SQL) console.log(`FIND ALL`, sql, values);
+    if (DEBUG_SQL) console.log(`FIND ALL:`, sql, values);
     try {
-      return db.prepare(sql).all(values).filter(Boolean);
+      const results = db.prepare(sql).all(values).filter(Boolean);
+      if (DEBUG_SQL) console.log(`FIND ALL RESULTS:`, results);
+      return results;
     } catch (e) {
       console.error(e, { sql, values });
     }
@@ -144,7 +146,7 @@ class Model {
     const keys = Object.keys(colVals);
     const values = Object.values(colVals);
     const sql = `INSERT INTO ${this.table} (${keys.join(`,`)}) VALUES (${keys.map((v) => `?`).join(`,`)})`;
-    if (DEBUG_SQL) console.log(`INSERT`, sql, values);
+    if (DEBUG_SQL) console.log(`INSERT:`, sql, values);
     db.prepare(sql).run(...values);
   }
 
@@ -163,7 +165,7 @@ class Model {
       .join(`, `);
     const values = Object.values(record);
     const sql = `UPDATE ${this.table} SET ${update} WHERE ${primaryKey} = ?`;
-    if (DEBUG_SQL) console.log(`UPDATE`, sql, values);
+    if (DEBUG_SQL) console.log(`UPDATE:`, sql, values);
     db.prepare(sql).run(...values, pval);
     record[primaryKey] = pval;
   }
