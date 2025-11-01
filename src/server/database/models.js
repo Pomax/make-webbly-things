@@ -159,7 +159,11 @@ class Model {
     try {
       db.prepare(sql).run(...values);
     } catch (e) {
-      if (DEBUG_ERRORS) console.error(`INSERT ERROR:`, e, { sql, values });
+      if (DEBUG_ERRORS) {
+        console.error(`INSERT ERROR:`, e, { sql, values });
+        const tableContent = this.all();
+        console.error(`TABLE CONTENT:`, tableContent);
+      }
     }
   }
 
