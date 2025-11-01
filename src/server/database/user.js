@@ -101,7 +101,7 @@ function processUserLoginNormally(userObject) {
     const s = getUserSuspensions(user);
     if (s.length) {
       throw new Error(
-        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`,
+        `This user account has been suspended (${s.map((s) => `"${s.reason}"`).join(`, `)})`
       );
     }
   }
@@ -116,7 +116,8 @@ function __processFirstTimeUserLogin(userObject) {
   __processUserLogin = processUserLoginNormally;
   const { profileName, service, service_id, service_domain } = userObject;
   console.log(`First time login: marking ${profileName} as admin`);
-  const user = User.create({ name: profileName });
+  let user = User.find({ name: profileName });
+  if (!user) user = User.create({ name: profileName });
   Login.create({ user_id: user.id, service, service_id, service_domain });
   Admin.create({ user_id: user.id });
   user.enabled_at = user.created_at;
@@ -399,6 +400,6 @@ export function updateUserProfile(user, profile) {
       name,
       url: linkHrefs[i],
       sort_order: parseFloat(linkOrder[i]),
-    }),
+    })
   );
 }
