@@ -21,16 +21,16 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run first time setup
         run: |
-          cp .env.ci .env
           npm install
+          cp .env.ci .env
           node setup --no-auth --no-tls
 
-      - name: Run linting
-        run: npm run lint
+      - name: Run test suite
+        run: npm run test

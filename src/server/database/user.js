@@ -89,6 +89,7 @@ let __processUserLogin = pathExists(firstTimeSetup)
 // are added to the database but they are not enabled
 // by default, and an admin will have to approve them.
 function processUserLoginNormally(userObject) {
+  console.log(`processUserLoginNormally`);
   const { service, service_id } = userObject;
   const login = Login.find({ service, service_id });
   if (!login) {
@@ -111,11 +112,15 @@ function processUserLoginNormally(userObject) {
 // login to automatically become an enabled user account with
 // admin rights, so that you can run setup, log in, and get going.
 function __processFirstTimeUserLogin(userObject) {
+  console.log(`__processFirstTimeUserLogin`, userObject);
   unlinkSync(firstTimeSetup);
   __processUserLogin = processUserLoginNormally;
   const { profileName, service, service_id, service_domain } = userObject;
   console.log(`First time login: marking ${profileName} as admin`);
-  const user = User.create({ name: profileName });
+
+  const user = User.findOrCreate({ name: profileName });
+  console.log(`initial user:`, user);
+
   Login.create({ user_id: user.id, service, service_id, service_domain });
   Admin.create({ user_id: user.id });
   user.enabled_at = user.created_at;
@@ -128,6 +133,7 @@ function __processFirstTimeUserLogin(userObject) {
  * Add a login provider for a user account
  */
 export function addLoginProviderForUser(user, userObject) {
+  console.log(`addLoginProviderForUser`);
   const { service, service_id, service_domain } = userObject;
   const login = Login.find({ user_id: user.id, service });
   if (login) {

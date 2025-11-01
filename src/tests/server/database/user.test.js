@@ -6,10 +6,14 @@ import {
   concludeTesting,
   Models,
 } from "../../../server/database/index.js";
+import { closeReader } from "../../../setup/utils.js";
 
 describe(`user tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   /*
   export function processUserLogin(userObject) {

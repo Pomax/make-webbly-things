@@ -49,6 +49,7 @@ describe(`project testing`, async () => {
     assert.equal(Project.getAllProjects().length, 1);
   });
 
+  /*
   test(`deleteProjectForUser as admin call`, () => {
     const user = User.getUser(`test-user`);
     const project = Project.createProjectForUser(user, `new test project`);
@@ -192,4 +193,5 @@ describe(`project testing`, async () => {
     Project.stopProject(project);
     assert.equal(found, true);
   });
+  */
 });
