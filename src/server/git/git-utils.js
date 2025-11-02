@@ -30,7 +30,7 @@ export function addGitTracking(dir, msg = `initial commit`) {
     `git config --local user.email "editor@editordomain"`,
     `git config --local user.name "editor"`,
     `git add .`,
-    `git commit --allow-empty -m "${msg}"`
+    `git commit --allow-empty -m "${msg}"`,
   ];
 
   return execSync(cmd.join(` && `));
