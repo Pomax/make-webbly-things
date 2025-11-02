@@ -11,7 +11,6 @@ import {
   createProjectDownload,
   deleteProject,
   getProjectSettings,
-  getProjectLogs,
   loadProject,
   loadProjectHistory,
   remixProject,
