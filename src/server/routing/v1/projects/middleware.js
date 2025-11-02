@@ -339,20 +339,6 @@ export async function loadProjectHistory(req, res, next) {
 }
 
 /**
- * Get a project's console logs
- */
-export async function getProjectLogs(req, res, next) {
-  const { project } = res.locals.lookups;
-  const { since } = req.params;
-  const logs = getContainerLogs(project, since);
-  if (!logs) {
-    // ...code goes here...
-  }
-  res.locals.logs = logs;
-  next();
-}
-
-/**
  * ...docs go here...
  */
 export async function remixProject(req, res, next) {
