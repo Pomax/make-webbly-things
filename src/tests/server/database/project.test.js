@@ -29,19 +29,28 @@ updated_at
 links to a user via ProjectAccess (user_id, project_id, access_level)
 */
 
-function createProject(projectName = randomUUID(), username = randomUUID()) {
-  const user = createUser(username);
-  // The user must be enabled for various Project calls to succeed
-  User.enableUser(user);
+function createProject(
+  projectName = randomUUID(),
+  usernameOrUser = randomUUID(),
+) {
+  let user;
+
+  if (typeof usernameOrUser === "string") {
+    user = createUser(usernameOrUser);
+    // The user must be enabled for various Project calls to succeed
+    User.enableUser(user);
+  } else {
+    user = usernameOrUser;
+  }
 
   const project = Project.createProjectForUser(user, projectName);
-  return { project, user };
+  return project;
 }
 
-function createStarterProject(projectName = randomUUID()) {
-  const { project, user } = createProject(projectName);
+function createStarterProject(projectName, usernameOrUser) {
+  const project = createProject(projectName, usernameOrUser);
   Models.StarterProject.create({ project_id: project.id });
-  return { project, user };
+  return project;
 }
 
 describe(`project testing`, async () => {
@@ -63,38 +72,31 @@ describe(`project testing`, async () => {
   });
 
   test(`copyProjectSettings`, () => {
-    const { project: project1 } = createProject(`test-project`);
+    const project1 = createProject(`test-project`);
     Project.updateSettingsForProject(project1, { run_script: "npm start" });
 
-    const { project: project2 } = createProject(`new-test-project`);
+    const project2 = createProject(`new-test-project`);
     Project.copyProjectSettings(project1, project2);
     assert.equal(project1.settings.run_script, "npm start");
     assert.equal(project1.settings.run_script, project2.settings.run_script);
   });
-  /*
-id int
-name text, not null, unique
-slug text, not null, unique
-description text, nullable
-created_at
-updated_at
-*/
 
   test(`createProjectForUser`, () => {
-    const user = createUser(`test-user`);
+    const user = createUser();
     const project = Project.createProjectForUser(user, `new test project`);
     assert.equal(project.name, `new test project`);
     assert.equal(Project.getAllProjects().length, 1);
   });
 
   test(`deleteProjectForUser`, () => {
-    const { project, user } = createProject(`new-test-project`, `test-user`);
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     Project.deleteProjectForUser(user, project);
     assert.equal(Project.getAllProjects().length, 0);
   });
 
   test(`deleteProjectForUser as admin call`, () => {
-    const { project } = createProject(`new test project`);
+    const project = createProject(`new test project`);
     assert.equal(project.name, `new test project`);
     assert.equal(Project.getAllProjects().length, 1);
     Project.deleteProjectForUser(null, project, true);
@@ -102,7 +104,8 @@ updated_at
   });
 
   test(`getAccessFor`, () => {
-    const { user, project } = createProject();
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     const accessLevel = Project.getAccessFor(user, project);
     assert.equal(accessLevel, Project.OWNER);
   });
@@ -116,7 +119,8 @@ updated_at
   });
 
   test(`getOwnedProjectsForUser`, () => {
-    const { user } = createProject();
+    const user = createUser();
+    createProject(`test-project`, user);
     const projects = Project.getOwnedProjectsForUser(user);
     assert.equal(projects.length, 1);
   });
@@ -129,7 +133,7 @@ updated_at
   });
 
   test(`getProjectEnvironmentVariables`, () => {
-    const { project } = createProject();
+    const project = createProject();
     Project.updateSettingsForProject(project, {
       env_vars: `FIRST=first\nSECOND=second`,
     });
@@ -138,7 +142,7 @@ updated_at
   });
 
   test(`suspensions`, () => {
-    const { project, user } = createProject();
+    const project = createProject();
     Project.suspendProject(project, `because we're testing`);
     const s = Project.getProjectSuspensions(project);
     assert.equal(s.length, 1);
@@ -157,9 +161,9 @@ updated_at
     const user = createUser();
     let list = Project.getProjectListForUser(user);
     assert.equal(list.length, 0);
-    const p1 = Project.createProjectForUser(user, `new test project 1`);
-    const p2 = Project.createProjectForUser(user, `new test project 2`);
-    const p3 = Project.createProjectForUser(user, `new test project 3`);
+    createProject(`new test project 1`, user);
+    createProject(`new test project 2`, user);
+    createProject(`new test project 3`, user);
     list = Project.getProjectListForUser(user);
     assert.equal(list.length, 3);
   });
@@ -171,7 +175,8 @@ updated_at
   });
 
   test(`projectSuspendedThroughOwner`, () => {
-    const { user, project } = createProject(`test-project`);
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     const s = User.suspendUser(user, `testing`);
     let suspended = Project.projectSuspendedThroughOwner(project);
     assert.equal(suspended, true);
@@ -181,18 +186,21 @@ updated_at
   });
 
   test(`recordProjectRemix`, () => {
-    const user = User.getUser(`test-user`);
-    const starter = Project.getStarterProjects()[0];
-    const p1 = Project.getOwnedProjectsForUser(user)[0];
-    const p2 = Project.createProjectForUser(user, `new test project`);
+    const user = createUser();
+    const starter = createStarterProject(`starter`, user);
+    const p1 = createProject(`project-1`, user);
+    Project.recordProjectRemix(starter, p1);
+
+    const p2 = createProject(`new test project`, user);
     Project.recordProjectRemix(p1, p2);
+
     const chain = Project.getProjectRemixChain(p2);
     assert.deepEqual(chain, [starter.id, p1.id, p2.id]);
   });
 
   test(`runProject (static)`, async () => {
     const slug = `run-static-test-project`;
-    const { project } = createProject(slug);
+    const project = createProject(slug);
     project.updated_at = scrubDateTime(new Date(0).toISOString());
     await Project.runProject(project);
     const found = await tryFor(async () => {
@@ -220,7 +228,7 @@ updated_at
 
   test(`touch`, async () => {
     const slug = `run-touch-test-project`;
-    const { project } = createProject(slug);
+    const project = createProject(slug);
     project.updated_at = scrubDateTime(new Date(0).toISOString());
     await Project.touch(project);
     const found = await tryFor(async () => {
