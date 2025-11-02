@@ -29,7 +29,7 @@ describe(`Auth function tests`, async () => {
       },
     };
     const profile = {
-      displayName: `test user`,
+      displayName: `Test User`,
       provider: userObject.service,
       id: userObject.service_id,
     };
