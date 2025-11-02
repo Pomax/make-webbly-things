@@ -1,4 +1,4 @@
-import test, { after, afterEach, before, describe } from "node:test";
+import test, { after, beforeEach, before, describe } from "node:test";
 import assert from "node:assert/strict";
 import * as User from "../../../server/database/user.js";
 import {
@@ -11,7 +11,7 @@ import { closeReader } from "../../../setup/utils.js";
 
 describe(`user tests`, async () => {
   before(async () => await initTestDatabase());
-  afterEach(() => clearTestData());
+  beforeEach(() => clearTestData());
   after(() => {
     concludeTesting();
     closeReader();
