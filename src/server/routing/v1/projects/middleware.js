@@ -343,12 +343,12 @@ export async function loadProjectHistory(req, res, next) {
  */
 export async function getProjectLogs(req, res, next) {
   const { project } = res.locals.lookups;
+  const { slug } = project;
   const { since } = req.params;
-  let logs = getContainerLogs(project, since);
-  if (!logs) {
-    // ...code goes here...
+  const binding = portBindings[slug];
+  if (binding && !binding.serverProcess) {
+    res.locals.logs = getContainerLogs(project, since);
   }
-  res.locals.logs = logs;
   next();
 }
 

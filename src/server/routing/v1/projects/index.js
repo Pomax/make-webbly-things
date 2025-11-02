@@ -107,8 +107,8 @@ projects.get(
   verifyLogin,
   verifyEditRights,
   getProjectLogs,
-  (_req, res) => res.json(res.locals.logs)
-)
+  (_req, res) => res.json(res.locals.logs),
+);
 
 /**
  * Remix a project

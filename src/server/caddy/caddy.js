@@ -9,6 +9,20 @@ const defaultCaddyFile = join(import.meta.dirname, `Caddyfile.default`);
 export const portBindings = {};
 
 /**
+ * For docker containers, the port binding is pretty much just a
+ * simple slug-to-port mapping. But for static servers we also
+ * want a reference to the actual process so we can .kill() it.
+ */
+export class PortBinding {
+  port;
+  serverProcess;
+  restarts = 0;
+  constructor(p) {
+    this.port = parseFloat(p);
+  }
+}
+
+/**
  * Remove an entry from the Caddyfile
  */
 export function removeCaddyEntry(project, env = process.env) {
@@ -86,9 +100,8 @@ process.on("SIGINT", () => {
 export function updateCaddyFile(project, port, env = process.env) {
   const { slug } = project;
 
-  portBindings[slug] ??= {};
-  portBindings[slug].port = port;
-
+  portBindings[slug] ??= new PortBinding(port);
+  const binding = portBindings[slug];
   const data = readFileSync(caddyFile).toString();
   const host = `\n${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const index = data.indexOf(host);
@@ -132,5 +145,5 @@ ${host} {
 
   scheduleScreenShot(project);
 
-  return portBindings[slug];
+  return binding;
 }
