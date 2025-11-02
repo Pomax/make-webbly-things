@@ -37,7 +37,7 @@ export async function createDockerProject(run = true, gracePeriod = 500) {
   // create a docker project...
   const user = createUser();
   const slug = randomDockerProjectName();
-  const project = Project.createProjectForUser(user, slug);
+  const project = createProject(slug, user);
   project.updated_at = scrubDateTime(new Date(0).toISOString());
 
   Project.updateSettingsForProject(project, {
