@@ -7,11 +7,15 @@ import {
   clearTestData,
 } from "../../../server/database/index.js";
 import { createAdminUser, createUser } from "../../test-helpers.js";
+import { closeReader } from "../../../setup/utils.js";
 
 describe(`user tests`, async () => {
   before(async () => await initTestDatabase());
   afterEach(() => clearTestData());
-  after(() => concludeTesting());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   /*
   export function processUserLogin(userObject) {
