@@ -99,18 +99,6 @@ projects.get(
 );
 
 /**
- * Get this project's console output
- */
-projects.get(
-  `/logs/:project/:since?`,
-  bindCommonValues,
-  verifyLogin,
-  verifyEditRights,
-  getProjectLogs,
-  (_req, res) => res.json(res.locals.logs),
-);
-
-/**
  * Remix a project
  */
 projects.get(
