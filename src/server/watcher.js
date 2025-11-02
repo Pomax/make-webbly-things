@@ -1,10 +1,7 @@
 import { watch } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
-import { readContentDir, getFileSum } from "../helpers.js";
-
-const isWindows = process.platform === `win32`;
-const npm = isWindows ? `npm.cmd` : `npm`;
+import { readContentDir, getFileSum, npm } from "../helpers.js";
 
 let rebuildLock = false;
 const fileHashes = {};

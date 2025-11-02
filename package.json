@@ -15,7 +15,7 @@
     "format:css": "prettier --write \"./public/**/*.css\"",
     "format:html": "prettier --write \"./public/**/*.html\" --plugin prettier-plugin-jinja-template",
     "format:js": "prettier --write \"./src/**/*.js\"",
-    "format:single": "prettier --no-config --ignore-path \"\" --write ",    
+    "format:single": "prettier --no-config --ignore-path \"\" --write ",
     "format": "npm run format:js && npm run format:html && npm run format:css",
     "lint": "biome lint --write src --max-diagnostics=none",
     "postinstall": "npx playwright install chromium && cp -r ./node_modules/file-icon-vectors/dist/icons/classic ./public/themes/default/images/icons/",
