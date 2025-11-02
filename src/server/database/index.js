@@ -177,14 +177,19 @@ export async function initTestDatabase() {
   Models.Remix.findOrCreate({ original_id: starter.id, project_id });
 }
 
+export function clearTestData() {
+  if (!TESTING) return;
+  db.exec(`DELETE FROM users`);
+  db.exec(`DELETE FROM projects`);
+  db.exec(`DELETE FROM remix`);
+}
+
 /**
  *
  * @returns
  */
 export function concludeTesting() {
   if (!TESTING) return;
-  db.exec(`DELETE FROM users`);
-  db.exec(`DELETE FROM projects`);
-  db.exec(`DELETE FROM remix`);
+  clearTestData();
   db.close();
 }

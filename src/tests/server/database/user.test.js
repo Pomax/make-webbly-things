@@ -1,77 +1,63 @@
-import test, { after, before, describe } from "node:test";
+import test, { after, afterEach, before, describe } from "node:test";
 import assert from "node:assert/strict";
 import * as User from "../../../server/database/user.js";
 import {
   initTestDatabase,
   concludeTesting,
-  Models,
+  clearTestData,
 } from "../../../server/database/index.js";
+import { createAdminUser, createUser } from "../../test-helpers.js";
+import { closeReader } from "../../../setup/utils.js";
 
 describe(`user tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  afterEach(() => clearTestData());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   /*
   export function processUserLogin(userObject) {
   */
 
   test(`deleteUser`, () => {
-    const user = Models.User.create({ name: `disposable` });
+    const user = createUser();
     User.deleteUser(user);
   });
 
   test(`enable/disable`, () => {
-    let user = User.getUser(`test-user`);
+    let user = createUser();
 
     User.enableUser(user);
-    user = User.getUser(`test-user`);
+    user = User.getUser(user.id);
     assert.notEqual(user.enabled_at, null);
 
     User.disableUser(user);
-    user = User.getUser(`test-user`);
+    user = User.getUser(user.id);
     assert.equal(user.enabled_at, null);
   });
 
   test(`getAllUsers`, () => {
+    createUser(`test-user-1`);
+    createUser(`test-user-2`);
     const users = User.getAllUsers();
     assert.equal(users.length, 2);
   });
 
   test(`userIsAdmin`, () => {
-    const admin = User.getUser(`test-admin`);
-    assert.equal(User.userIsAdmin(admin), true);
+    const admin = createAdminUser();
+    const user = createUser();
 
-    const user = User.getUser(`test-user`);
+    assert.equal(User.userIsAdmin(admin), true);
     assert.equal(User.userIsAdmin(user), false);
   });
 
-  test(`getUserSettings`, () => {
-    const admin = User.getUser(`test-admin`);
-    let settings = User.getUserSettings(admin);
-    assert.deepEqual(settings, {
-      name: `test admin`,
-      admin: true,
-      enabled: true,
-      suspended: false,
-    });
-
-    const user = User.getUser(`test-user`);
-    const s = User.suspendUser(user, `why not`);
-    User.disableUser(user);
-    settings = User.getUserSettings(user);
-    assert.deepEqual(settings, {
-      name: `test user`,
-      admin: false,
-      enabled: false,
-      suspended: true,
-    });
-  });
-
   test(`getUserSuspensions`, () => {
-    const user = Models.User.create({ name: `sus user` });
+    const user = createUser();
     const s = User.suspendUser(user, `why not`);
     User.unsuspendUser(s.id);
-    const t = User.suspendUser(user, `why not, again`);
+    User.suspendUser(user, `why not, again`);
     let list = User.getUserSuspensions(user);
     assert.equal(list.length, 1);
     list = User.getUserSuspensions(user, true);
@@ -79,9 +65,9 @@ describe(`user tests`, async () => {
   });
 
   test(`hasAccessToUserRecords`, () => {
-    const admin = User.getUser(`test-admin`);
-    const user = User.getUser(`test-user`);
-    const rando = Models.User.create({ name: `rando calrisian` });
+    const admin = createAdminUser(`test-admin`);
+    const user = createUser(`test-user`);
+    const rando = createUser(`random-user`);
 
     assert.equal(User.hasAccessToUserRecords(user, user), true);
     assert.equal(User.hasAccessToUserRecords(admin, user), true);

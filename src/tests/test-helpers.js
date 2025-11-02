@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import * as User from "../server/database/user.js";
 import * as Project from "../server/database/project.js";
+import { Models } from "../server/database/index.js";
 
 import { CONTENT_DIR, scrubDateTime } from "../helpers.js";
 
@@ -99,4 +100,17 @@ export async function tryFor(asyncFn, timeout = 5000, interval = 500) {
       }, interval);
     }
   });
+}
+
+export function createUser(name = randomUUID()) {
+  const user = Models.User.create({ name });
+  return user;
+}
+
+export function createAdminUser(slug) {
+  const user = createUser(slug);
+
+  Models.Admin.create({ user_id: user.id });
+
+  return user;
 }
