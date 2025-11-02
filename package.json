@@ -22,7 +22,7 @@
     "precheck": "node --env-file=.env check-deps",
     "start": "npm run precheck && node --env-file=.env src/server/index.js",
     "test:cleanup": "node ./src/tests/test-cleanup.js",
-    "test:node": "cross-env NODE_ENV=TESTING node --env-file=.env --experimental-test-coverage --test \"./src/tests/**/project.test.js\"",
+    "test:node": "cross-env NODE_ENV=TESTING node --env-file=.env --experimental-test-coverage --test \"./src/tests/**/*.test.js\"",
     "test:suite": "npm run precheck && npm run build && npm run test:node",
     "test": "npm run test:cleanup && npm run test:suite && npm run test:cleanup"
   },
