@@ -24,12 +24,18 @@ function cwd(projectSlug) {
  * helper function to add a .git dir somewhere
  */
 export function addGitTracking(dir, msg = `initial commit`) {
-  const cmd = [
-    `cd ${dir}`,
-    `git init --initial-branch=main`,
-    `git add .`,
-    `git commit --allow-empty -m "${msg}"`,
-  ];
+  const cmd = [`cd ${dir}`, `git init --initial-branch=main`];
+
+  if (TESTING) {
+    // Thanks, GitHub Actions, you're the best.
+    cmd.push(
+      `git config --local user.email "actions@github.com"`,
+      `git config --local user.name "GitHub Actions"`,
+    );
+  }
+
+  cmd.push(`git add .`, `git commit --allow-empty -m "${msg}"`);
+
   return execSync(cmd.join(` && `));
 }
 
