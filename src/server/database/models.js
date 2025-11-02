@@ -43,7 +43,7 @@ export function runQuery(sql, values = []) {
   try {
     return db.prepare(sql).all(...values);
   } catch (e) {
-    console.error(e, { sql, values });
+    console.error(`RUN ERROR:`, e, { sql, values });
   }
   return [];
 }
@@ -68,7 +68,11 @@ class Model {
     if (sortKeys) {
       sql = `${sql} ORDER BY ${sortKeys.join(`,`)} ${sortDir}`;
     }
-    return db.prepare(sql).all();
+    try {
+      return db.prepare(sql).all();
+    } catch (e) {
+      console.error(`ALL ERROR:`, e, { sql, values });
+    }
   }
 
   /**
@@ -96,7 +100,11 @@ class Model {
     const { filter, values } = composeWhere(where);
     const sql = `DELETE FROM ${this.table} WHERE ${filter}`;
     if (DEBUG_SQL) console.log(`DELETE`, sql, values);
-    return db.prepare(sql).run(values);
+    try {
+      return db.prepare(sql).run(values);
+    } catch (e) {
+      console.error(`DELETE ERROR:`, e, { sql, values });
+    }
   }
 
   /**
@@ -120,7 +128,7 @@ class Model {
     try {
       return db.prepare(sql).all(values).filter(Boolean);
     } catch (e) {
-      console.error(e, { sql, values });
+      console.error(`FIND ALL ERROR:`, e, { sql, values });
     }
     return [];
   }
@@ -148,7 +156,11 @@ class Model {
     const values = Object.values(colVals);
     const sql = `INSERT INTO ${this.table} (${keys.join(`,`)}) VALUES (${keys.map((v) => `?`).join(`,`)})`;
     if (DEBUG_SQL) console.log(`INSERT`, sql, values);
-    db.prepare(sql).run(...values);
+    try {
+      db.prepare(sql).run(...values);
+    } catch (e) {
+      console.error(`INSERT ERROR:`, e, { sql, values });
+    }
   }
 
   /**
@@ -157,18 +169,23 @@ class Model {
    */
   save(record) {
     const { primaryKey } = this;
-    const pval = record[primaryKey];
-    delete record[primaryKey];
-    if (record.updated_at)
-      record.updated_at = scrubDateTime(new Date().toISOString());
-    const update = Object.keys(record)
+    const copy = Object.assign({}, record);
+    const pval = copy[primaryKey];
+    delete copy[primaryKey];
+    if (copy.updated_at) {
+      copy.updated_at = scrubDateTime(new Date().toISOString());
+    }
+    const update = Object.keys(copy)
       .map((k) => `${k} = ?`)
       .join(`, `);
-    const values = Object.values(record);
+    const values = Object.values(copy);
     const sql = `UPDATE ${this.table} SET ${update} WHERE ${primaryKey} = ?`;
     if (DEBUG_SQL) console.log(`UPDATE`, sql, values);
-    db.prepare(sql).run(...values, pval);
-    record[primaryKey] = pval;
+    try {
+      db.prepare(sql).run(...values, pval);
+    } catch (e) {
+      console.error(`SAVE ERROR:`, e, { sql, values, pval });
+    }
   }
 }
 
