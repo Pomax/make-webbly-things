@@ -115,9 +115,9 @@ function __processFirstTimeUserLogin(userObject) {
   __processUserLogin = processUserLoginNormally;
   const { profileName, service, service_id, service_domain } = userObject;
   console.log(`First time login: marking ${profileName} as admin`);
-  const user = User.findOrCreate({ name: profileName });
-  Login.findOrCreate({ user_id: user.id, service, service_id, service_domain });
-  Admin.findOrCreate({ user_id: user.id });
+  const user = User.create({ name: profileName });
+  Login.create({ user_id: user.id, service, service_id, service_domain });
+  Admin.create({ user_id: user.id });
   user.enabled_at = user.created_at;
   user.admin = true;
   User.save(user);
