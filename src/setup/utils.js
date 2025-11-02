@@ -2,7 +2,7 @@ import readline from "node:readline";
 import { join } from "node:path";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
-import { TESTING, ROOT_DIR } from "../helpers.js";
+import { TESTING, ROOT_DIR, npm } from "../helpers.js";
 
 // We want to make sure that test setup does
 // NOT overwrite our "production" settings!
@@ -117,6 +117,7 @@ export function randomSecret() {
  * Make sure dependencies are installed.
  */
 export function runNpmInstall() {
-  execSync(`npm i`, { shell: true, stdio: `inherit` });
-  () => console.log(`\n`);
+  console.log(`Running npm install...`);
+  execSync(`${npm} install`, { stdio: `ignore` });
+  console.log(`Done.\n`);
 }
