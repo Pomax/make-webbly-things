@@ -13,6 +13,20 @@ const base = isStarter ? `content/__starter_projects` : `content`;
 const staticDir = join(base, projectSlug, root.replaceAll(`"`, ``));
 
 app.use(`/`, express.static(staticDir, { etag: false }));
-app.listen(port, () =>
+
+const server = app.listen(port, () =>
   console.log(`Static server for ${projectSlug} listening on port ${port}`),
 );
+
+// This part exists solely because GitGub Actions don't
+// support kill, which is INSANE and means that we can't
+// just use serverPocess.kill() to gracefully shut down
+// server instances during tests inside gh actions.
+// So smart! Thanks GitHub!
+const withShutdown = process.argv.includes(`--with-shutdown`);
+if (withShutdown) {
+  app.get(`/shutdown`, (req, res) => {
+    res.send(`ok`);
+    server.close();
+  });
+}
