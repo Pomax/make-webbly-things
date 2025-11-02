@@ -240,6 +240,12 @@ export async function runStaticServer(project) {
     `--port ${port}`,
     `--root "${root}"`,
     isStarter ? `--starter` : ``,
+    // This part exists solely because GitGub Actions don't
+    // support kill, which is INSANE and means that we can't
+    // just use serverPocess.kill() to gracefully shut down
+    // server instances during tests inside gh actions.
+    // So smart! Thanks GitHub!
+    TESTING ? `--with-shutdown` : ``,
   ].join(` `);
   const runCommand = `node src/server/static.js ${opts}`;
   if (TESTING) console.log({ runCommand });
@@ -264,12 +270,21 @@ export function stopContainer(project, slug = project.slug) {
  * ...docs go here...
  */
 export function stopStaticServer(project, slug = project.slug) {
-  const { serverProcess } = portBindings[slug] ?? {};
+  const { port, serverProcess } = portBindings[slug] ?? {};
   if (serverProcess) {
-    if (process.platform === "win32") {
-      execSync(`taskkill /pid ${serverProcess.pid} /f /t`);
+    if (TESTING) {
+      // This part exists solely because GitGub Actions don't
+      // support kill, which is INSANE and means that we can't
+      // just use serverPocess.kill() to gracefully shut down
+      // server instances during tests inside gh actions.
+      // So smart! Thanks GitHub!
+      fetch(`http://localhost:${port}/shutdown`);
     } else {
-      serverProcess.kill(`SIGINT`);
+      if (process.platform === "win32") {
+        execSync(`taskkill /pid ${serverProcess.pid} /f /t`);
+      } else {
+        serverProcess.kill(`SIGINT`);
+      }
     }
     removeCaddyEntry(project);
   }
