@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 import * as Project from "../server/database/project.js";
+import * as User from "../server/database/user.js";
 import { Models } from "../server/database/index.js";
 
 import { CONTENT_DIR, scrubDateTime } from "../helpers.js";
@@ -112,4 +113,29 @@ export function createAdminUser(slug) {
   Models.Admin.create({ user_id: user.id });
 
   return user;
+}
+
+export function createProject(
+  projectName = randomUUID(),
+  usernameOrUser = randomUUID(),
+) {
+  let user;
+
+  if (typeof usernameOrUser === "string") {
+    user = createUser(usernameOrUser);
+  } else {
+    user = usernameOrUser;
+  }
+
+  // The user must be enabled for various Project calls to succeed
+  User.enableUser(user);
+
+  const project = Project.createProjectForUser(user, projectName);
+  return project;
+}
+
+export function createStarterProject(projectName, usernameOrUser) {
+  const project = createProject(projectName, usernameOrUser);
+  Models.StarterProject.create({ project_id: project.id });
+  return project;
 }

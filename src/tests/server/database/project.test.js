@@ -4,17 +4,21 @@ import {
   initTestDatabase,
   concludeTesting,
   clearTestData,
-  Models,
 } from "../../../server/database/index.js";
 
 import * as User from "../../../server/database/user.js";
 import * as Project from "../../../server/database/project.js";
 
 import { portBindings } from "../../../server/caddy/caddy.js";
-import { createDockerProject, createUser, tryFor } from "../../test-helpers.js";
+import {
+  createDockerProject,
+  createUser,
+  tryFor,
+  createProject,
+  createStarterProject,
+} from "../../test-helpers.js";
 import { closeReader } from "../../../setup/utils.js";
 import { scrubDateTime } from "../../../helpers.js";
-import { randomUUID } from "node:crypto";
 
 /*
 id int
@@ -28,30 +32,6 @@ updated_at
 /*
 links to a user via ProjectAccess (user_id, project_id, access_level)
 */
-
-function createProject(
-  projectName = randomUUID(),
-  usernameOrUser = randomUUID(),
-) {
-  let user;
-
-  if (typeof usernameOrUser === "string") {
-    user = createUser(usernameOrUser);
-    // The user must be enabled for various Project calls to succeed
-    User.enableUser(user);
-  } else {
-    user = usernameOrUser;
-  }
-
-  const project = Project.createProjectForUser(user, projectName);
-  return project;
-}
-
-function createStarterProject(projectName, usernameOrUser) {
-  const project = createProject(projectName, usernameOrUser);
-  Models.StarterProject.create({ project_id: project.id });
-  return project;
-}
 
 describe(`project testing`, async () => {
   before(async () => await initTestDatabase());
