@@ -57,6 +57,9 @@ Note that tests will throw a lot of unstyled errors about not being able to `cd`
 
 The one issue that you are likely to (frequently) run into, thanks to Docker being Docker, is that it's possible for certain fetch operations to Docker containers to error out. For now, rerunning the test suite generally makes those disappear, but if we can find every test for which that happens, we can wrap each failing `fetch` in a `tryFor(...)` call, which will retry the fetch for a few seconds before it gives up, and a few seconds is more than enough for it to succeed.
 
+### CI testing in Pull Requests
+
+When filing a PR on GitHub, your code will automatically be checked using a GitHub Action that runs `npm test`, which runs code formatting, linting, and the full test suite. This is not always necessary, and so when filing a PR you have the option to add the `bypass-ci` label. If you do, none of the usual testing will run before your PR is allowed to be merged. There is almost never a reason to do this for actual code changes (not even if it's just a single typo fix), however if your PR is a documentation PR that simply changes text in any of the Markdown files used in this repository, or it simply updates `...docs go here...` code comment sections, then there is no reason to run the test suite and using `bypass-ci` makes total sense.
 
 ## How do I update docker containers if I update the codebase?
 
