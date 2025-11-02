@@ -32,5 +32,5 @@ jobs:
           npm install
           node setup --no-auth --no-tls
 
-      - name: Run linting
-        run: npm run lint
+      - name: Run tests
+        run: npm test

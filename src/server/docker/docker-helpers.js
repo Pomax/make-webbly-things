@@ -77,7 +77,7 @@ export function getAllRunningContainers() {
     obj = Object.fromEntries(
       Object.entries(obj).map(([k, v]) => {
         return [k[0].toLowerCase() + k.substring(1), v];
-      }),
+      })
     );
     const { image, command, state, iD: id, status, size, createdAt } = obj;
     containerData.push({ image, id, command, state, status, size, createdAt });
@@ -240,6 +240,11 @@ export async function runStaticServer(project) {
     `--port ${port}`,
     `--root "${root}"`,
     isStarter ? `--starter` : ``,
+    // This part exists solely because GitGub Actions don't
+    // support kill, which is INSANE and means that we can't
+    // just use serverPocess.kill() to gracefully shut down
+    // server instances during tests inside gh actions.
+    // So smart! Thanks GitHub!
     TESTING ? `--with-shutdown` : ``,
   ].join(` `);
   const runCommand = `node src/server/static.js ${opts}`;
@@ -268,6 +273,11 @@ export function stopStaticServer(project, slug = project.slug) {
   const { port, serverProcess } = portBindings[slug] ?? {};
   if (serverProcess) {
     if (TESTING) {
+      // This part exists solely because GitGub Actions don't
+      // support kill, which is INSANE and means that we can't
+      // just use serverPocess.kill() to gracefully shut down
+      // server instances during tests inside gh actions.
+      // So smart! Thanks GitHub!
       fetch(`http://localhost:${port}/shutdown`);
     } else {
       if (process.platform === "win32") {
