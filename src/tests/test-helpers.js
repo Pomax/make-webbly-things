@@ -2,7 +2,6 @@ import { join } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
-import * as User from "../server/database/user.js";
 import * as Project from "../server/database/project.js";
 import { Models } from "../server/database/index.js";
 
