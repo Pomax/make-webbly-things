@@ -344,7 +344,7 @@ export async function loadProjectHistory(req, res, next) {
 export async function getProjectLogs(req, res, next) {
   const { project } = res.locals.lookups;
   const { since } = req.params;
-  let logs = getContainerLogs(project, since);
+  const logs = getContainerLogs(project, since);
   if (!logs) {
     // ...code goes here...
   }

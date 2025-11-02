@@ -77,7 +77,7 @@ export function getAllRunningContainers() {
     obj = Object.fromEntries(
       Object.entries(obj).map(([k, v]) => {
         return [k[0].toLowerCase() + k.substring(1), v];
-      })
+      }),
     );
     const { image, command, state, iD: id, status, size, createdAt } = obj;
     containerData.push({ image, id, command, state, status, size, createdAt });
@@ -240,6 +240,7 @@ export async function runStaticServer(project) {
     `--port ${port}`,
     `--root "${root}"`,
     isStarter ? `--starter` : ``,
+    TESTING ? `--with-shutdown` : ``,
   ].join(` `);
   const runCommand = `node src/server/static.js ${opts}`;
   if (TESTING) console.log({ runCommand });
@@ -264,12 +265,16 @@ export function stopContainer(project, slug = project.slug) {
  * ...docs go here...
  */
 export function stopStaticServer(project, slug = project.slug) {
-  const { serverProcess } = portBindings[slug] ?? {};
+  const { port, serverProcess } = portBindings[slug] ?? {};
   if (serverProcess) {
-    if (process.platform === "win32") {
-      execSync(`taskkill /pid ${serverProcess.pid} /f /t`);
+    if (TESTING) {
+      fetch(`http://localhost:${port}/shutdown`);
     } else {
-      serverProcess.kill(`SIGINT`);
+      if (process.platform === "win32") {
+        execSync(`taskkill /pid ${serverProcess.pid} /f /t`);
+      } else {
+        serverProcess.kill(`SIGINT`);
+      }
     }
     removeCaddyEntry(project);
   }
