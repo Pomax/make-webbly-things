@@ -99,23 +99,6 @@ export function getAllRunningStaticServers() {
 }
 
 /**
- * Get a container's log ouput, optionally "since some specific time"
- */
-export function getContainerLogs(project, since = new Date(0).toISOString()) {
-  const { slug } = project;
-  const now = new Date().toISOString();
-  const cmd = `docker container logs --since '${since}' ${slug}`;
-  try {
-    return {
-      output: execSync(cmd).toString(),
-      datetime: now,
-    };
-  } catch {
-    return false;
-  }
-}
-
-/**
  * ...docs go here...
  */
 export function renameContainer(oldSlug, newSlug) {
