@@ -27,9 +27,12 @@ export function addGitTracking(dir, msg = `initial commit`) {
   const cmd = [
     `cd ${dir}`,
     `git init --initial-branch=main`,
+    `git config --local user.email "editor@editordomain"`,
+    `git config --local user.name "editor"`,
     `git add .`,
     `git commit --allow-empty -m "${msg}"`,
   ];
+
   return execSync(cmd.join(` && `));
 }
 
