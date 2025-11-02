@@ -28,7 +28,6 @@ import {
 import {
   checkContainerHealth,
   deleteContainerAndImage,
-  getContainerLogs,
   renameContainer,
   restartContainer,
   runContainer,
