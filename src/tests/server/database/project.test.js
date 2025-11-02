@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   initTestDatabase,
   concludeTesting,
+  clearTestData,
+  Models,
 } from "../../../server/database/index.js";
 
 import * as User from "../../../server/database/user.js";
@@ -11,17 +13,42 @@ import * as Project from "../../../server/database/project.js";
 import { portBindings } from "../../../server/caddy/caddy.js";
 import { createDockerProject, tryFor } from "../../test-helpers.js";
 import { closeReader } from "../../../setup/utils.js";
-import { scrubDateTime } from "../../../helpers.js";
+import { scrubDateTime, slugify } from "../../../helpers.js";
+import { randomUUID } from "node:crypto";
+
+/*
+id int
+name text, not null, unique
+slug text, not null, unique
+description text, nullable
+created_at
+updated_at
+*/
+
+/*
+links to a user via ProjectAccess (user_id, project_id, access_level)
+*/
+
+function createProject(name = randomUUID()) {
+  const project = Models.Project.create({ name, slug: slugify(name) });
+  return project;
+}
 
 describe(`project testing`, async () => {
   before(async () => await initTestDatabase());
+  afterEach(() => clearTestData());
   after(() => {
     concludeTesting();
     closeReader();
   });
 
   test(`getMostRecentProjects`, () => {
-    const projects = Project.getMostRecentProjects(5);
+    let projects = Project.getMostRecentProjects(5);
+    assert.equal(projects.length, 0);
+
+    createProject();
+
+    projects = Project.getMostRecentProjects(5);
     assert.equal(projects.length, 1);
   });
 
@@ -33,6 +60,15 @@ describe(`project testing`, async () => {
     Project.copyProjectSettings(project1, project2);
     assert.equal(project1.settings.run_script, project2.settings.run_script);
     Project.deleteProjectForUser(null, project2, true);
+
+    /*
+id int
+name text, not null, unique
+slug text, not null, unique
+description text, nullable
+created_at
+updated_at
+*/
   });
 
   test(`createProjectForUser`, () => {
