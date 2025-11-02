@@ -20,19 +20,6 @@ import {
 import { closeReader } from "../../../setup/utils.js";
 import { scrubDateTime } from "../../../helpers.js";
 
-/*
-id int
-name text, not null, unique
-slug text, not null, unique
-description text, nullable
-created_at
-updated_at
-*/
-
-/*
-links to a user via ProjectAccess (user_id, project_id, access_level)
-*/
-
 describe(`project testing`, async () => {
   before(async () => await initTestDatabase());
   beforeEach(() => clearTestData());
