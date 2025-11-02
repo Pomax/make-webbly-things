@@ -150,7 +150,7 @@ class Model {
    */
   insert(colVals) {
     colVals = Object.fromEntries(
-      Object.entries(colVals).filter(([_, v]) => v !== undefined),
+      Object.entries(colVals).filter(([_, v]) => v !== undefined)
     );
     const keys = Object.keys(colVals);
     const values = Object.values(colVals);
@@ -160,6 +160,8 @@ class Model {
       db.prepare(sql).run(...values);
     } catch (e) {
       console.error(`INSERT ERROR:`, e, { sql, values });
+      const all = this.all();
+      console.log(`ALL RECORDS:`, all);
     }
   }
 
