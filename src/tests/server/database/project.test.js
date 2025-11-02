@@ -34,14 +34,16 @@ function createProjectWithUser(
   username = randomUUID(),
 ) {
   const user = createUser(username);
+  User.enableUser(user);
+
   const project = Project.createProjectForUser(user, projectName);
-  return project;
+  return { project, user };
 }
 
-function updateProjectSettings(project, settingChanges) {
-  const settings = project.settings;
-  const updatedSettings = Object.assign(settings, settingChanges);
-  Models.ProjectSettings.save(updatedSettings);
+function createStarterProject(projectName = randomUUID()) {
+  const starterProject = createProject(projectName);
+  Models.StarterProject.create({ project_id: starterProject.id });
+  return starterProject;
 }
 
 describe(`project testing`, async () => {
@@ -63,10 +65,10 @@ describe(`project testing`, async () => {
   });
 
   test(`copyProjectSettings`, () => {
-    const project1 = createProjectWithUser(`test-project`);
-    updateProjectSettings(project1, { run_script: "npm start" });
+    const { project: project1 } = createProjectWithUser(`test-project`);
+    Project.updateSettingsForProject(project1, { run_script: "npm start" });
 
-    const project2 = createProjectWithUser(`new-test-project`);
+    const { project: project2 } = createProjectWithUser(`new-test-project`);
     Project.copyProjectSettings(project1, project2);
     assert.equal(project1.settings.run_script, "npm start");
     assert.equal(project1.settings.run_script, project2.settings.run_script);
@@ -88,55 +90,57 @@ updated_at
   });
 
   test(`deleteProjectForUser`, () => {
-    const project = createProjectWithUser(`new-test-project`, `test-user`);
-    const user = User.getUser(`test-user`);
+    const { project, user } = createProjectWithUser(
+      `new-test-project`,
+      `test-user`,
+    );
     Project.deleteProjectForUser(user, project);
     assert.equal(Project.getAllProjects().length, 0);
   });
 
-  // test(`deleteProjectForUser as admin call`, () => {
-  //   const user = User.getUser(`test-user`);
-  //   const project = Project.createProjectForUser(user, `new test project`);
-  //   assert.equal(project.name, `new test project`);
-  //   assert.equal(Project.getAllProjects().length, 2);
-  //   Project.deleteProjectForUser(null, project, true);
-  //   assert.equal(Project.getAllProjects().length, 1);
-  // });
+  test(`deleteProjectForUser as admin call`, () => {
+    const { project } = createProjectWithUser(`new test project`);
+    assert.equal(project.name, `new test project`);
+    assert.equal(Project.getAllProjects().length, 1);
+    Project.deleteProjectForUser(null, project, true);
+    assert.equal(Project.getAllProjects().length, 0);
+  });
 
-  // test(`getAccessFor`, () => {
-  //   const user = User.getUser(`test-user`);
-  //   const project = Project.getProject(`test-project`);
-  //   const accessLevel = Project.getAccessFor(user, project);
-  //   assert.equal(accessLevel, Project.OWNER);
-  // });
+  test(`getAccessFor`, () => {
+    const { user, project } = createProjectWithUser();
+    const accessLevel = Project.getAccessFor(user, project);
+    assert.equal(accessLevel, Project.OWNER);
+  });
 
-  // test(`getAllProjects`, () => {
-  //   const projects = Project.getAllProjects();
-  //   assert.equal(projects.length, 1);
-  //   const withStarters = Project.getAllProjects(false);
-  //   assert.equal(withStarters.length, 2);
-  // });
+  test(`getAllProjects`, () => {
+    createStarterProject();
+    const projects = Project.getAllProjects();
+    assert.equal(projects.length, 0);
+    const withStarters = Project.getAllProjects(false);
+    assert.equal(withStarters.length, 1);
+  });
 
-  // test(`getOwnedProjectsForUser`, () => {
-  //   const user = User.getUser(`test-user`);
-  //   const projects = Project.getOwnedProjectsForUser(user);
-  //   assert.equal(projects.length, 1);
-  // });
+  test(`getOwnedProjectsForUser`, () => {
+    const { user } = createProjectWithUser();
+    const projects = Project.getOwnedProjectsForUser(user);
+    assert.equal(projects.length, 1);
+  });
 
-  // test(`getProject`, () => {
-  //   // we already test this all over the place, but not this:
-  //   const project = Project.getProject(`test-project`, false);
-  //   assert.equal(project.settings, undefined);
-  // });
+  test(`getProject`, () => {
+    createProject(`test-project`);
+    // we already test this all over the place, but not this:
+    const project = Project.getProject(`test-project`, false);
+    assert.equal(project.settings, undefined);
+  });
 
-  // test(`getProjectEnvironmentVariables`, () => {
-  //   const project = Project.getProject(`test-project`);
-  //   Project.updateSettingsForProject(project, {
-  //     env_vars: `FIRST=first\nSECOND=second`,
-  //   });
-  //   const vars = Project.getProjectEnvironmentVariables(project);
-  //   assert.deepEqual(vars, { FIRST: `first`, SECOND: `second` });
-  // });
+  test(`getProjectEnvironmentVariables`, () => {
+    const { project } = createProjectWithUser();
+    Project.updateSettingsForProject(project, {
+      env_vars: `FIRST=first\nSECOND=second`,
+    });
+    const vars = Project.getProjectEnvironmentVariables(project);
+    assert.deepEqual(vars, { FIRST: `first`, SECOND: `second` });
+  });
 
   // test(`suspensions`, () => {
   //   const user = User.getUser(`test-user`);
