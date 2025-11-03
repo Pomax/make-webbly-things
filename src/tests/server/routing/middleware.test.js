@@ -1,18 +1,25 @@
-import test, { after, before, describe } from "node:test";
+import test, { after, before, beforeEach, describe } from "node:test";
 import assert from "node:assert/strict";
 import * as Middleware from "../../../server/routing/middleware.js";
 
 import {
   initTestDatabase,
   concludeTesting,
-  getUser,
-  getProject,
   getProjectOwners,
+  clearTestData,
+  getProject,
 } from "../../../server/database/index.js";
 import { closeReader } from "../../../setup/utils.js";
+import {
+  createAdminUser,
+  createProject,
+  createStarterProject,
+  createUser,
+} from "../../test-helpers.js";
 
 describe(`Universal middleware tests`, async () => {
   before(async () => await initTestDatabase());
+  beforeEach(() => clearTestData());
   after(() => {
     concludeTesting();
     closeReader();
@@ -62,7 +69,7 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test(`verifyAdmin`, async () => {
-    const admin = getUser(`test-admin`);
+    const admin = createAdminUser();
     const res = {
       locals: {
         user: admin,
@@ -74,7 +81,7 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("verifyAccesToUser", async () => {
-    const user = getUser(`test-user`);
+    const user = createUser();
     const res = {
       locals: {
         user,
@@ -89,8 +96,8 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("verifyEditRights", async () => {
-    const user = getUser(`test-user`);
-    const project = getProject(`test-project`);
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     const res = {
       locals: {
         user,
@@ -106,8 +113,8 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("verifyOwner", async () => {
-    const user = getUser(`test-user`);
-    const project = getProject(`test-project`);
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     const res = {
       locals: {
         user,
@@ -123,7 +130,8 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("loadProjectList", async () => {
-    const user = getUser(`test-user`);
+    const user = createUser();
+    createProject(`test-project`, user);
     const project = getProject(`test-project`, false);
     project.owners = getProjectOwners(project);
     const res = {
@@ -157,6 +165,7 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("loadStarters", async () => {
+    createStarterProject(`test-starter`);
     const starter = getProject(`test-starter`, false);
     const res = { locals: {} };
     Middleware.loadStarters(null, res, () => {
@@ -165,7 +174,8 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("loadProjectList", async () => {
-    const user = getUser(`test-user`);
+    const user = createUser();
+    createProject(`test-project`, user);
     const project = getProject(`test-project`, false);
     project.owners = getProjectOwners(project);
     const res = {
