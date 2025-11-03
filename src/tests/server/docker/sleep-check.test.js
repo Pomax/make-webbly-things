@@ -1,4 +1,3 @@
-// DONE
 import test, { after, before, beforeEach, describe } from "node:test";
 import { scheduleContainerCheck } from "../../../server/docker/sleep-check.js";
 import { createDockerProject } from "../../test-helpers.js";
