@@ -28,7 +28,7 @@ describe(`project middlerware tests`, async () => {
     closeReader();
   });
 
-  // NOTE: This test has flaked 2 times
+  // FIXME: This test has flaked 2 times so far, see: https://github.com/Pomax/make-webbly-things/issues/211
   test(`checkProjectHealth`, async () => {
     const { res, cleanup } = await createDockerProject();
     await new Promise((resolve) => {
