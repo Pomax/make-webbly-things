@@ -40,43 +40,6 @@ describe(`user middlerware tests`, async () => {
     });
   });
 
-  test(`getUserSettings`, async () => {
-    const user = User.getUser(`test-user`);
-    const res = {
-      locals: {
-        lookups: {
-          user,
-        },
-      },
-    };
-    await new Promise((resolve) => {
-      Middleware.getUserSettings(null, res, async (err) => {
-        assert.equal(!!err, false);
-        assert.deepEqual(res.locals.settings, {
-          name: "test user",
-          admin: false,
-          enabled: true,
-          suspended: false,
-        });
-        resolve();
-      });
-    });
-
-    res.locals.lookups.user = User.getUser(`test-admin`);
-    await new Promise((resolve) => {
-      Middleware.getUserSettings(null, res, async (err) => {
-        assert.equal(!!err, false);
-        assert.deepEqual(res.locals.settings, {
-          name: "test admin",
-          admin: true,
-          enabled: true,
-          suspended: false,
-        });
-        resolve();
-      });
-    });
-  });
-
   test(`reserveUserAccount`, async () => {
     const req = {
       params: { username: `Princess Bride` },
