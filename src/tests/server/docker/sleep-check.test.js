@@ -1,14 +1,17 @@
-import test, { after, before, describe } from "node:test";
+// DONE
+import test, { after, before, beforeEach, describe } from "node:test";
 import { scheduleContainerCheck } from "../../../server/docker/sleep-check.js";
 import { createDockerProject } from "../../test-helpers.js";
 import { closeReader } from "../../../setup/utils.js";
 import {
   initTestDatabase,
   concludeTesting,
+  clearTestData,
 } from "../../../server/database/index.js";
 
 describe(`sleep check tests`, async () => {
   before(async () => await initTestDatabase());
+  beforeEach(() => clearTestData());
   after(() => {
     concludeTesting();
     closeReader();
