@@ -28,6 +28,7 @@ describe(`project middlerware tests`, async () => {
     closeReader();
   });
 
+  // NOTE: This test has flaked 1 time
   test(`checkProjectHealth`, async () => {
     const { res, cleanup } = await createDockerProject();
     await new Promise((resolve) => {
