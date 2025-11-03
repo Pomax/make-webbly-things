@@ -7,7 +7,6 @@ import {
   concludeTesting,
   getProjectOwners,
   clearTestData,
-  getProject,
 } from "../../../server/database/index.js";
 import { closeReader } from "../../../setup/utils.js";
 import {
@@ -15,6 +14,7 @@ import {
   createProject,
   createStarterProject,
   createUser,
+  WITHOUT_SETTINGS,
 } from "../../test-helpers.js";
 
 describe(`Universal middleware tests`, async () => {
@@ -131,8 +131,7 @@ describe(`Universal middleware tests`, async () => {
 
   test("loadProjectList", async () => {
     const user = createUser();
-    createProject(`test-project`, user);
-    const project = getProject(`test-project`, false);
+    const project = createProject(`test-project`, user, WITHOUT_SETTINGS);
     project.owners = getProjectOwners(project);
     const res = {
       locals: {
@@ -165,8 +164,11 @@ describe(`Universal middleware tests`, async () => {
   });
 
   test("loadStarters", async () => {
-    createStarterProject(`test-starter`);
-    const starter = getProject(`test-starter`, false);
+    const starter = createStarterProject(
+      `test-starter`,
+      `test-user`,
+      WITHOUT_SETTINGS,
+    );
     const res = { locals: {} };
     Middleware.loadStarters(null, res, () => {
       assert.deepEqual(res.locals.starters, [starter]);
@@ -175,8 +177,7 @@ describe(`Universal middleware tests`, async () => {
 
   test("loadProjectList", async () => {
     const user = createUser();
-    createProject(`test-project`, user);
-    const project = getProject(`test-project`, false);
+    const project = createProject(`test-project`, user, WITHOUT_SETTINGS);
     project.owners = getProjectOwners(project);
     const res = {
       locals: {

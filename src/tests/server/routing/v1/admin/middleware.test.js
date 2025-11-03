@@ -146,7 +146,7 @@ describe(`admin middleware tests`, async () => {
       // TODO: test pending. Too many permutations atm
     });
     test(`suspendProject`, () => {
-      createProject(`test-project`);
+      const project = createProject(`test-project`);
       const req = {
         body: {
           reason: `reason goes here`,
@@ -155,7 +155,7 @@ describe(`admin middleware tests`, async () => {
       const res = {
         locals: {
           lookups: {
-            project: Project.getProject(`test-project`),
+            project,
           },
         },
       };
