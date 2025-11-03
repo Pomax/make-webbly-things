@@ -1,11 +1,14 @@
-import test, { describe } from "node:test";
+import test, { after, before, beforeEach, describe } from "node:test";
 import assert from "node:assert/strict";
 import * as Auth from "../../../../server/routing/auth/index.js";
 import * as User from "../../../../server/database/user.js";
 import {
   initTestDatabase,
   concludeTesting,
+  clearTestData,
 } from "../../../../server/database/index.js";
+import { closeReader } from "../../../../setup/utils.js";
+import { createUser } from "../../../test-helpers.js";
 
 const genericSettings = {
   clientID: `irrelevant`,
@@ -15,9 +18,15 @@ const genericSettings = {
 };
 
 describe(`Auth function tests`, async () => {
+  before(async () => await initTestDatabase());
+  beforeEach(() => clearTestData());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
+
   test(`processOAuthLogin`, async () => {
-    await initTestDatabase();
-    const user = User.getUser(`test-user`);
+    const user = createUser();
     const userObject = {
       service: `someservice`,
       service_id: 12345,
@@ -36,7 +45,6 @@ describe(`Auth function tests`, async () => {
     Auth.processOAuthLogin(req, null, null, profile, (err, loginUser) => {
       assert.equal(!!err, false);
       assert.deepEqual(loginUser, { ...user, admin: false });
-      concludeTesting();
     });
     // TODO: there are two more code paths: sign up, and adding a provider
   });
