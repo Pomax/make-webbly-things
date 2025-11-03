@@ -1,17 +1,24 @@
-import test, { after, before, describe } from "node:test";
+import test, { after, before, beforeEach, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
   initTestDatabase,
   concludeTesting,
+  clearTestData,
 } from "../../../../../server/database/index.js";
-import * as User from "../../../../../server/database/user.js";
 import * as Middleware from "../../../../../server/routing/v1/users/middleware.js";
+import { createUser } from "../../../../test-helpers.js";
+import { closeReader } from "../../../../../setup/utils.js";
 
 describe(`user middlerware tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  beforeEach(() => clearTestData());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   test(`checkAvailableUserName`, async () => {
+    createUser(`test-user`);
     const badRes = { locals: {} };
     Middleware.checkAvailableUserName(
       { params: { username: `test-user` } },
@@ -31,7 +38,7 @@ describe(`user middlerware tests`, async () => {
   });
 
   test(`getUserProfile`, async () => {
-    const user = User.getUser(`test-user`);
+    const user = createUser();
     const res = { locals: { user, lookups: { user: user } } };
     Middleware.getUserProfile(null, res, () => {
       const { profile } = res.locals;
@@ -54,6 +61,8 @@ describe(`user middlerware tests`, async () => {
       };
       assert.deepEqual(req.session.reservedAccount, reservedAccount);
     });
+
+    createUser(`Test user`);
     Middleware.reserveUserAccount(
       {
         params: { username: `Test user` },
@@ -65,7 +74,7 @@ describe(`user middlerware tests`, async () => {
   });
 
   test(`updateUserProfile`, async () => {
-    const user = User.getUser(`test-user`);
+    const user = createUser();
     const req = {
       body: {
         bio: `This is an updated text`,
