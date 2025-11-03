@@ -68,7 +68,7 @@ describe(`admin middleware tests`, async () => {
 
   describe(`user tests`, () => {
     test(`deleteUser`, () => {
-      const user = Models.User.create({ name: `bye` });
+      const user = createUser();
       const res = {
         locals: {
           lookups: {
