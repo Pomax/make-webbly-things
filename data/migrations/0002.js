@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 // -- Schema v3
 
 /**
