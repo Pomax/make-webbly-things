@@ -1,6 +1,7 @@
 import { API } from "./api.js";
 
 export const noop = () => {};
+export const SERVER_LOG_TAB_NAME = `Server Log`;
 
 const { min } = Math;
 

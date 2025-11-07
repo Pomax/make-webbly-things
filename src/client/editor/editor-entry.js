@@ -1,6 +1,10 @@
 import { API } from "../utils/api.js";
 import { setupView } from "./code-mirror-6.js";
-import { fetchFileContents, create } from "../utils/utils.js";
+import {
+  SERVER_LOG_TAB_NAME,
+  fetchFileContents,
+  create,
+} from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent } from "../files/sync.js";
 import { ErrorNotice, Notice } from "../utils/notifications.js";
@@ -164,7 +168,9 @@ export class EditorEntry {
         click: () => this.focus(),
       },
     ));
+
     tab.addEventListener(`click`, async () => this.focus());
+
     tab.addEventListener(`dragstart`, (evt) => {
       movingTab = tab;
       tab.classList.add(`moving`);
@@ -175,6 +181,7 @@ export class EditorEntry {
       dataTransfer.setDragImage(emptyImage, 0, 0);
       dataTransfer.effectAllowed = `move`;
     });
+
     tab.addEventListener(`dragover`, (evt) => {
       const { target } = evt;
       const source = movingTab;
@@ -187,12 +194,24 @@ export class EditorEntry {
         tabs.insertBefore(source, target.nextSibling);
       }
     });
+
     tab.addEventListener(`dragend`, (evt) => {
       movingTab.classList.remove(`moving`);
       movingTab = undefined;
       EditorEntry.sortFromTabs();
     });
-    tabs.appendChild(tab);
+
+    // The server log gets to live on the left.
+    if (path === SERVER_LOG_TAB_NAME) {
+      const first = tabs.children[0];
+      if (first) {
+        tabs.insertBefore(tab, first);
+      } else {
+        tabs.appendChild(tab);
+      }
+    } else {
+      tabs.appendChild(tab);
+    }
 
     // set up the
     const close = (this.close = create(
@@ -205,6 +224,7 @@ export class EditorEntry {
         click: () => this.unload(),
       },
     ));
+
     close.addEventListener(`pointerdown`, () => this.unload());
     close.addEventListener(`click`, () => this.unload());
     tab.appendChild(close);

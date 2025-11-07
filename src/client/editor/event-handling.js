@@ -1,4 +1,8 @@
-import { fetchFileContents, updateViewMaintainScroll } from "../utils/utils.js";
+import {
+  SERVER_LOG_TAB_NAME,
+  fetchFileContents,
+  updateViewMaintainScroll,
+} from "../utils/utils.js";
 import { API } from "../utils/api.js";
 import { Notice } from "../utils/notifications.js";
 import { Rewinder } from "../files/rewind.js";
@@ -165,28 +169,27 @@ function addTabScrollHandling() {
 class LogView {
   open = false;
   virtual = true;
+  pollingInterval = 5000;
 
   constructor(button) {
     this.button = button;
     // TODO: we should be able to just create a <file-entry>
     const fileEntry = (this.fileEntry = {
       root: {},
-      path: `Server Log`,
+      path: SERVER_LOG_TAB_NAME,
       state: {},
       setState: (o) => Object.assign(fileEntry.state, o),
       select: () => {},
       addEventListener: () => {},
-      onUnload: () => {
-        this.close();
-      },
+      onUnload: () => this.close(),
     });
   }
 
   close() {
     this.poll = clearInterval(this.poll);
     this.open = false;
-    this.update(``);
     this.button.disabled = false;
+    this.update(``);
   }
 
   toggle(state = !this.open) {
@@ -196,8 +199,9 @@ class LogView {
       this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
       this.update(`Loading...`);
       let since = 0;
-      this.poll = setInterval(async () => {
+      const pollData = async () => {
         try {
+          if (!this.open) throw `close`;
           const data = await fetch(
             `/v1/projects/logs/${projectSlug}/${since}`,
           ).then((r) => r.json());
@@ -207,7 +211,9 @@ class LogView {
         } catch {
           this.close();
         }
-      }, 2000);
+      };
+      this.poll = setInterval(pollData, this.pollingInterval);
+      pollData();
     } else {
       this.close();
     }

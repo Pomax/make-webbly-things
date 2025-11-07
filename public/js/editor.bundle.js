@@ -53,6 +53,7 @@ var API = {
 };
 
 // src/client/utils/utils.js
+var SERVER_LOG_TAB_NAME = `Server Log`;
 var { min } = Math;
 function create(tag, attributes = {}, evts = {}) {
   const e2 = document.createElement(tag);
@@ -32073,7 +32074,16 @@ var EditorEntry = class _EditorEntry {
       movingTab = void 0;
       _EditorEntry.sortFromTabs();
     });
-    tabs.appendChild(tab);
+    if (path2 === SERVER_LOG_TAB_NAME) {
+      const first = tabs.children[0];
+      if (first) {
+        tabs.insertBefore(tab, first);
+      } else {
+        tabs.appendChild(tab);
+      }
+    } else {
+      tabs.appendChild(tab);
+    }
     const close = this.close = create(
       `button`,
       {
@@ -32717,27 +32727,26 @@ function addTabScrollHandling() {
 var LogView = class {
   open = false;
   virtual = true;
+  pollingInterval = 5e3;
   constructor(button) {
     this.button = button;
     const fileEntry = this.fileEntry = {
       root: {},
-      path: `Server Log`,
+      path: SERVER_LOG_TAB_NAME,
       state: {},
       setState: (o) => Object.assign(fileEntry.state, o),
       select: () => {
       },
       addEventListener: () => {
       },
-      onUnload: () => {
-        this.close();
-      }
+      onUnload: () => this.close()
     };
   }
   close() {
     this.poll = clearInterval(this.poll);
     this.open = false;
-    this.update(``);
     this.button.disabled = false;
+    this.update(``);
   }
   toggle(state = !this.open) {
     this.open = state;
@@ -32746,8 +32755,9 @@ var LogView = class {
       this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
       this.update(`Loading...`);
       let since = 0;
-      this.poll = setInterval(async () => {
+      const pollData = async () => {
         try {
+          if (!this.open) throw `close`;
           const data3 = await fetch(
             `/v1/projects/logs/${projectSlug4}/${since}`
           ).then((r) => r.json());
@@ -32757,7 +32767,9 @@ var LogView = class {
         } catch {
           this.close();
         }
-      }, 2e3);
+      };
+      this.poll = setInterval(pollData, this.pollingInterval);
+      pollData();
     } else {
       this.close();
     }
