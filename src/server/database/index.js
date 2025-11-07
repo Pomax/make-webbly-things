@@ -182,6 +182,8 @@ export function clearTestData() {
   db.exec(`DELETE FROM users`);
   db.exec(`DELETE FROM projects`);
   db.exec(`DELETE FROM remix`);
+  db.exec(`DELETE FROM starter_projects`);
+  db.exec(`DELETE FROM admin_table`);
 }
 
 /**

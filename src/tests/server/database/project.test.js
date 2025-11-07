@@ -1,91 +1,106 @@
-import test, { after, before, describe } from "node:test";
+import test, { after, before, beforeEach, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
   initTestDatabase,
   concludeTesting,
+  clearTestData,
 } from "../../../server/database/index.js";
 
 import * as User from "../../../server/database/user.js";
 import * as Project from "../../../server/database/project.js";
 
 import { portBindings } from "../../../server/caddy/caddy.js";
-import { createDockerProject, tryFor } from "../../test-helpers.js";
+import {
+  createDockerProject,
+  createUser,
+  tryFor,
+  createProject,
+  createStarterProject,
+} from "../../test-helpers.js";
 import { closeReader } from "../../../setup/utils.js";
 import { scrubDateTime } from "../../../helpers.js";
 
 describe(`project testing`, async () => {
   before(async () => await initTestDatabase());
+  beforeEach(() => clearTestData());
   after(() => {
     concludeTesting();
     closeReader();
   });
 
   test(`getMostRecentProjects`, () => {
-    const projects = Project.getMostRecentProjects(5);
+    let projects = Project.getMostRecentProjects(5);
+    assert.equal(projects.length, 0);
+
+    createProject();
+
+    projects = Project.getMostRecentProjects(5);
     assert.equal(projects.length, 1);
   });
 
   test(`copyProjectSettings`, () => {
-    const user = User.getUser(`test-user`);
-    const project1 = Project.getProject(`test-project`);
-    Project.createProjectForUser(user, `new test project`);
-    const project2 = Project.getProject(`new-test-project`);
+    const project1 = createProject(`test-project`);
+    Project.updateSettingsForProject(project1, { run_script: "npm start" });
+
+    const project2 = createProject(`new-test-project`);
     Project.copyProjectSettings(project1, project2);
+    assert.equal(project1.settings.run_script, "npm start");
     assert.equal(project1.settings.run_script, project2.settings.run_script);
-    Project.deleteProjectForUser(null, project2, true);
   });
 
   test(`createProjectForUser`, () => {
-    const user = User.getUser(`test-user`);
+    const user = createUser();
     const project = Project.createProjectForUser(user, `new test project`);
     assert.equal(project.name, `new test project`);
-    assert.equal(Project.getAllProjects().length, 2);
+    assert.equal(Project.getAllProjects().length, 1);
   });
 
   test(`deleteProjectForUser`, () => {
-    const user = User.getUser(`test-user`);
-    const project = Project.getProject(`new-test-project`);
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     Project.deleteProjectForUser(user, project);
-    assert.equal(Project.getAllProjects().length, 1);
+    assert.equal(Project.getAllProjects().length, 0);
   });
 
   test(`deleteProjectForUser as admin call`, () => {
-    const user = User.getUser(`test-user`);
-    const project = Project.createProjectForUser(user, `new test project`);
+    const project = createProject(`new test project`);
     assert.equal(project.name, `new test project`);
-    assert.equal(Project.getAllProjects().length, 2);
-    Project.deleteProjectForUser(null, project, true);
     assert.equal(Project.getAllProjects().length, 1);
+    Project.deleteProjectForUser(null, project, true);
+    assert.equal(Project.getAllProjects().length, 0);
   });
 
   test(`getAccessFor`, () => {
-    const user = User.getUser(`test-user`);
-    const project = Project.getProject(`test-project`);
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     const accessLevel = Project.getAccessFor(user, project);
     assert.equal(accessLevel, Project.OWNER);
   });
 
   test(`getAllProjects`, () => {
+    createStarterProject();
     const projects = Project.getAllProjects();
-    assert.equal(projects.length, 1);
+    assert.equal(projects.length, 0);
     const withStarters = Project.getAllProjects(false);
-    assert.equal(withStarters.length, 2);
+    assert.equal(withStarters.length, 1);
   });
 
   test(`getOwnedProjectsForUser`, () => {
-    const user = User.getUser(`test-user`);
+    const user = createUser();
+    createProject(`test-project`, user);
     const projects = Project.getOwnedProjectsForUser(user);
     assert.equal(projects.length, 1);
   });
 
   test(`getProject`, () => {
+    createProject(`test-project`);
     // we already test this all over the place, but not this:
     const project = Project.getProject(`test-project`, false);
     assert.equal(project.settings, undefined);
   });
 
   test(`getProjectEnvironmentVariables`, () => {
-    const project = Project.getProject(`test-project`);
+    const project = createProject();
     Project.updateSettingsForProject(project, {
       env_vars: `FIRST=first\nSECOND=second`,
     });
@@ -94,8 +109,7 @@ describe(`project testing`, async () => {
   });
 
   test(`suspensions`, () => {
-    const user = User.getUser(`test-user`);
-    const project = Project.getOwnedProjectsForUser(user)[0];
+    const project = createProject();
     Project.suspendProject(project, `because we're testing`);
     const s = Project.getProjectSuspensions(project);
     assert.equal(s.length, 1);
@@ -111,25 +125,25 @@ describe(`project testing`, async () => {
   });
 
   test(`getProjectListForUser`, () => {
-    const user = User.getUser(`test-user`);
+    const user = createUser();
     let list = Project.getProjectListForUser(user);
-    assert.equal(list.length, 1);
-    const p1 = Project.createProjectForUser(user, `new test project 1`);
-    const p2 = Project.createProjectForUser(user, `new test project 2`);
-    const p3 = Project.createProjectForUser(user, `new test project 3`);
+    assert.equal(list.length, 0);
+    createProject(`new test project 1`, user);
+    createProject(`new test project 2`, user);
+    createProject(`new test project 3`, user);
     list = Project.getProjectListForUser(user);
-    assert.equal(list.length, 4);
-    [p1, p2, p3].forEach((p) => Project.deleteProjectForUser(null, p, true));
+    assert.equal(list.length, 3);
   });
 
   test(`getStarterProjects`, () => {
+    createStarterProject();
     const starters = Project.getStarterProjects();
     assert.equal(starters.length, 1);
   });
 
   test(`projectSuspendedThroughOwner`, () => {
-    const user = User.getUser(`test-user`);
-    const project = Project.getOwnedProjectsForUser(user)[0];
+    const user = createUser();
+    const project = createProject(`test-project`, user);
     const s = User.suspendUser(user, `testing`);
     let suspended = Project.projectSuspendedThroughOwner(project);
     assert.equal(suspended, true);
@@ -139,19 +153,21 @@ describe(`project testing`, async () => {
   });
 
   test(`recordProjectRemix`, () => {
-    const user = User.getUser(`test-user`);
-    const starter = Project.getStarterProjects()[0];
-    const p1 = Project.getOwnedProjectsForUser(user)[0];
-    const p2 = Project.createProjectForUser(user, `new test project`);
+    const user = createUser();
+    const starter = createStarterProject(`starter`, user);
+    const p1 = createProject(`project-1`, user);
+    Project.recordProjectRemix(starter, p1);
+
+    const p2 = createProject(`new test project`, user);
     Project.recordProjectRemix(p1, p2);
+
     const chain = Project.getProjectRemixChain(p2);
     assert.deepEqual(chain, [starter.id, p1.id, p2.id]);
   });
 
   test(`runProject (static)`, async () => {
-    const user = User.getUser(`test-user`);
     const slug = `run-static-test-project`;
-    const project = Project.createProjectForUser(user, slug);
+    const project = createProject(slug);
     project.updated_at = scrubDateTime(new Date(0).toISOString());
     await Project.runProject(project);
     const found = await tryFor(async () => {
@@ -178,9 +194,8 @@ describe(`project testing`, async () => {
   });
 
   test(`touch`, async () => {
-    const user = User.getUser(`test-user`);
     const slug = `run-touch-test-project`;
-    const project = Project.createProjectForUser(user, slug);
+    const project = createProject(slug);
     project.updated_at = scrubDateTime(new Date(0).toISOString());
     await Project.touch(project);
     const found = await tryFor(async () => {
