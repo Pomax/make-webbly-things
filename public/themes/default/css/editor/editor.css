@@ -64,11 +64,11 @@ html {
 
       .utility {
         height: calc(var(--header-row-height) - 2px);
-        background: #eee;
+        background: var(--editor-neutral-background-color);
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid black;
+        border: 1px solid var(--editor-tab-border-color);
         border-top: none;
       }
 

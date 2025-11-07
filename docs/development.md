@@ -57,6 +57,18 @@ Note that tests will throw a lot of unstyled errors about not being able to `cd`
 
 The one issue that you are likely to (frequently) run into, thanks to Docker being Docker, is that it's possible for certain fetch operations to Docker containers to error out. For now, rerunning the test suite generally makes those disappear, but if we can find every test for which that happens, we can wrap each failing `fetch` in a `tryFor(...)` call, which will retry the fetch for a few seconds before it gives up, and a few seconds is more than enough for it to succeed.
 
+### Testing with parts disabled
+
+#### Bypassing login
+
+You can run the platform with `npm start -- --admin-mode` (note the extra `--`, which forwards everything after it "to the thing npm is calling" rather than "to the npm command itself") to automatically bypass the login procedure and have the platform treat every request as authenticated by user 1, which (unless you did something funky) is going to be the admin account.
+
+#### Bypassing certain dependencies
+
+You can run the system with dependencies bypassed by setting `BYPASS_DEPENDENCIES=1` as part of your run. This will bypass both Docker and Caddy checks, which is usually too much, so you can also use either `BYPASS_DOCKER=1` or `BYPASS_CADDY=1` to only bypass docker or caddy.
+
+For normal testing, bypassing caddy is generally not necessary, but bypassing docker makes a lot of sense as Docker will happily drain a laptop battery. When bypassing Docker, any project that is explicitly a `docker` project will not be able to fire up their docker image of course, but `static` projects will still run, just as their static server version rather than as docker image.
+
 ### CI testing in Pull Requests
 
 When filing a PR on GitHub, your code will automatically be checked using a GitHub Action that runs `npm test`, which runs code formatting, linting, and the full test suite. This is not always necessary, and so when filing a PR you have the option to add the `bypass-ci` label. If you do, none of the usual testing will run before your PR is allowed to be merged. There is almost never a reason to do this for actual code changes (not even if it's just a single typo fix), however if your PR is a documentation PR that simply changes text in any of the Markdown files used in this repository, or it simply updates `...docs go here...` code comment sections, then there is no reason to run the test suite and using `bypass-ci` makes total sense.

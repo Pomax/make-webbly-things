@@ -32724,65 +32724,6 @@ function addTabScrollHandling() {
     });
   }
 }
-var LogView = class {
-  open = false;
-  virtual = true;
-  pollingInterval = 5e3;
-  constructor(button) {
-    this.button = button;
-    const fileEntry = this.fileEntry = {
-      root: {},
-      path: SERVER_LOG_TAB_NAME,
-      state: {},
-      setState: (o) => Object.assign(fileEntry.state, o),
-      select: () => {
-      },
-      addEventListener: () => {
-      },
-      onUnload: () => this.close()
-    };
-  }
-  close() {
-    this.poll = clearInterval(this.poll);
-    this.open = false;
-    this.button.disabled = false;
-    this.update(``);
-  }
-  toggle(state = !this.open) {
-    this.open = state;
-    if (state) {
-      this.button.disabled = true;
-      this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
-      this.update(`Loading...`);
-      let since = 0;
-      const pollData = async () => {
-        try {
-          if (!this.open) throw `close`;
-          const data3 = await fetch(
-            `/v1/projects/logs/${projectSlug4}/${since}`
-          ).then((r) => r.json());
-          const { output, datetime } = data3 || {};
-          since = datetime;
-          this.append(output);
-        } catch {
-          this.close();
-        }
-      };
-      this.poll = setInterval(pollData, this.pollingInterval);
-      pollData();
-    } else {
-      this.close();
-    }
-  }
-  append(text, reset = false) {
-    this.update(reset ? text : this.editor.content + text);
-  }
-  update(content2) {
-    const editorEntry = this.editor;
-    editorEntry.setContent(content2);
-    updateViewMaintainScroll2(editorEntry);
-  }
-};
 function enableLogViewer() {
   const viewLogs = document.querySelector(`.view-logs`);
   if (!viewLogs) return;

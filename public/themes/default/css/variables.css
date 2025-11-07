@@ -59,6 +59,7 @@
   --three-column-footer-link-text-shadow: white;
 
   /* EDITOR */
+  --editor-neutral-background-color: #eee;
   --file-tree-border: #444;
   --file-tree-drop-background: #cceeff44;
   --file-tree-drop-color: #333;

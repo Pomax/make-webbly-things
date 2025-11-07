@@ -12,10 +12,11 @@
 
   <div id="create-project-form">
     <ul class="one-row">
-      {% for project in starters %}
-        {% set starter = true %}
-        {% include "fragments/project-card.html" %}
-      {% endfor %}
+      {% for project in starters %}{% set starter = true %}
+      {%
+        include
+        "fragments/project-card.html"
+      %}{% endfor %}
     </ul>
   </div>
 
@@ -23,15 +24,19 @@
     <h2>Your projects:</h2>
 
     <ul>
-      {% for project in projectList %}
-        {% set ownProject = true %}
-        {% include "fragments/project-card.html" %}
-      {% endfor %}
+      {% for project in projectList %}{% set ownProject = true %}
+      {%
+        include
+        "fragments/project-card.html"
+      %}{% endfor %}
     </ul>
   {% endif %}
 {% endif %}
 {% include "fragments/settings.html" %}
-{% include "../fragments/file-issues.html" %}
+{%
+  include
+  "../fragments/file-issues.html"
+%}
 
 <script defer>
   const loadLinks = document.querySelectorAll(`a.load-project`);
@@ -45,5 +50,24 @@
 </script>
 
 {% if temporaryAdminMode %}
+  <!-- This only shows up when running with --admin-mode -->
+  <style>
+    .ribbon {
+      background: white;
+      border: 2px solid black;
+      color: red;
+      font-family: Arial;
+      font-size: 2em;
+      font-weight: bolder;
+      left: 0;
+      padding: 1em;
+      text-align: center;
+      top: 0;
+      transform-origin: top left;
+      transform: translate(-5em, 8em) rotate(-45deg);
+      width: 16em;
+      position: fixed;
+    }
+  </style>
   <div class="ribbon">ADMIN MODE</div>
 {% endif %}
