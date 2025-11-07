@@ -73,7 +73,9 @@
         ></file-tree>
 
         <div class="utility">
+          {% if user.superuser or projectMember %}
           <button class="view-logs">view logs</button>
+          {% endif %}
         </div>
       </div>
 

@@ -12,11 +12,13 @@
 
   <div id="create-project-form">
     <ul class="one-row">
-      {% for project in starters %}{% set starter = true %}
-      {%
-        include
-        "fragments/project-card.html"
-      %}{% endfor %}
+      {% for project in starters %}
+        {% set starter = true %}
+        {%
+          include
+          "fragments/project-card.html"
+        %}
+      {% endfor %}
     </ul>
   </div>
 
@@ -24,11 +26,13 @@
     <h2>Your projects:</h2>
 
     <ul>
-      {% for project in projectList %}{% set ownProject = true %}
-      {%
-        include
-        "fragments/project-card.html"
-      %}{% endfor %}
+      {% for project in projectList %}
+        {% set ownProject = true %}
+        {%
+          include
+          "fragments/project-card.html"
+        %}
+      {% endfor %}
     </ul>
   {% endif %}
 {% endif %}
