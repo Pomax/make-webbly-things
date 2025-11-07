@@ -14,10 +14,7 @@
     <ul class="one-row">
       {% for project in starters %}
         {% set starter = true %}
-        {%
-          include
-          "fragments/project-card.html"
-        %}
+        {% include "fragments/project-card.html" %}
       {% endfor %}
     </ul>
   </div>
@@ -28,19 +25,13 @@
     <ul>
       {% for project in projectList %}
         {% set ownProject = true %}
-        {%
-          include
-          "fragments/project-card.html"
-        %}
+        {% include "fragments/project-card.html" %}
       {% endfor %}
     </ul>
   {% endif %}
 {% endif %}
 {% include "fragments/settings.html" %}
-{%
-  include
-  "../fragments/file-issues.html"
-%}
+{% include "../fragments/file-issues.html" %}
 
 <script defer>
   const loadLinks = document.querySelectorAll(`a.load-project`);
