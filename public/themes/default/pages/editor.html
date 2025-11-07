@@ -69,14 +69,16 @@
 
         <file-tree
           id="filetree"
-          {% if not projectMember %}readonly{% endif %}
+          {% if not user.superuser and not projectMember %}
+            class="full-height" readonly
+          {% endif %}
         ></file-tree>
 
-        <div class="utility">
-          {% if user.superuser or projectMember %}
-          <button class="view-logs">view logs</button>
-          {% endif %}
-        </div>
+        {% if user.superuser or projectMember %}
+          <div class="utility">
+            <button class="view-logs">view logs</button>
+          </div>
+        {% endif %}
       </div>
 
       <div class="full resize">

@@ -4,6 +4,8 @@ import {
 } from "../utils/utils.js";
 import { getOrCreateFileEditTab } from "./editor-entry.js";
 
+const { projectSlug } = document.body.dataset;
+
 // TODO: websockets when available'
 
 export class LogView {
@@ -50,7 +52,8 @@ export class LogView {
           const { output, datetime } = data || {};
           since = datetime;
           this.append(output);
-        } catch {
+        } catch (e) {
+          console.error(e);
           this.close();
         }
       };
@@ -61,13 +64,13 @@ export class LogView {
     }
   }
 
-  append(text, reset = false) {
-    this.update(reset ? text : this.editor.content + text);
-  }
-
   update(content) {
     const editorEntry = this.editor;
     editorEntry.setContent(content);
     updateViewMaintainScroll(editorEntry);
+  }
+
+  append(text, reset = false) {
+    this.update(reset ? text : this.editor.content + text);
   }
 }

@@ -22,6 +22,10 @@ html {
       --header-row-height: calc(3.75em / 2);
       --header-block-height: calc(var(--header-row-height) * 2);
 
+      .left-column-padding {
+        height: calc(var(--header-row-height) - 2px);
+      }
+
       #filetree {
         display: block;
         border: 1px solid var(--file-tree-border);
@@ -29,9 +33,14 @@ html {
         padding: 0 1em 0.25em 0;
         overflow-x: auto;
         white-space: nowrap;
+
         height: calc(
           100% - var(--header-block-height) - var(--header-row-height) - 0.5em
         );
+
+        &.full-height {
+          height: calc(100% - 2.5em - 1px);
+        }
 
         &:not([show-top-level]) {
           --highlight-background-bw: #44ffd8;

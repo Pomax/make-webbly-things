@@ -3,6 +3,7 @@ import { API } from "../utils/api.js";
 import { Notice } from "../utils/notifications.js";
 import { Rewinder } from "../files/rewind.js";
 import { handleFileHistory } from "../files/websocket-interface.js";
+import { LogView } from "./log-view.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
 const { projectId, projectSlug, useWebsockets } = document.body.dataset;
