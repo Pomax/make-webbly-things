@@ -22,6 +22,7 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
 
   const { path } = fileEntry;
   const { editorEntry } = fileEntry.state;
+  if (!editorEntry) return;
   if (!editorEntry.editable) return;
 
   // Do we even have something to sync, here?

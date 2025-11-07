@@ -1,5 +1,6 @@
 import { sep } from "node:path";
 import {
+  BYPASS_DOCKER,
   CONTENT_BASE,
   getFreePort,
   STARTER_BASE,
@@ -21,6 +22,8 @@ import { scheduleScreenShot } from "../screenshots/screenshot.js";
  * ...docs go here...
  */
 export function checkContainerHealth(project, slug = project.slug) {
+  if (BYPASS_DOCKER) return `not running`;
+
   const check = `docker ps --no-trunc -f name=^/${slug}$`;
   const result = execSync(check).toString().trim();
   if (result.includes(`Exited`)) {
@@ -42,6 +45,8 @@ export function checkContainerHealth(project, slug = project.slug) {
  * ...docs go here...
  */
 export function deleteContainer(project, slug = project.slug) {
+  if (BYPASS_DOCKER) return;
+
   try {
     execSync(`docker container rm ${slug}`, { stdio: `ignore` });
   } catch (e) {
@@ -58,6 +63,8 @@ export function deleteContainer(project, slug = project.slug) {
  * ...docs go here...
  */
 export function deleteContainerAndImage(project) {
+  if (BYPASS_DOCKER) return;
+
   console.log(`removing container and image...`);
   stopContainer(project);
   deleteContainer(project);
@@ -67,6 +74,8 @@ export function deleteContainerAndImage(project) {
  * ...docs go here...
  */
 export function getAllRunningContainers() {
+  if (BYPASS_DOCKER) return [];
+
   const containerData = [];
   const output = execSync(`docker ps -a --no-trunc --format json`)
     .toString()
@@ -102,6 +111,8 @@ export function getAllRunningStaticServers() {
  * Get a container's log ouput, optionally "since some specific time"
  */
 export function getContainerLogs(project, since = 0) {
+  if (BYPASS_DOCKER) return false;
+
   const { slug } = project;
   const now = Date.now();
   const cmd = `docker container logs --since ${since} ${slug}`;
@@ -119,6 +130,8 @@ export function getContainerLogs(project, since = 0) {
  * ...docs go here...
  */
 export function renameContainer(oldSlug, newSlug) {
+  if (BYPASS_DOCKER) return;
+
   stopContainer(oldSlug);
   try {
     execSync(`docker tag ${oldSlug} ${newSlug}`);
@@ -130,6 +143,8 @@ export function renameContainer(oldSlug, newSlug) {
  * ...docs go here...
  */
 export async function restartContainer(project, rebuild = false) {
+  if (BYPASS_DOCKER) return;
+
   const { slug } = project;
   if (rebuild) {
     console.log(`rebuilding container for ${slug}...`);
@@ -152,6 +167,13 @@ export async function restartContainer(project, rebuild = false) {
  * ...docs go here...
  */
 export async function runContainer(project, slug = project.slug) {
+  if (BYPASS_DOCKER) {
+    if (project.settings?.app_type === `static`) {
+      runStaticServer(project);
+    }
+    return;
+  }
+
   // note: we assume the caller already checked for project
   // suspension, so we don't try to use the database here.
   const isStarter = isStarterProject(project);
@@ -256,6 +278,13 @@ export async function runStaticServer(project) {
  * ...docs go here...
  */
 export function stopContainer(project, slug = project.slug) {
+  if (BYPASS_DOCKER) {
+    if (project.settings?.app_type === `static`) {
+      stopStaticServer(project);
+    }
+    return;
+  }
+
   try {
     execSync(`docker container stop ${slug}`, { stdio: `ignore` });
   } catch (e) {

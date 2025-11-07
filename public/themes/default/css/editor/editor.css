@@ -19,7 +19,8 @@ html {
       height: 100%;
       overflow: hidden;
 
-      --header-block-height: 3.75em;
+      --header-row-height: calc(3.75em / 2);
+      --header-block-height: calc(var(--header-row-height) * 2);
 
       #filetree {
         display: block;
@@ -28,7 +29,9 @@ html {
         padding: 0 1em 0.25em 0;
         overflow-x: auto;
         white-space: nowrap;
-        height: calc(100% - var(--header-block-height) - 0.5em);
+        height: calc(
+          100% - var(--header-block-height) - var(--header-row-height) - 0.5em
+        );
 
         &:not([show-top-level]) {
           --highlight-background-bw: #44ffd8;
@@ -57,6 +60,16 @@ html {
             }
           }
         }
+      }
+
+      .utility {
+        height: calc(var(--header-row-height) - 2px);
+        background: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid black;
+        border-top: none;
       }
 
       #buttons {

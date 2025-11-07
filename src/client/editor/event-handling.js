@@ -3,6 +3,7 @@ import { API } from "../utils/api.js";
 import { Notice } from "../utils/notifications.js";
 import { Rewinder } from "../files/rewind.js";
 import { handleFileHistory } from "../files/websocket-interface.js";
+import { getOrCreateFileEditTab } from "./editor-entry.js";
 
 const mac = navigator.userAgent.includes(`Mac OS`);
 const { projectId, projectSlug, useWebsockets } = document.body.dataset;
@@ -21,6 +22,7 @@ export function setupUIEventHandling() {
   connectPrettierButton();
   enableRewindFunctions();
   addTabScrollHandling();
+  enableLogViewer();
 
   // Lastly: make sure we can tell whether or not this
   // document is "dead" and about to get cleaned up.
@@ -157,3 +159,79 @@ function addTabScrollHandling() {
     });
   }
 }
+
+// TEST TEST TEST TEST
+
+class LogView {
+  open = false;
+  virtual = true;
+
+  constructor(button) {
+    this.button = button;
+    // TODO: we should be able to just create a <file-entry>
+    const fileEntry = (this.fileEntry = {
+      root: {},
+      path: `Server Log`,
+      state: {},
+      setState: (o) => Object.assign(fileEntry.state, o),
+      select: () => {},
+      addEventListener: () => {},
+      onUnload: () => {
+        this.close();
+      },
+    });
+  }
+
+  close() {
+    this.poll = clearInterval(this.poll);
+    this.open = false;
+    this.update(``);
+    this.button.disabled = false;
+  }
+
+  toggle(state = !this.open) {
+    this.open = state;
+    if (state) {
+      this.button.disabled = true;
+      this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
+      this.update(`Loading...`);
+      let since = 0;
+      this.poll = setInterval(async () => {
+        try {
+          const data = await fetch(
+            `/v1/projects/logs/${projectSlug}/${since}`,
+          ).then((r) => r.json());
+          const { output, datetime } = data || {};
+          since = datetime;
+          this.append(output);
+        } catch {
+          this.close();
+        }
+      }, 2000);
+    } else {
+      this.close();
+    }
+  }
+
+  append(text, reset = false) {
+    this.update(reset ? text : this.editor.content + text);
+  }
+
+  update(content) {
+    const editorEntry = this.editor;
+    editorEntry.setContent(content);
+    updateViewMaintainScroll(editorEntry);
+  }
+}
+
+function enableLogViewer() {
+  const viewLogs = document.querySelector(`.view-logs`);
+  if (!viewLogs) return;
+
+  const logViewer = new LogView(viewLogs);
+  viewLogs?.addEventListener(`click`, () => {
+    logViewer.toggle();
+  });
+}
+
+// TEST TEST TEST TEST

@@ -19,8 +19,8 @@ const emptyImage = new Image();
 emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
 
 // Drop-in replacement for editor-components.js:getOrCreateFileEditTab
-export function getOrCreateFileEditTab(fileEntry) {
-  return EditorEntry.getOrCreateFileEditTab(fileEntry);
+export function getOrCreateFileEditTab(fileEntry, virtual = false) {
+  return EditorEntry.getOrCreateFileEditTab(fileEntry, virtual);
 }
 
 export class EditorEntry {
@@ -48,10 +48,10 @@ export class EditorEntry {
     return entries.at(pos + 1);
   }
 
-  static getOrCreateFileEditTab(fileEntry) {
+  static getOrCreateFileEditTab(fileEntry, virtual = false) {
     const entry = EditorEntry.entries.find((e) => e.fileEntry === fileEntry);
     if (entry) return entry.select();
-    return new EditorEntry(fileEntry);
+    return new EditorEntry(fileEntry, virtual);
   }
 
   static sortFromTabs() {
@@ -72,8 +72,9 @@ export class EditorEntry {
 
   setEditable = () => {}; // Relies on the function binding performed in getInitialState()
 
-  constructor(fileEntry) {
+  constructor(fileEntry, virtual = false) {
     this.fileEntry = fileEntry;
+    this.virtual = virtual;
     EditorEntry.entries.push(this);
     fileEntry.setState({ editorEntry: this });
     this.select();
@@ -100,22 +101,26 @@ export class EditorEntry {
     return data || new ErrorNotice(`Could not load ${path}`);
   }
 
+  // FIXME: this function is too long to easily maintain.
   async load() {
-    const { fileEntry } = this;
+    const { fileEntry, virtual } = this;
     const { path } = this.fileEntry;
     const filename = path.split(`/`).at(-1);
 
     const viewType = getViewType(filename);
     const { text, unknown, media, type } = viewType;
 
-    const data = await this.getFileData(path, type);
-    if (data instanceof Notice) return data;
+    let data = ``;
+    if (!virtual) {
+      data = await this.getFileData(path, type);
+      if (data instanceof Notice) return data;
 
-    const verified = verifyViewType(viewType.type, data);
-    if (!verified) {
-      return new ErrorNotice(
-        `Content for ${path} does not match the file extension!`,
-      );
+      const verified = verifyViewType(viewType.type, data);
+      if (!verified) {
+        return new ErrorNotice(
+          `Content for ${path} does not match the file extension!`,
+        );
+      }
     }
 
     this.editable = viewType.editable;
@@ -276,6 +281,7 @@ export class EditorEntry {
     }
     delete fileEntry.state.editorEntry;
     EditorEntry.removeEntry(this);
+    fileEntry.onUnload?.();
   }
 
   async update(evt) {

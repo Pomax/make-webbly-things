@@ -86,6 +86,7 @@ function listEquals(a1, a2) {
 }
 async function updateViewMaintainScroll2(editorEntry, content2 = editorEntry.content, editable3 = editorEntry.editable) {
   const { view } = editorEntry;
+  if (!view) return;
   editorEntry.setEditable(editable3);
   const { doc: doc2, selection } = view.state;
   const cursor = doc2.lineAt(selection.main.head);
@@ -30606,6 +30607,7 @@ async function syncContent(projectSlug5, fileEntry, forced = false) {
   if (Rewinder.active && !forced) return;
   const { path: path2 } = fileEntry;
   const { editorEntry } = fileEntry.state;
+  if (!editorEntry) return;
   if (!editorEntry.editable) return;
   const { content: currentContent, view } = editorEntry;
   const newContent = view.state.doc.toString();
@@ -31929,8 +31931,8 @@ var editors = document.getElementById(`editors`);
 var movingTab;
 var emptyImage = new Image();
 emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
-function getOrCreateFileEditTab(fileEntry) {
-  return EditorEntry.getOrCreateFileEditTab(fileEntry);
+function getOrCreateFileEditTab(fileEntry, virtual = false) {
+  return EditorEntry.getOrCreateFileEditTab(fileEntry, virtual);
 }
 var EditorEntry = class _EditorEntry {
   // Static properties and methods
@@ -31951,10 +31953,10 @@ var EditorEntry = class _EditorEntry {
     if (pos === entries.length - 1) return entries.at(pos - 1);
     return entries.at(pos + 1);
   }
-  static getOrCreateFileEditTab(fileEntry) {
+  static getOrCreateFileEditTab(fileEntry, virtual = false) {
     const entry2 = _EditorEntry.entries.find((e2) => e2.fileEntry === fileEntry);
     if (entry2) return entry2.select();
-    return new _EditorEntry(fileEntry);
+    return new _EditorEntry(fileEntry, virtual);
   }
   static sortFromTabs() {
     const { entries } = _EditorEntry;
@@ -31972,8 +31974,9 @@ var EditorEntry = class _EditorEntry {
   setEditable = () => {
   };
   // Relies on the function binding performed in getInitialState()
-  constructor(fileEntry) {
+  constructor(fileEntry, virtual = false) {
     this.fileEntry = fileEntry;
+    this.virtual = virtual;
     _EditorEntry.entries.push(this);
     fileEntry.setState({ editorEntry: this });
     this.select();
@@ -31998,19 +32001,23 @@ var EditorEntry = class _EditorEntry {
     }
     return data3 || new ErrorNotice(`Could not load ${path2}`);
   }
+  // FIXME: this function is too long to easily maintain.
   async load() {
-    const { fileEntry } = this;
+    const { fileEntry, virtual } = this;
     const { path: path2 } = this.fileEntry;
     const filename = path2.split(`/`).at(-1);
     const viewType = getViewType(filename);
     const { text, unknown, media, type } = viewType;
-    const data3 = await this.getFileData(path2, type);
-    if (data3 instanceof Notice) return data3;
-    const verified = verifyViewType(viewType.type, data3);
-    if (!verified) {
-      return new ErrorNotice(
-        `Content for ${path2} does not match the file extension!`
-      );
+    let data3 = ``;
+    if (!virtual) {
+      data3 = await this.getFileData(path2, type);
+      if (data3 instanceof Notice) return data3;
+      const verified = verifyViewType(viewType.type, data3);
+      if (!verified) {
+        return new ErrorNotice(
+          `Content for ${path2} does not match the file extension!`
+        );
+      }
     }
     this.editable = viewType.editable;
     this.createEditorPanel();
@@ -32140,6 +32147,7 @@ var EditorEntry = class _EditorEntry {
     }
     delete fileEntry.state.editorEntry;
     _EditorEntry.removeEntry(this);
+    fileEntry.onUnload?.();
   }
   async update(evt) {
     const { type, update, ours } = evt.detail;
@@ -32227,7 +32235,8 @@ fileTree3.addEventListener(`tree:ready`, async () => {
   fileTree3.findAll(`file-entry`).forEach(({ extension }) => supportFileExtension(extension));
   if (defaultFile) {
     fileEntry = fileTree3.querySelector(`file-entry[path="${defaultFile}"]`);
-  } else {
+  }
+  if (!fileEntry) {
     for (const d of DEFAULT_FILES) {
       fileEntry = fileTree3.querySelector(`file-entry[path="${d}"]`);
       if (fileEntry) break;
@@ -32242,11 +32251,7 @@ fileTree3.addEventListener(`tree:ready`, async () => {
     });
   }
   if (fileEntry) {
-    getOrCreateFileEditTab(
-      fileEntry,
-      projectSlug3,
-      fileEntry.getAttribute(`path`)
-    );
+    getOrCreateFileEditTab(fileEntry);
   }
 });
 async function setupFileTree() {
@@ -32329,11 +32334,7 @@ function ensureFileTreeWidth() {
 async function addFileClick(fileTree4, projectSlug5) {
   fileTree4.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
-    getOrCreateFileEditTab(
-      fileEntry,
-      projectSlug5,
-      fileEntry.getAttribute(`path`)
-    );
+    getOrCreateFileEditTab(fileEntry);
     if (Rewinder.active) {
       if (useWebsockets3) {
         fileTree4.OT?.getFileHistory(fileEntry.path);
@@ -32614,6 +32615,7 @@ function setupUIEventHandling() {
   connectPrettierButton();
   enableRewindFunctions();
   addTabScrollHandling();
+  enableLogViewer();
   globalThis.addEventListener("beforeunload", () => {
     globalThis.__shutdown = true;
   });
@@ -32711,6 +32713,71 @@ function addTabScrollHandling() {
       scrollTabs(2);
     });
   }
+}
+var LogView = class {
+  open = false;
+  virtual = true;
+  constructor(button) {
+    this.button = button;
+    const fileEntry = this.fileEntry = {
+      root: {},
+      path: `Server Log`,
+      state: {},
+      setState: (o) => Object.assign(fileEntry.state, o),
+      select: () => {
+      },
+      addEventListener: () => {
+      },
+      onUnload: () => {
+        this.close();
+      }
+    };
+  }
+  close() {
+    this.poll = clearInterval(this.poll);
+    this.open = false;
+    this.update(``);
+    this.button.disabled = false;
+  }
+  toggle(state = !this.open) {
+    this.open = state;
+    if (state) {
+      this.button.disabled = true;
+      this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
+      this.update(`Loading...`);
+      let since = 0;
+      this.poll = setInterval(async () => {
+        try {
+          const data3 = await fetch(
+            `/v1/projects/logs/${projectSlug4}/${since}`
+          ).then((r) => r.json());
+          const { output, datetime } = data3 || {};
+          since = datetime;
+          this.append(output);
+        } catch {
+          this.close();
+        }
+      }, 2e3);
+    } else {
+      this.close();
+    }
+  }
+  append(text, reset = false) {
+    this.update(reset ? text : this.editor.content + text);
+  }
+  update(content2) {
+    const editorEntry = this.editor;
+    editorEntry.setContent(content2);
+    updateViewMaintainScroll2(editorEntry);
+  }
+};
+function enableLogViewer() {
+  const viewLogs = document.querySelector(`.view-logs`);
+  if (!viewLogs) return;
+  const logViewer = new LogView(viewLogs);
+  viewLogs?.addEventListener(`click`, () => {
+    logViewer.toggle();
+  });
 }
 
 // src/client/entry-point.js

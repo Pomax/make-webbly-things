@@ -34,7 +34,9 @@ fileTree.addEventListener(`tree:ready`, async () => {
 
   if (defaultFile) {
     fileEntry = fileTree.querySelector(`file-entry[path="${defaultFile}"]`);
-  } else {
+  }
+
+  if (!fileEntry) {
     for (const d of DEFAULT_FILES) {
       fileEntry = fileTree.querySelector(`file-entry[path="${d}"]`);
       if (fileEntry) break;
@@ -53,11 +55,7 @@ fileTree.addEventListener(`tree:ready`, async () => {
   }
 
   if (fileEntry) {
-    getOrCreateFileEditTab(
-      fileEntry,
-      projectSlug,
-      fileEntry.getAttribute(`path`),
-    );
+    getOrCreateFileEditTab(fileEntry);
   }
 });
 
@@ -181,11 +179,7 @@ export function ensureFileTreeWidth() {
 async function addFileClick(fileTree, projectSlug) {
   fileTree.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
-    getOrCreateFileEditTab(
-      fileEntry,
-      projectSlug,
-      fileEntry.getAttribute(`path`),
-    );
+    getOrCreateFileEditTab(fileEntry);
 
     // note: we handle "selection" in the file tree as part of editor
     // reveals, so we do not call the event's own grant() function.

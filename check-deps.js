@@ -1,5 +1,8 @@
 import { checkDependencies } from "./src/setup/dependencies.js";
 
+const bypass = !!process.env.BYPASS_DEPENDENCIES;
+if (bypass) process.exit(0);
+
 try {
   checkDependencies();
 } catch (e) {

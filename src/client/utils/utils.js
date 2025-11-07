@@ -88,6 +88,7 @@ export async function updateViewMaintainScroll(
   editable = editorEntry.editable,
 ) {
   const { view } = editorEntry;
+  if (!view) return;
   editorEntry.setEditable(editable);
   const { doc, selection } = view.state;
   const cursor = doc.lineAt(selection.main.head);

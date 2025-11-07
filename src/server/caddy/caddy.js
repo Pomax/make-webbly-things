@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { execSync, spawn } from "node:child_process";
 import { join } from "node:path";
 import { scheduleScreenShot } from "../screenshots/screenshot.js";
+import { BYPASS_CADDY } from "../../helpers.js";
 
 const caddyFile = join(import.meta.dirname, `Caddyfile`);
 const defaultCaddyFile = join(import.meta.dirname, `Caddyfile.default`);
@@ -26,6 +27,8 @@ export class PortBinding {
  * Remove an entry from the Caddyfile
  */
 export function removeCaddyEntry(project, env = process.env) {
+  if (BYPASS_CADDY) return;
+
   const { slug } = project;
   const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const re = new RegExp(`\\n${host}\\s*\\{[\\w\\W]+?\\n\\}\\n`, `gm`);
@@ -42,6 +45,8 @@ export function removeCaddyEntry(project, env = process.env) {
  * Create (or reset) our Caddyfile
  */
 export function setupCaddy(env = process.env) {
+  if (BYPASS_CADDY) return;
+
   const config = readFileSync(defaultCaddyFile)
     .toString()
     .replaceAll(`$WEB_EDITOR_HOSTNAME`, env.WEB_EDITOR_HOSTNAME)
@@ -57,6 +62,8 @@ export function setupCaddy(env = process.env) {
  * Ensure a local Caddyfile exists for us to work with
  */
 export function startCaddy() {
+  if (BYPASS_CADDY) return;
+
   stopCaddy();
 
   const DEBUG = readFileSync(caddyFile)
@@ -98,6 +105,8 @@ process.on("SIGINT", () => {
  * @param {*} port
  */
 export function updateCaddyFile(project, port, env = process.env) {
+  if (BYPASS_CADDY) return;
+
   const { slug } = project;
 
   portBindings[slug] ??= new PortBinding(port);
