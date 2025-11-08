@@ -1,12 +1,14 @@
 // This test script uses Codemirror v6
-import { basicSetup, EditorView } from "codemirror";
-import { EditorState, Compartment } from "@codemirror/state";
+import { basicSetup, EditorView } from 'codemirror';
+import { EditorState, Compartment } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
+import { indentWithTab } from '@codemirror/commands';
 
 // Language-specific features:
-import { css } from "@codemirror/lang-css";
-import { html } from "@codemirror/lang-html";
-import { markdown } from "@codemirror/lang-markdown";
-import { javascript } from "@codemirror/lang-javascript";
+import { css } from '@codemirror/lang-css';
+import { html } from '@codemirror/lang-html';
+import { markdown } from '@codemirror/lang-markdown';
+import { javascript } from '@codemirror/lang-javascript';
 // See https://github.com/orgs/codemirror/repositories?q=lang for more options
 
 const editable = !!document.body.dataset.projectMember;
@@ -20,7 +22,11 @@ export function getInitialState(editorEntry, doc) {
   const fileExtension = path.substring(path.lastIndexOf(`.`) + 1);
 
   // Our list of codemirror extensions:
-  const extensions = [basicSetup, EditorView.lineWrapping];
+  const extensions = [
+    basicSetup,
+    EditorView.lineWrapping,
+    keymap.of([indentWithTab]),
+  ];
 
   // We want to be able to toggle the editable state of our
   // editor, so we need to do some truly mad things here.
@@ -72,7 +78,7 @@ export function getInitialState(editorEntry, doc) {
         editorEntry.debounce = setTimeout(() => editorEntry.sync(), 1000);
       }
       editorEntry.contentReset = false;
-    }),
+    })
   );
 
   // Thank god, we're done.

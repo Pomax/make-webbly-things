@@ -19448,6 +19448,7 @@ var defaultKeymap = /* @__PURE__ */ [
   { key: "Alt-A", run: toggleBlockComment },
   { key: "Ctrl-m", mac: "Shift-Alt-m", run: toggleTabFocusMode }
 ].concat(standardKeymap);
+var indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
 // node_modules/@codemirror/search/dist/index.js
 var basicNormalize = typeof String.prototype.normalize == "function" ? (x) => x.normalize("NFKD") : (x) => x;
@@ -29751,7 +29752,11 @@ function getInitialState(editorEntry, doc2) {
   const { fileEntry } = editorEntry;
   const { path: path2 } = fileEntry;
   const fileExtension = path2.substring(path2.lastIndexOf(`.`) + 1);
-  const extensions2 = [basicSetup, EditorView.lineWrapping];
+  const extensions2 = [
+    basicSetup,
+    EditorView.lineWrapping,
+    keymap.of([indentWithTab])
+  ];
   const readOnly2 = EditorState.readOnly;
   const readOnlyCompartment = new Compartment();
   extensions2.push(readOnlyCompartment.of(readOnly2.of(!editable2)));
@@ -29787,7 +29792,8 @@ function setupView(editorEntry, data3) {
   const view = new EditorView({
     parent: editorEntry.editor,
     state: getInitialState(editorEntry, data3),
-    lineWrapping: true
+    lineWrapping: true,
+    extensions: [basicSetup]
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
   return view;
