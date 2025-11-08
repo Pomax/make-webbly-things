@@ -101,10 +101,7 @@ export function setupView(editorEntry, data) {
 
   // unsure where to actually put this yet
   const tabTracker = new TabTracker(editorEntry.editor);
-  editorEntry.editor.addEventListener('keydown', (event) => {
-    console.debug('event is about to run')
-    tabTracker.showEscapeMessageOnRepeatedTab(event);
-  });
+  tabTracker.initialize();
 
   return view;
 }

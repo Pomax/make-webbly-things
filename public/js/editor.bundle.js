@@ -29743,7 +29743,7 @@ var TabTracker = class {
   get full() {
     return this.lastFiveKeys.length >= TABS_BEFORE_POPUP;
   }
-  setup() {
+  initialize() {
     this.editor.addEventListener("keydown", (event) => {
       this.showEscapeMessageOnRepeatedTab(event);
     });
@@ -29755,8 +29755,6 @@ var TabTracker = class {
     return this.full && this.lastFiveKeys.every((key) => key === "Tab");
   }
   showEscapeMessageOnRepeatedTab = (event) => {
-    console.debug("in the function call");
-    console.debug("before", this.lastFiveKeys);
     if (this.full) {
       this.lastFiveKeys.shift();
     }
@@ -29765,7 +29763,6 @@ var TabTracker = class {
       alert("In order to tab out of the editor, press escape first.");
       this.lastFiveKeys = [];
     }
-    console.debug("after", this.lastFiveKeys);
   };
 };
 
@@ -29819,10 +29816,7 @@ function setupView(editorEntry, data3) {
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
   const tabTracker = new TabTracker(editorEntry.editor);
-  editorEntry.editor.addEventListener("keydown", (event) => {
-    console.debug("event is about to run");
-    tabTracker.showEscapeMessageOnRepeatedTab(event);
-  });
+  tabTracker.initialize();
   return view;
 }
 
