@@ -97,5 +97,50 @@ export function setupView(editorEntry, data) {
 
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
 
+  // unsure where to put yet
+  const tabTracker = new TabTracker(editorEntry.editor);
+
+  editorEntry.editor.addEventListener('keydown', (event) => {
+    tabTracker.showEscapeMessageOnRepeatedTab(event);
+  });
+
   return view;
+}
+
+class TabTracker {
+  static TABS_BEFORE_POPUP = 5;
+
+  constructor(editor) {
+    this.editor = editor;
+    this.lastFiveKeys = [];
+  }
+
+  clearKeys() {
+    this.lastFiveKeys = [];
+  }
+
+  showEscapeMessageOnRepeatedTab = (event) => {
+    if (this.lastFiveKeys.length === TabTracker.TABS_BEFORE_POPUP) {
+      this.lastFiveKeys.shift();
+    }
+
+    this.lastFiveKeys.push(event.key);
+
+    if (this.fullOfTabs()) {
+      alert('hey press escape');
+      this.lastFiveKeys = [];
+    } else {
+      console.log('not a tab key');
+    }
+
+    console.debug('after', this.lastFiveKeys);
+  };
+
+  get full() {
+    return this.lastFiveKeys.length >= TabTracker.TABS_BEFORE_POPUP;
+  }
+
+  fullOfTabs() {
+    return this.full && this.lastFiveKeys.every((key) => key === 'Tab');
+  }
 }
