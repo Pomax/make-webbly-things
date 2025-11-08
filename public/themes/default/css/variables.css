@@ -3,6 +3,7 @@
   --black: black;
 
   /* NOTICES */
+
   --notice-info-background: #99ffaf;
   --notice-warning-background: #fff2aa;
   --notice-error-background: #db3939;
@@ -13,18 +14,22 @@
   --close-button-background: #e8e8e8;
 
   /* PROFILE */
+
   --bio-border-color: grey;
   --bio-background: white;
 
   /* cm6 */
+
   --edit-dialog-background: rgba(0, 179, 128, 0.399);
 
   /* ADMIN */
+
   --admin-enabled-button-box-shadow: lime;
   --admin-enabling-button-background: red;
   --admin-table-header-border-color: grey;
 
   /* REWIND */
+
   --rewinding-file-tree-background: #00ffb71c;
   --rewinding-rewind-background: #00ffcf;
   --rewinding-cm-editor-background: #f001;
@@ -44,6 +49,7 @@
   --history-selected-point-callout-text-shadow: black;
 
   /* THREE COLUMN */
+
   --three-column-highlight-color: blue;
   --column-background: white;
   --divider-handle-background: white;
@@ -59,13 +65,8 @@
   --three-column-footer-link-text-shadow: white;
 
   /* EDITOR */
+
   --editor-neutral-background-color: #eee;
-  --file-tree-border: #444;
-  --file-tree-drop-background: #cceeff44;
-  --file-tree-drop-color: #333;
-
-  --revised-file-entry-text: red;
-
   --editor-nav-top-background: white;
   --editor-nav-top-text: black;
 
@@ -93,12 +94,6 @@
 
   --editors-group-border-color: grey;
 
-  --preview-group-border-color: gray;
-  --preview-group-background: #fff;
-  --preview-restarting-iframe-background: #fde;
-
-  --graphics-element-table-slider-wrapper-background: #ececec;
-
   --editor-button-border-color: #555;
   --editor-clear-button-border-color: #444;
   --editor-clear-button-text: #999;
@@ -109,7 +104,28 @@
   --editor-active-button-active-color: darkgreen;
   --editor-active-button-active-background: white;
 
+  --graphics-element-table-slider-wrapper-background: #ececec;
+  --preview-group-border-color: gray;
+  --preview-group-background: #fff;
+  --preview-restarting-iframe-background: #fde;
+  --revised-file-entry-text: red;
+
+  /* FILE EDITOR */
+
+  --file-tree-border: #444;
+  --file-tree-drop-background: #cceeff44;
+  --file-tree-drop-color: #333;
+
+  --regular-file-editor-background: var(--white);
+  --regular-file-editor-text: var(--black);
+  --log-file-editor-background: #333;
+  --log-file-editor-background-active: #444;
+  --log-file-editor-text: #eee;
+  --log-file-editor-text-active: #cef;
+  --log-file-editor-text-cursor: #cef;
+
   /* MAIN */
+
   --home-background: #fbdd85;
   --body-background: #fff4d9;
   --body-box-shadow: #ff8300;
@@ -122,6 +138,7 @@
 
   /* These could use more semantic of names, but right now they are scoped
   inside an `li` so until we refactor that, this is the clearest */
+
   --li-background: #fffdfa;
   --li-border-color: black;
   --li-header-background: white;

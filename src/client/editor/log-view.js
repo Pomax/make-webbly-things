@@ -1,5 +1,6 @@
 import {
   SERVER_LOG_TAB_NAME,
+  appendViewContent,
   updateViewMaintainScroll,
 } from "../utils/utils.js";
 import { getOrCreateFileEditTab } from "./editor-entry.js";
@@ -33,7 +34,13 @@ export class LogView {
     this.poll = clearInterval(this.poll);
     this.open = false;
     this.button.disabled = false;
-    this.update(``);
+    this.setContent(``);
+  }
+
+  setContent(content) {
+    const editorEntry = this.editor;
+    editorEntry.setContent(content);
+    updateViewMaintainScroll(editorEntry);
   }
 
   toggle(state = !this.open) {
@@ -41,17 +48,18 @@ export class LogView {
     if (state) {
       this.button.disabled = true;
       this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
-      this.update(`Loading...`);
+      this.setContent(`Loading...`);
       let since = 0;
       const pollData = async () => {
         try {
           if (!this.open) throw `close`;
-          const data = await fetch(
-            `/v1/projects/logs/${projectSlug}/${since}`,
-          ).then((r) => r.json());
+          const url = `/v1/projects/logs/${projectSlug}/${since}`;
+          const data = await fetch(url).then((r) => r.json());
           const { output, datetime } = data || {};
-          since = datetime;
-          this.append(output);
+          if ((output ?? ``).trim?.()) {
+            since = new Date(Date.parse(datetime) + 10).toISOString();
+            this.append(output);
+          }
         } catch (e) {
           console.error(e);
           this.close();
@@ -64,13 +72,11 @@ export class LogView {
     }
   }
 
-  update(content) {
+  append(text) {
+    if (!text) return;
     const editorEntry = this.editor;
+    const content = editorEntry.content + text;
     editorEntry.setContent(content);
-    updateViewMaintainScroll(editorEntry);
-  }
-
-  append(text, reset = false) {
-    this.update(reset ? text : this.editor.content + text);
+    appendViewContent(editorEntry, text);
   }
 }

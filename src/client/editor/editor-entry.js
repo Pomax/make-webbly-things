@@ -130,7 +130,7 @@ export class EditorEntry {
     this.editable = viewType.editable;
 
     // set up our content panel, used to either slot in a codemirror, or media
-    this.createEditorPanel();
+    this.createEditorPanel(path);
 
     // Fill the editor panel: is this plain text?
     if (text || unknown) {
@@ -150,8 +150,12 @@ export class EditorEntry {
     fileEntry.addEventListener(`content:update`, (evt) => this.update(evt));
   }
 
-  createEditorPanel() {
-    const editor = (this.editor = create(`div`, { class: `editor panel` }));
+  createEditorPanel(path) {
+    let classes = `editor panel`;
+    if (path === SERVER_LOG_TAB_NAME) {
+      classes += ` logs`;
+    }
+    const editor = (this.editor = create(`div`, { class: classes }));
     editors.appendChild(editor);
   }
 
@@ -318,6 +322,7 @@ export class EditorEntry {
   sync() {
     const { fileEntry, editable } = this;
     if (!editable) return;
+    if (this.virtual) return;
     syncContent(projectSlug, fileEntry);
   }
 

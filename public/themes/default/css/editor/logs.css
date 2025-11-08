@@ -1,0 +1,17 @@
+/*
+  This is the CSS for "viewing server logs", which we want
+  to style /incredibly/ distincly from everything else.
+*/
+.editor.panel.active.logs {
+  .cm-line {
+    background-color: var(--log-file-editor-background);
+    color: var(--log-file-editor-text);
+  }
+  .cm-activeLine {
+    background: var(--log-file-editor-background-active);
+    color: var(--log-file-editor-text-active);
+  }
+  .cm-editor .cm-cursor {
+    border-left-color: var(--log-file-editor-text-cursor);
+  }
+}

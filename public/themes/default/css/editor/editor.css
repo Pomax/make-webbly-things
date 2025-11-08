@@ -2,6 +2,7 @@
 
 @import "./notices.css";
 @import "./rewind.css";
+@import "./logs.css";
 
 html {
   height: 100%;
@@ -72,11 +73,11 @@ html {
       }
 
       .utility {
-        height: calc(var(--header-row-height) - 2px);
-        background: var(--editor-neutral-background-color);
         display: flex;
         align-items: center;
         justify-content: center;
+        height: calc(var(--header-row-height) - 2px);
+        background: var(--editor-neutral-background-color);
         border: 1px solid var(--editor-tab-border-color);
         border-top: none;
       }

@@ -112,15 +112,17 @@ export function getAllRunningStaticServers() {
  */
 export function getContainerLogs(project, since = 0) {
   if (BYPASS_DOCKER) return false;
-
   const { slug } = project;
-  const now = Date.now();
   const cmd = `docker container logs --since ${since} ${slug}`;
   try {
-    return {
-      output: execSync(cmd).toString(),
-      datetime: now,
-    };
+    const output = execSync(cmd).toString();
+    // And now for the stupid part:
+    const datetime = execSync(cmd.replace(`--since`, `-t --since`))
+      .toString()
+      .split(`\n`)
+      .at(-2)
+      .replace(/Z.*/, `Z`);
+    return { output, datetime };
   } catch {
     return false;
   }

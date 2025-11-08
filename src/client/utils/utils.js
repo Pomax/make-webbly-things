@@ -107,3 +107,15 @@ export async function updateViewMaintainScroll(
     scrollIntoView: true,
   });
 }
+
+export async function appendViewContent(editorEntry, newContent) {
+  const { view } = editorEntry;
+  if (!view) return;
+  const { doc } = view.state;
+  view.dispatch({
+    changes: {
+      from: doc.length,
+      insert: newContent,
+    },
+  });
+}

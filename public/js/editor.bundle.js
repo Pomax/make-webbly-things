@@ -105,6 +105,17 @@ async function updateViewMaintainScroll2(editorEntry, content2 = editorEntry.con
     scrollIntoView: true
   });
 }
+async function appendViewContent(editorEntry, newContent) {
+  const { view } = editorEntry;
+  if (!view) return;
+  const { doc: doc2 } = view.state;
+  view.dispatch({
+    changes: {
+      from: doc2.length,
+      insert: newContent
+    }
+  });
+}
 
 // src/client/utils/notifications.js
 var Notice = class {
@@ -30610,6 +30621,7 @@ async function syncContent(projectSlug6, fileEntry, forced = false) {
   const { editorEntry } = fileEntry.state;
   if (!editorEntry) return;
   if (!editorEntry.editable) return;
+  if (!editorEntry.virtual) return;
   const { content: currentContent, view } = editorEntry;
   const newContent = view.state.doc.toString();
   if (newContent === currentContent) return;
@@ -32021,7 +32033,7 @@ var EditorEntry = class _EditorEntry {
       }
     }
     this.editable = viewType.editable;
-    this.createEditorPanel();
+    this.createEditorPanel(path2);
     if (text || unknown) {
       this.setTextContent(data3);
     } else if (media) {
@@ -32031,8 +32043,12 @@ var EditorEntry = class _EditorEntry {
     this.createTab(path2, filename);
     fileEntry.addEventListener(`content:update`, (evt) => this.update(evt));
   }
-  createEditorPanel() {
-    const editor = this.editor = create(`div`, { class: `editor panel` });
+  createEditorPanel(path2) {
+    let classes = `editor panel`;
+    if (path2 === SERVER_LOG_TAB_NAME) {
+      classes += ` logs`;
+    }
+    const editor = this.editor = create(`div`, { class: classes });
     editors.appendChild(editor);
   }
   createTab(path2, filename) {
@@ -32172,6 +32188,7 @@ var EditorEntry = class _EditorEntry {
   sync() {
     const { fileEntry, editable: editable3 } = this;
     if (!editable3) return;
+    if (this.virtual) return;
     syncContent(projectSlug2, fileEntry);
   }
   lock() {
@@ -32636,24 +32653,30 @@ var LogView = class {
     this.poll = clearInterval(this.poll);
     this.open = false;
     this.button.disabled = false;
-    this.update(``);
+    this.setContent(``);
+  }
+  setContent(content2) {
+    const editorEntry = this.editor;
+    editorEntry.setContent(content2);
+    updateViewMaintainScroll2(editorEntry);
   }
   toggle(state = !this.open) {
     this.open = state;
     if (state) {
       this.button.disabled = true;
       this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
-      this.update(`Loading...`);
+      this.setContent(`Loading...`);
       let since = 0;
       const pollData = async () => {
         try {
           if (!this.open) throw `close`;
-          const data3 = await fetch(
-            `/v1/projects/logs/${projectSlug4}/${since}`
-          ).then((r) => r.json());
+          const url = `/v1/projects/logs/${projectSlug4}/${since}`;
+          const data3 = await fetch(url).then((r) => r.json());
           const { output, datetime } = data3 || {};
-          since = datetime;
-          this.append(output);
+          if ((output ?? ``).trim?.()) {
+            since = new Date(Date.parse(datetime) + 10).toISOString();
+            this.append(output);
+          }
         } catch (e2) {
           console.error(e2);
           this.close();
@@ -32665,13 +32688,12 @@ var LogView = class {
       this.close();
     }
   }
-  update(content2) {
+  append(text) {
+    if (!text) return;
     const editorEntry = this.editor;
+    const content2 = editorEntry.content + text;
     editorEntry.setContent(content2);
-    updateViewMaintainScroll2(editorEntry);
-  }
-  append(text, reset = false) {
-    this.update(reset ? text : this.editor.content + text);
+    appendViewContent(editorEntry, text);
   }
 };
 
