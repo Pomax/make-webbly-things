@@ -10,13 +10,10 @@ export class TabTracker {
   }
 
   initialize() {
-    this.editor.addEventListener('keydown', (event) => {
-      this.showEscapeMessageOnRepeatedTab(event);
-    });
-  }
-
-  clearKeys() {
-    this.lastFiveKeys = [];
+    this.editor.addEventListener(
+      'keydown',
+      this.showEscapeMessageOnRepeatedTab
+    );
   }
 
   fullOfTabs() {
