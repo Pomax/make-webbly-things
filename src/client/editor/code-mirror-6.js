@@ -100,11 +100,11 @@ export function setupView(editorEntry, data) {
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
 
   // unsure where to actually put this yet
-  // const tabTracker = new TabTracker(editorEntry.editor);
-  // editorEntry.editor.addEventListener('keydown', (event) => {
-  //   console.debug('event is about to run')
-  //   tabTracker.showEscapeMessageOnRepeatedTab(event);
-  // });
+  const tabTracker = new TabTracker(editorEntry.editor);
+  editorEntry.editor.addEventListener('keydown', (event) => {
+    console.debug('event is about to run')
+    tabTracker.showEscapeMessageOnRepeatedTab(event);
+  });
 
   return view;
 }
