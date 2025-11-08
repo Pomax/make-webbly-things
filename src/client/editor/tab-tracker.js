@@ -9,7 +9,7 @@ export class TabTracker {
     return this.lastFiveKeys.length >= TABS_BEFORE_POPUP;
   }
 
-  setup() {
+  initialize() {
     this.editor.addEventListener('keydown', (event) => {
       this.showEscapeMessageOnRepeatedTab(event);
     });
@@ -24,8 +24,6 @@ export class TabTracker {
   }
 
   showEscapeMessageOnRepeatedTab = (event) => {
-    console.debug('in the function call');
-    console.debug('before', this.lastFiveKeys);
     if (this.full) {
       this.lastFiveKeys.shift();
     }
@@ -36,7 +34,5 @@ export class TabTracker {
       alert('In order to tab out of the editor, press escape first.');
       this.lastFiveKeys = [];
     }
-
-    console.debug('after', this.lastFiveKeys);
   };
 }
