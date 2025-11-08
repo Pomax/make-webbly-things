@@ -32678,8 +32678,7 @@ var LogView = class {
             this.append(output);
           }
         } catch (e2) {
-          console.error(e2);
-          this.close();
+          console.warn(e2);
         }
       };
       this.poll = setInterval(pollData, this.pollingInterval);

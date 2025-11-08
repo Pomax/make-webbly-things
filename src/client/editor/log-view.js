@@ -61,8 +61,7 @@ export class LogView {
             this.append(output);
           }
         } catch (e) {
-          console.error(e);
-          this.close();
+          console.warn(e);
         }
       };
       this.poll = setInterval(pollData, this.pollingInterval);
