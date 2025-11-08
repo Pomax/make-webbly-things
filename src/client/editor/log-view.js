@@ -37,7 +37,7 @@ export class LogView {
     this.setContent(``);
   }
 
-  setContent(content) {
+  setContent(content = ``) {
     const editorEntry = this.editor;
     editorEntry.setContent(content);
     updateViewMaintainScroll(editorEntry);
