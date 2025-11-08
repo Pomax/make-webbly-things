@@ -29795,41 +29795,8 @@ function setupView(editorEntry, data3) {
     lineWrapping: true
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
-  const tabTracker = new TabTracker(editorEntry.editor);
-  editorEntry.editor.addEventListener("keydown", (event) => {
-    tabTracker.showEscapeMessageOnRepeatedTab(event);
-  });
   return view;
 }
-var TabTracker = class _TabTracker {
-  static TABS_BEFORE_POPUP = 5;
-  constructor(editor) {
-    this.editor = editor;
-    this.lastFiveKeys = [];
-  }
-  clearKeys() {
-    this.lastFiveKeys = [];
-  }
-  showEscapeMessageOnRepeatedTab = (event) => {
-    if (this.lastFiveKeys.length === _TabTracker.TABS_BEFORE_POPUP) {
-      this.lastFiveKeys.shift();
-    }
-    this.lastFiveKeys.push(event.key);
-    if (this.fullOfTabs()) {
-      alert("hey press escape");
-      this.lastFiveKeys = [];
-    } else {
-      console.log("not a tab key");
-    }
-    console.debug("after", this.lastFiveKeys);
-  };
-  get full() {
-    return this.lastFiveKeys.length >= _TabTracker.TABS_BEFORE_POPUP;
-  }
-  fullOfTabs() {
-    return this.full && this.lastFiveKeys.every((key) => key === "Tab");
-  }
-};
 
 // src/client/files/sync.js
 import { createPatch } from "/vendor/diff.js";
