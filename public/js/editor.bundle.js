@@ -29757,12 +29757,10 @@ var TabTracker = class {
     return this.lastFiveKeys.length >= TABS_BEFORE_POPUP;
   }
   initialize() {
-    this.editor.addEventListener("keydown", (event) => {
-      this.showEscapeMessageOnRepeatedTab(event);
-    });
-  }
-  clearKeys() {
-    this.lastFiveKeys = [];
+    this.editor.addEventListener(
+      "keydown",
+      this.showEscapeMessageOnRepeatedTab
+    );
   }
   fullOfTabs() {
     return this.full && this.lastFiveKeys.every((key) => key === "Tab");
