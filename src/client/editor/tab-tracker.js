@@ -1,6 +1,5 @@
 const TABS_BEFORE_POPUP = 5;
 export class TabTracker {
-
   constructor(editor) {
     this.editor = editor;
     this.lastFiveKeys = [];
@@ -8,6 +7,12 @@ export class TabTracker {
 
   get full() {
     return this.lastFiveKeys.length >= TABS_BEFORE_POPUP;
+  }
+
+  setup() {
+    this.editor.addEventListener('keydown', (event) => {
+      this.showEscapeMessageOnRepeatedTab(event);
+    });
   }
 
   clearKeys() {
@@ -19,8 +24,8 @@ export class TabTracker {
   }
 
   showEscapeMessageOnRepeatedTab = (event) => {
-    console.debug('in the function call')
-    console.debug('before', this.lastFiveKeys)
+    console.debug('in the function call');
+    console.debug('before', this.lastFiveKeys);
     if (this.full) {
       this.lastFiveKeys.shift();
     }
@@ -32,6 +37,6 @@ export class TabTracker {
       this.lastFiveKeys = [];
     }
 
-    console.debug('after', this.lastFiveKeys)
+    console.debug('after', this.lastFiveKeys);
   };
 }
