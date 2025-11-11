@@ -1,3 +1,7 @@
+.hidden {
+  display: none !important;
+}
+
 main {
   --div-width: 1em;
   display: grid;
