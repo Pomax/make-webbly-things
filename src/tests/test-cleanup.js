@@ -34,9 +34,13 @@ execSync(`docker image list -a --no-trunc --format json`)
   .map((e) => JSON.parse(e))
   .forEach((e) => {
     if (e.Repository.startsWith(`docker-project-`)) {
-      execSync(`docker image rm ${e.ID} -f`, {
-        stdio: `ignore`,
-      });
+      try {
+        execSync(`docker image rm ${e.ID} -f`, {
+          stdio: `ignore`,
+        });
+      } catch {
+        /* we don't care */
+      }
     }
   });
 

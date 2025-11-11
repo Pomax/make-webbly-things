@@ -5,47 +5,47 @@ var API = {
   // Project related calls, such as getting project health,
   // restarting the container, updating settings, etc.
   projects: {
-    download: async (projectSlug5) => {
+    download: async (projectSlug6) => {
       const a = document.createElement(`a`);
-      a.href = `${PREFIX}/projects/download/${projectSlug5}`;
+      a.href = `${PREFIX}/projects/download/${projectSlug6}`;
       a.click();
     },
-    health: async (projectSlug5) => fetch2(`projects/health/${projectSlug5}?v=${Date.now()}`).then(
+    health: async (projectSlug6) => fetch2(`projects/health/${projectSlug6}?v=${Date.now()}`).then(
       (r) => r.text()
     ),
-    remix: async (projectSlug5) => {
-      location = `${PREFIX}/projects/remix/${projectSlug5}`;
+    remix: async (projectSlug6) => {
+      location = `${PREFIX}/projects/remix/${projectSlug6}`;
     },
-    restart: async (projectSlug5) => fetch2(`projects/restart/${projectSlug5}`, {
+    restart: async (projectSlug6) => fetch2(`projects/restart/${projectSlug6}`, {
       method: `POST`
     })
   },
   // File related calls, which are mostly "CRUD"
   // (create/read/update/delete) operations.
   files: {
-    create: async (projectSlug5, fileName) => fetch2(`files/create/${projectSlug5}/${fileName}`, { method: `post` }),
-    delete: async (projectSlug5, fileName) => fetch2(`files/delete/${projectSlug5}/${fileName}`, {
+    create: async (projectSlug6, fileName) => fetch2(`files/create/${projectSlug6}/${fileName}`, { method: `post` }),
+    delete: async (projectSlug6, fileName) => fetch2(`files/delete/${projectSlug6}/${fileName}`, {
       method: `delete`
     }),
     // NOTE: there is no separate delete-dir, the delete route should just "do what needs to be done".
-    dir: async (projectSlug5) => fetch2(`files/dir/${projectSlug5}`).then((r) => r.json()),
-    format: async (projectSlug5, fileName) => fetch2(`files/format/${projectSlug5}/${fileName}`, {
+    dir: async (projectSlug6) => fetch2(`files/dir/${projectSlug6}`).then((r) => r.json()),
+    format: async (projectSlug6, fileName) => fetch2(`files/format/${projectSlug6}/${fileName}`, {
       method: `post`
     }),
-    get: async (projectSlug5, fileName) => fetch2(`files/content/${projectSlug5}/${fileName}`).then((r) => {
+    get: async (projectSlug6, fileName) => fetch2(`files/content/${projectSlug6}/${fileName}`).then((r) => {
       if (r.ok) return r;
       return new Error(`Fetch response not ok`);
     }),
-    history: async (projectSlug5, fileName) => fetch2(`files/history/${projectSlug5}/${fileName}`).then((r) => r.json()),
-    rename: async (projectSlug5, oldPath, newPath) => fetch2(`files/rename/${projectSlug5}/${oldPath}:${newPath}`, {
+    history: async (projectSlug6, fileName) => fetch2(`files/history/${projectSlug6}/${fileName}`).then((r) => r.json()),
+    rename: async (projectSlug6, oldPath, newPath) => fetch2(`files/rename/${projectSlug6}/${oldPath}:${newPath}`, {
       method: `post`
     }),
-    sync: async (projectSlug5, fileName, changes) => fetch2(`files/sync/${projectSlug5}/${fileName}`, {
+    sync: async (projectSlug6, fileName, changes) => fetch2(`files/sync/${projectSlug6}/${fileName}`, {
       headers: { "Content-Type": `text/plain` },
       method: `post`,
       body: changes
     }),
-    upload: async (projectSlug5, fileName, form) => fetch2(`files/upload/${projectSlug5}/${fileName}`, {
+    upload: async (projectSlug6, fileName, form) => fetch2(`files/upload/${projectSlug6}/${fileName}`, {
       method: `post`,
       body: form
     })
@@ -53,6 +53,7 @@ var API = {
 };
 
 // src/client/utils/utils.js
+var SERVER_LOG_TAB_NAME = `Server Log`;
 var { min } = Math;
 function create(tag, attributes = {}, evts = {}) {
   const e2 = document.createElement(tag);
@@ -69,8 +70,8 @@ function create(tag, attributes = {}, evts = {}) {
   Object.entries(evts).forEach(([t2, fn]) => e2.addEventListener(t2, fn));
   return e2;
 }
-async function fetchFileContents(projectSlug5, fileName, type = `text/plain`) {
-  const response = await API.files.get(projectSlug5, fileName);
+async function fetchFileContents(projectSlug6, fileName, type = `text/plain`) {
+  const response = await API.files.get(projectSlug6, fileName);
   if (response instanceof Error) return response;
   if (type.startsWith(`text`) || type.startsWith(`application`))
     return response.text();
@@ -86,6 +87,7 @@ function listEquals(a1, a2) {
 }
 async function updateViewMaintainScroll2(editorEntry, content2 = editorEntry.content, editable3 = editorEntry.editable) {
   const { view } = editorEntry;
+  if (!view) return;
   editorEntry.setEditable(editable3);
   const { doc: doc2, selection } = view.state;
   const cursor = doc2.lineAt(selection.main.head);
@@ -101,6 +103,17 @@ async function updateViewMaintainScroll2(editorEntry, content2 = editorEntry.con
       head: min(content2.length, line.from ?? 0)
     },
     scrollIntoView: true
+  });
+}
+async function appendViewContent(editorEntry, newContent) {
+  const { view } = editorEntry;
+  if (!view) return;
+  const { doc: doc2 } = view.state;
+  view.dispatch({
+    changes: {
+      from: doc2.length,
+      insert: newContent
+    }
   });
 }
 
@@ -30602,11 +30615,13 @@ var Rewinder = class _Rewinder {
 
 // src/client/files/sync.js
 var { useWebsockets } = document.body.dataset;
-async function syncContent(projectSlug5, fileEntry, forced = false) {
+async function syncContent(projectSlug6, fileEntry, forced = false) {
   if (Rewinder.active && !forced) return;
   const { path: path2 } = fileEntry;
   const { editorEntry } = fileEntry.state;
+  if (!editorEntry) return;
   if (!editorEntry.editable) return;
+  if (!editorEntry.virtual) return;
   const { content: currentContent, view } = editorEntry;
   const newContent = view.state.doc.toString();
   if (newContent === currentContent) return;
@@ -30615,14 +30630,14 @@ async function syncContent(projectSlug5, fileEntry, forced = false) {
     editorEntry.setContent(newContent);
     fileEntry.updateContent(`diff`, patch);
   } else {
-    const response = await API.files.sync(projectSlug5, path2, patch);
+    const response = await API.files.sync(projectSlug6, path2, patch);
     const responseHash = parseFloat(await response.text());
     if (responseHash === getFileSum(newContent)) {
       editorEntry.setContent(newContent);
       updatePreview();
     } else {
       if (document.body.dataset.projectMember) {
-        editorEntry.setContent(await fetchFileContents(projectSlug5, path2));
+        editorEntry.setContent(await fetchFileContents(projectSlug6, path2));
       }
       editorEntry.contentReset = true;
       updateViewMaintainScroll2(editorEntry);
@@ -31929,9 +31944,6 @@ var editors = document.getElementById(`editors`);
 var movingTab;
 var emptyImage = new Image();
 emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
-function getOrCreateFileEditTab(fileEntry) {
-  return EditorEntry.getOrCreateFileEditTab(fileEntry);
-}
 var EditorEntry = class _EditorEntry {
   // Static properties and methods
   static entries = [];
@@ -31951,10 +31963,10 @@ var EditorEntry = class _EditorEntry {
     if (pos === entries.length - 1) return entries.at(pos - 1);
     return entries.at(pos + 1);
   }
-  static getOrCreateFileEditTab(fileEntry) {
+  static getOrCreateFileEditTab(fileEntry, virtual = false) {
     const entry2 = _EditorEntry.entries.find((e2) => e2.fileEntry === fileEntry);
     if (entry2) return entry2.select();
-    return new _EditorEntry(fileEntry);
+    return new _EditorEntry(fileEntry, virtual);
   }
   static sortFromTabs() {
     const { entries } = _EditorEntry;
@@ -31972,8 +31984,9 @@ var EditorEntry = class _EditorEntry {
   setEditable = () => {
   };
   // Relies on the function binding performed in getInitialState()
-  constructor(fileEntry) {
+  constructor(fileEntry, virtual = false) {
     this.fileEntry = fileEntry;
+    this.virtual = virtual;
     _EditorEntry.entries.push(this);
     fileEntry.setState({ editorEntry: this });
     this.select();
@@ -31998,22 +32011,26 @@ var EditorEntry = class _EditorEntry {
     }
     return data3 || new ErrorNotice(`Could not load ${path2}`);
   }
+  // FIXME: this function is too long to easily maintain.
   async load() {
-    const { fileEntry } = this;
+    const { fileEntry, virtual } = this;
     const { path: path2 } = this.fileEntry;
     const filename = path2.split(`/`).at(-1);
     const viewType = getViewType(filename);
     const { text, unknown, media, type } = viewType;
-    const data3 = await this.getFileData(path2, type);
-    if (data3 instanceof Notice) return data3;
-    const verified = verifyViewType(viewType.type, data3);
-    if (!verified) {
-      return new ErrorNotice(
-        `Content for ${path2} does not match the file extension!`
-      );
+    let data3 = ``;
+    if (!virtual) {
+      data3 = await this.getFileData(path2, type);
+      if (data3 instanceof Notice) return data3;
+      const verified = verifyViewType(viewType.type, data3);
+      if (!verified) {
+        return new ErrorNotice(
+          `Content for ${path2} does not match the file extension!`
+        );
+      }
     }
     this.editable = viewType.editable;
-    this.createEditorPanel();
+    this.createEditorPanel(path2);
     if (text || unknown) {
       this.setTextContent(data3);
     } else if (media) {
@@ -32023,8 +32040,12 @@ var EditorEntry = class _EditorEntry {
     this.createTab(path2, filename);
     fileEntry.addEventListener(`content:update`, (evt) => this.update(evt));
   }
-  createEditorPanel() {
-    const editor = this.editor = create(`div`, { class: `editor panel` });
+  createEditorPanel(path2) {
+    let classes = `editor panel`;
+    if (path2 === SERVER_LOG_TAB_NAME) {
+      classes += ` logs`;
+    }
+    const editor = this.editor = create(`div`, { class: classes });
     editors.appendChild(editor);
   }
   createTab(path2, filename) {
@@ -32066,7 +32087,16 @@ var EditorEntry = class _EditorEntry {
       movingTab = void 0;
       _EditorEntry.sortFromTabs();
     });
-    tabs.appendChild(tab);
+    if (path2 === SERVER_LOG_TAB_NAME) {
+      const first = tabs.children[0];
+      if (first) {
+        tabs.insertBefore(tab, first);
+      } else {
+        tabs.appendChild(tab);
+      }
+    } else {
+      tabs.appendChild(tab);
+    }
     const close = this.close = create(
       `button`,
       {
@@ -32140,6 +32170,7 @@ var EditorEntry = class _EditorEntry {
     }
     delete fileEntry.state.editorEntry;
     _EditorEntry.removeEntry(this);
+    fileEntry.onUnload?.();
   }
   async update(evt) {
     const { type, update, ours } = evt.detail;
@@ -32154,6 +32185,7 @@ var EditorEntry = class _EditorEntry {
   sync() {
     const { fileEntry, editable: editable3 } = this;
     if (!editable3) return;
+    if (this.virtual) return;
     syncContent(projectSlug2, fileEntry);
   }
   lock() {
@@ -32216,6 +32248,7 @@ function supportFileExtension(extension) {
 }
 
 // src/client/files/file-tree-utils.js
+var { getOrCreateFileEditTab } = EditorEntry;
 var RETRY_INTERVAL = 3e3;
 var MAX_RETRIES = 5;
 var { useWebsockets: useWebsockets3 } = document.body.dataset;
@@ -32227,7 +32260,8 @@ fileTree3.addEventListener(`tree:ready`, async () => {
   fileTree3.findAll(`file-entry`).forEach(({ extension }) => supportFileExtension(extension));
   if (defaultFile) {
     fileEntry = fileTree3.querySelector(`file-entry[path="${defaultFile}"]`);
-  } else {
+  }
+  if (!fileEntry) {
     for (const d of DEFAULT_FILES) {
       fileEntry = fileTree3.querySelector(`file-entry[path="${d}"]`);
       if (fileEntry) break;
@@ -32242,11 +32276,7 @@ fileTree3.addEventListener(`tree:ready`, async () => {
     });
   }
   if (fileEntry) {
-    getOrCreateFileEditTab(
-      fileEntry,
-      projectSlug3,
-      fileEntry.getAttribute(`path`)
-    );
+    getOrCreateFileEditTab(fileEntry);
   }
 });
 async function setupFileTree() {
@@ -32326,20 +32356,16 @@ function ensureFileTreeWidth() {
     })
   );
 }
-async function addFileClick(fileTree4, projectSlug5) {
+async function addFileClick(fileTree4, projectSlug6) {
   fileTree4.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
-    getOrCreateFileEditTab(
-      fileEntry,
-      projectSlug5,
-      fileEntry.getAttribute(`path`)
-    );
+    getOrCreateFileEditTab(fileEntry);
     if (Rewinder.active) {
       if (useWebsockets3) {
         fileTree4.OT?.getFileHistory(fileEntry.path);
       } else {
-        const history3 = await API.files.history(projectSlug5, fileEntry.path);
-        handleFileHistory(fileEntry, projectSlug5, history3);
+        const history3 = await API.files.history(projectSlug6, fileEntry.path);
+        handleFileHistory(fileEntry, projectSlug6, history3);
       }
     }
     ensureFileTreeWidth();
@@ -32403,7 +32429,7 @@ async function uploadArchive(path2, content2, bulkUploadPaths) {
     fileTree3.createEntry(path3, isFile, content3);
   }
 }
-async function addFileCreate(fileTree4, projectSlug5) {
+async function addFileCreate(fileTree4, projectSlug6) {
   const bulkUploadPaths = [];
   fileTree4.addEventListener(`file:create`, async (evt) => {
     const { path: path2, content: content2, bulk, grant } = evt.detail;
@@ -32415,7 +32441,7 @@ async function addFileCreate(fileTree4, projectSlug5) {
         const fileEntry = await uploadFile(fileTree4, path2, content2, grant);
         if (!bulk && !bulkUploadPaths.includes(path2)) {
           supportFileExtension(fileEntry.extension);
-          getOrCreateFileEditTab(fileEntry, projectSlug5, path2);
+          getOrCreateFileEditTab(fileEntry, projectSlug6, path2);
         }
       }
       updatePreview();
@@ -32423,12 +32449,12 @@ async function addFileCreate(fileTree4, projectSlug5) {
       const runCreate = () => {
         const fileEntry = grant();
         supportFileExtension(fileEntry.extension);
-        getOrCreateFileEditTab(fileEntry, projectSlug5, path2);
+        getOrCreateFileEditTab(fileEntry, projectSlug6, path2);
       };
       if (fileTree4.OT) {
         runCreate();
       } else {
-        const response = await API.files.create(projectSlug5, path2);
+        const response = await API.files.create(projectSlug6, path2);
         if (response instanceof Error) return;
         if (response.status === 200) {
           runCreate();
@@ -32465,7 +32491,7 @@ function updateEditorBindings(fileTreeEntry) {
   }
   fileTreeEntry.setState(entry2);
 }
-async function addFileMove(fileTree4, projectSlug5) {
+async function addFileMove(fileTree4, projectSlug6) {
   const renameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
     const runMove = () => {
@@ -32476,7 +32502,7 @@ async function addFileMove(fileTree4, projectSlug5) {
     if (fileTree4.OT) {
       return runMove();
     }
-    const response = await API.files.rename(projectSlug5, oldPath, newPath);
+    const response = await API.files.rename(projectSlug6, oldPath, newPath);
     if (response instanceof Error) return;
     if (response.status === 200) {
       runMove();
@@ -32494,7 +32520,7 @@ async function addFileMove(fileTree4, projectSlug5) {
     updateEditorBindings(evt.detail.entry);
   });
 }
-async function addFileDelete(fileTree4, projectSlug5) {
+async function addFileDelete(fileTree4, projectSlug6) {
   fileTree4.addEventListener(`file:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     const runDelete = () => {
@@ -32507,7 +32533,7 @@ async function addFileDelete(fileTree4, projectSlug5) {
     }
     if (path2) {
       try {
-        const response = await API.files.delete(projectSlug5, path2);
+        const response = await API.files.delete(projectSlug6, path2);
         if (response instanceof Error) return;
         if (response.status === 200) {
           runDelete();
@@ -32530,25 +32556,25 @@ async function addFileDelete(fileTree4, projectSlug5) {
     editorEntry?.unload();
   });
 }
-async function addDirClick(fileTree4, projectSlug5) {
+async function addDirClick(fileTree4, projectSlug6) {
   fileTree4.addEventListener(`dir:click`, async (evt) => {
     evt.detail.grant();
     ensureFileTreeWidth();
   });
 }
-async function addDirToggle(fileTree4, projectSlug5) {
+async function addDirToggle(fileTree4, projectSlug6) {
   fileTree4.addEventListener(`dir:toggle`, async (evt) => {
     evt.detail.grant();
     ensureFileTreeWidth();
   });
 }
-async function addDirCreate(fileTree4, projectSlug5) {
+async function addDirCreate(fileTree4, projectSlug6) {
   fileTree4.addEventListener(`dir:create`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     if (fileTree4.OT) {
       grant();
     } else {
-      const response = await API.files.create(projectSlug5, path2);
+      const response = await API.files.create(projectSlug6, path2);
       if (response instanceof Error) return;
       if (response.status === 200) {
         grant();
@@ -32561,13 +32587,13 @@ async function addDirCreate(fileTree4, projectSlug5) {
     ensureFileTreeWidth();
   });
 }
-async function addDirMove(fileTree4, projectSlug5) {
+async function addDirMove(fileTree4, projectSlug6) {
   const dirRenameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
     if (fileTree4.OT) {
       grant();
     } else {
-      const response = await API.files.rename(projectSlug5, oldPath, newPath);
+      const response = await API.files.rename(projectSlug6, oldPath, newPath);
       if (response instanceof Error) return;
       if (response.status === 200) {
         grant();
@@ -32583,11 +32609,11 @@ async function addDirMove(fileTree4, projectSlug5) {
   fileTree4.addEventListener(`dir:rename`, dirRenameHandler);
   fileTree4.addEventListener(`dir:move`, dirRenameHandler);
 }
-async function addDirDelete(fileTree4, projectSlug5) {
+async function addDirDelete(fileTree4, projectSlug6) {
   fileTree4.addEventListener(`dir:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     if (fileTree4.OT) return grant();
-    const response = await API.files.delete(projectSlug5, path2);
+    const response = await API.files.delete(projectSlug6, path2);
     if (response instanceof Error) return;
     if (response.status === 200) {
       grant();
@@ -32601,9 +32627,77 @@ async function addDirDelete(fileTree4, projectSlug5) {
   });
 }
 
+// src/client/editor/log-view.js
+var { getOrCreateFileEditTab: getOrCreateFileEditTab2 } = EditorEntry;
+var { projectSlug: projectSlug4 } = document.body.dataset;
+var LogView = class {
+  open = false;
+  virtual = true;
+  pollingInterval = 5e3;
+  constructor(button) {
+    this.button = button;
+    const fileEntry = this.fileEntry = {
+      root: {},
+      path: SERVER_LOG_TAB_NAME,
+      state: {},
+      setState: (o) => Object.assign(fileEntry.state, o),
+      select: () => {
+      },
+      addEventListener: () => {
+      },
+      onUnload: () => this.close()
+    };
+  }
+  close() {
+    this.poll = clearInterval(this.poll);
+    this.open = false;
+    this.button.disabled = false;
+    this.setContent(``);
+  }
+  setContent(content2 = ``) {
+    const editorEntry = this.editor;
+    editorEntry.setContent(content2);
+    updateViewMaintainScroll2(editorEntry);
+  }
+  toggle(state = !this.open) {
+    this.open = state;
+    if (state) {
+      this.button.disabled = true;
+      this.editor = getOrCreateFileEditTab2(this.fileEntry, this.virtual);
+      this.setContent(`Loading...`);
+      let since = 0;
+      const pollData = async () => {
+        try {
+          if (!this.open) throw `close`;
+          const url = `/v1/projects/logs/${projectSlug4}/${since}`;
+          const data3 = await fetch(url).then((r) => r.json());
+          const { output, datetime } = data3 || {};
+          if ((output ?? ``).trim?.()) {
+            since = new Date(Date.parse(datetime) + 10).toISOString();
+            this.append(output);
+          }
+        } catch (e2) {
+          console.warn(e2);
+        }
+      };
+      this.poll = setInterval(pollData, this.pollingInterval);
+      pollData();
+    } else {
+      this.close();
+    }
+  }
+  append(text) {
+    if (!text) return;
+    const editorEntry = this.editor;
+    const content2 = editorEntry.content + text;
+    editorEntry.setContent(content2);
+    appendViewContent(editorEntry, text);
+  }
+};
+
 // src/client/editor/event-handling.js
 var mac2 = navigator.userAgent.includes(`Mac OS`);
-var { projectId, projectSlug: projectSlug4, useWebsockets: useWebsockets4 } = document.body.dataset;
+var { projectId, projectSlug: projectSlug5, useWebsockets: useWebsockets4 } = document.body.dataset;
 var tabs2 = document.getElementById(`tabs`);
 var left = document.getElementById(`left`);
 var right = document.getElementById(`right`);
@@ -32614,6 +32708,7 @@ function setupUIEventHandling() {
   connectPrettierButton();
   enableRewindFunctions();
   addTabScrollHandling();
+  enableLogViewer();
   globalThis.addEventListener("beforeunload", () => {
     globalThis.__shutdown = true;
   });
@@ -32640,7 +32735,7 @@ function enableDownloadButton() {
   const download = document.getElementById(`download`);
   if (!download) return;
   download.addEventListener(`click`, async () => {
-    API.projects.download(projectSlug4);
+    API.projects.download(projectSlug5);
   });
 }
 function connectPrettierButton() {
@@ -32651,11 +32746,11 @@ function connectPrettierButton() {
     const fileEntry = document.querySelector(`file-entry.selected`);
     const fileName = fileEntry.path;
     format.hidden = true;
-    const result = await API.files.format(projectSlug4, fileName);
+    const result = await API.files.format(projectSlug5, fileName);
     if (result instanceof Error) return;
     format.hidden = false;
     const { editorEntry } = fileEntry.state;
-    editorEntry.setContent(await fetchFileContents(projectSlug4, fileName));
+    editorEntry.setContent(await fetchFileContents(projectSlug5, fileName));
     updateViewMaintainScroll2(editorEntry);
   });
 }
@@ -32679,8 +32774,8 @@ function enableRewindFunctions() {
           if (useWebsockets4) {
             fileTree4.OT?.getFileHistory(path2);
           } else {
-            const history3 = await API.files.history(projectSlug4, path2);
-            handleFileHistory(fileEntry, projectSlug4, history3);
+            const history3 = await API.files.history(projectSlug5, path2);
+            handleFileHistory(fileEntry, projectSlug5, history3);
           }
         }
       }
@@ -32711,6 +32806,14 @@ function addTabScrollHandling() {
       scrollTabs(2);
     });
   }
+}
+function enableLogViewer() {
+  const viewLogs = document.querySelector(`.view-logs`);
+  if (!viewLogs) return;
+  const logViewer = new LogView(viewLogs);
+  viewLogs?.addEventListener(`click`, () => {
+    logViewer.toggle();
+  });
 }
 
 // src/client/entry-point.js

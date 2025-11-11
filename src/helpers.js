@@ -8,6 +8,10 @@ import nocache from "nocache";
 import helmet from "helmet";
 import asciify from "any-ascii";
 
+export const BYPASS_DEPENDENCIES = !!process.env.BYPASS_DEPENDENCIES;
+export const BYPASS_DOCKER = !!process.env.BYPASS_DOCKER || BYPASS_DEPENDENCIES;
+export const BYPASS_CADDY = !!process.env.BYPASS_CADDY || BYPASS_DEPENDENCIES;
+
 export const TESTING = process.env.NODE_ENV === `TESTING`;
 export const isWindows = process.platform === `win32`;
 export const npm = isWindows ? `npm.cmd` : `npm`;

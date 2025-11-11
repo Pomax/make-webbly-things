@@ -61,15 +61,18 @@ export function pageNotFound(req, res) {
  * ...docs go here...
  */
 export async function bindUser(req, res = { locals: {} }, next = () => {}) {
-  let fallback = {};
+  let user;
 
   if (process.argv.includes(`--admin-mode`)) {
-    const user = getUser(1);
+    res.locals.temporaryAdminMode = true;
+    user = getUser(1);
     user.admin = true;
-    fallback = { user };
   }
 
-  const { user } = req.session.passport ?? req.session ?? fallback;
+  if (!user) {
+    ({ user } = req.session.passport ?? req.session ?? {});
+  }
+
   res.locals.user = user;
 
   if (user?.admin) {

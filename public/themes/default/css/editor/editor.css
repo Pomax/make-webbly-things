@@ -2,6 +2,7 @@
 
 @import "./notices.css";
 @import "./rewind.css";
+@import "./logs.css";
 
 html {
   height: 100%;
@@ -19,7 +20,12 @@ html {
       height: 100%;
       overflow: hidden;
 
-      --header-block-height: 3.75em;
+      --header-row-height: calc(3.75em / 2);
+      --header-block-height: calc(var(--header-row-height) * 2);
+
+      .left-column-padding {
+        height: calc(var(--header-row-height) - 2px);
+      }
 
       #filetree {
         display: block;
@@ -28,7 +34,14 @@ html {
         padding: 0 1em 0.25em 0;
         overflow-x: auto;
         white-space: nowrap;
-        height: calc(100% - var(--header-block-height) - 0.5em);
+
+        height: calc(
+          100% - var(--header-block-height) - var(--header-row-height) - 0.5em
+        );
+
+        &.full-height {
+          height: calc(100% - 2.5em - 1px);
+        }
 
         &:not([show-top-level]) {
           --highlight-background-bw: #44ffd8;
@@ -57,6 +70,16 @@ html {
             }
           }
         }
+      }
+
+      .utility {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(var(--header-row-height) - 2px);
+        background: var(--editor-neutral-background-color);
+        border: 1px solid var(--editor-tab-border-color);
+        border-top: none;
       }
 
       #buttons {

@@ -43,3 +43,26 @@
     }),
   );
 </script>
+
+{% if temporaryAdminMode %}
+  <!-- This only shows up when running with --admin-mode -->
+  <style>
+    .ribbon {
+      background: white;
+      border: 2px solid black;
+      color: red;
+      font-family: Arial;
+      font-size: 2em;
+      font-weight: bolder;
+      left: 0;
+      padding: 1em;
+      text-align: center;
+      top: 0;
+      transform-origin: top left;
+      transform: translate(-5em, 8em) rotate(-45deg);
+      width: 16em;
+      position: fixed;
+    }
+  </style>
+  <div class="ribbon">ADMIN MODE</div>
+{% endif %}

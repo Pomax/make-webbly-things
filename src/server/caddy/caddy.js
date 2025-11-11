@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { execSync, spawn } from "node:child_process";
 import { join } from "node:path";
 import { scheduleScreenShot } from "../screenshots/screenshot.js";
+import { BYPASS_CADDY } from "../../helpers.js";
 
 const caddyFile = join(import.meta.dirname, `Caddyfile`);
 const defaultCaddyFile = join(import.meta.dirname, `Caddyfile.default`);
@@ -9,9 +10,25 @@ const defaultCaddyFile = join(import.meta.dirname, `Caddyfile.default`);
 export const portBindings = {};
 
 /**
+ * For docker containers, the port binding is pretty much just a
+ * simple slug-to-port mapping. But for static servers we also
+ * want a reference to the actual process so we can .kill() it.
+ */
+export class PortBinding {
+  port;
+  serverProcess;
+  restarts = 0;
+  constructor(p) {
+    this.port = parseFloat(p);
+  }
+}
+
+/**
  * Remove an entry from the Caddyfile
  */
 export function removeCaddyEntry(project, env = process.env) {
+  if (BYPASS_CADDY) return;
+
   const { slug } = project;
   const host = `${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const re = new RegExp(`\\n${host}\\s*\\{[\\w\\W]+?\\n\\}\\n`, `gm`);
@@ -28,6 +45,8 @@ export function removeCaddyEntry(project, env = process.env) {
  * Create (or reset) our Caddyfile
  */
 export function setupCaddy(env = process.env) {
+  if (BYPASS_CADDY) return;
+
   const config = readFileSync(defaultCaddyFile)
     .toString()
     .replaceAll(`$WEB_EDITOR_HOSTNAME`, env.WEB_EDITOR_HOSTNAME)
@@ -43,6 +62,8 @@ export function setupCaddy(env = process.env) {
  * Ensure a local Caddyfile exists for us to work with
  */
 export function startCaddy() {
+  if (BYPASS_CADDY) return;
+
   stopCaddy();
 
   const DEBUG = readFileSync(caddyFile)
@@ -84,11 +105,12 @@ process.on("SIGINT", () => {
  * @param {*} port
  */
 export function updateCaddyFile(project, port, env = process.env) {
+  if (BYPASS_CADDY) return;
+
   const { slug } = project;
 
-  portBindings[slug] ??= {};
-  portBindings[slug].port = port;
-
+  portBindings[slug] ??= new PortBinding(port);
+  const binding = portBindings[slug];
   const data = readFileSync(caddyFile).toString();
   const host = `\n${slug}.${env.WEB_EDITOR_APPS_HOSTNAME}`;
   const index = data.indexOf(host);
@@ -132,5 +154,5 @@ ${host} {
 
   scheduleScreenShot(project);
 
-  return portBindings[slug];
+  return binding;
 }
