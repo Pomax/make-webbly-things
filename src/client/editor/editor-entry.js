@@ -22,11 +22,6 @@ let movingTab;
 const emptyImage = new Image();
 emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
 
-// Drop-in replacement for editor-components.js:getOrCreateFileEditTab
-export function getOrCreateFileEditTab(fileEntry, virtual = false) {
-  return EditorEntry.getOrCreateFileEditTab(fileEntry, virtual);
-}
-
 export class EditorEntry {
   // Static properties and methods
 

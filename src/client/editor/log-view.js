@@ -3,8 +3,9 @@ import {
   appendViewContent,
   updateViewMaintainScroll,
 } from "../utils/utils.js";
-import { getOrCreateFileEditTab } from "./editor-entry.js";
+import { EditorEntry } from "./editor-entry.js";
 
+const { getOrCreateFileEditTab } = EditorEntry;
 const { projectSlug } = document.body.dataset;
 
 // TODO: websockets when available'

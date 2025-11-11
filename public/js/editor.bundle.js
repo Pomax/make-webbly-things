@@ -31944,9 +31944,6 @@ var editors = document.getElementById(`editors`);
 var movingTab;
 var emptyImage = new Image();
 emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
-function getOrCreateFileEditTab(fileEntry, virtual = false) {
-  return EditorEntry.getOrCreateFileEditTab(fileEntry, virtual);
-}
 var EditorEntry = class _EditorEntry {
   // Static properties and methods
   static entries = [];
@@ -32251,6 +32248,7 @@ function supportFileExtension(extension) {
 }
 
 // src/client/files/file-tree-utils.js
+var { getOrCreateFileEditTab } = EditorEntry;
 var RETRY_INTERVAL = 3e3;
 var MAX_RETRIES = 5;
 var { useWebsockets: useWebsockets3 } = document.body.dataset;
@@ -32630,6 +32628,7 @@ async function addDirDelete(fileTree4, projectSlug6) {
 }
 
 // src/client/editor/log-view.js
+var { getOrCreateFileEditTab: getOrCreateFileEditTab2 } = EditorEntry;
 var { projectSlug: projectSlug4 } = document.body.dataset;
 var LogView = class {
   open = false;
@@ -32655,7 +32654,7 @@ var LogView = class {
     this.button.disabled = false;
     this.setContent(``);
   }
-  setContent(content2) {
+  setContent(content2 = ``) {
     const editorEntry = this.editor;
     editorEntry.setContent(content2);
     updateViewMaintainScroll2(editorEntry);
@@ -32664,7 +32663,7 @@ var LogView = class {
     this.open = state;
     if (state) {
       this.button.disabled = true;
-      this.editor = getOrCreateFileEditTab(this.fileEntry, this.virtual);
+      this.editor = getOrCreateFileEditTab2(this.fileEntry, this.virtual);
       this.setContent(`Loading...`);
       let since = 0;
       const pollData = async () => {

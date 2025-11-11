@@ -2,7 +2,10 @@ import { API } from "../utils/api.js";
 import { ErrorNotice, Warning } from "../utils/notifications.js";
 import { getMimeType } from "./content-types.js";
 import { updatePreview } from "../preview/preview.js";
-import { getOrCreateFileEditTab } from "../editor/editor-entry.js";
+
+import { EditorEntry } from "../editor/editor-entry.js";
+const { getOrCreateFileEditTab } = EditorEntry;
+
 import { DEFAULT_FILES } from "./default-files.js";
 import { unzip } from "/vendor/unzipit.module.js";
 import { CustomWebsocketInterface } from "./websocket-interface.js";
