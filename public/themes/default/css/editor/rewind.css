@@ -38,10 +38,6 @@ html {
     }
 
     .history {
-      &.hidden {
-        display: none;
-      }
-
       position: fixed;
       left: 0;
       bottom: 0;

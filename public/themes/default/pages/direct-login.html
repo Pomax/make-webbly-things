@@ -17,8 +17,9 @@
       loading this page, you'll still need to click this link:
     </p>
 
-    <a class="login-button" href="/auth/personal/confirm/{{ uuid }}"
-      >Log me in!</a
-    >
+    <form action="/auth/personal/confirm/{{ uuid }}" method="post">
+      <input type="text" name="password" autocomplete="off" />
+      <button>Log me in!</button>
+    </form>
   </body>
 </html>

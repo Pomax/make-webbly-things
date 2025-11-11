@@ -13,8 +13,12 @@ html {
       width: 10em;
     }
 
-    input.auth-link {
-      width: calc(80% - 10em);
+    input.auth-password {
+      width: 10em;
+    }
+
+    input.auth-url {
+      width: calc(80% - 20em);
     }
 
     form ul,
@@ -30,10 +34,6 @@ html {
     }
 
     section {
-      &.hidden {
-        display: none;
-      }
-
       .bio {
         border: 1px solid var(--bio-border-color);
         border-radius: 0.5em;

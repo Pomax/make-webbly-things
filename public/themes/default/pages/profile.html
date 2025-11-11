@@ -68,24 +68,27 @@
           {% endfor %}
         </ul>
 
-        <p>
-          If you need to log in on a device that is not itself logged into any
-          of the auth providers you're using, you can generate a direct login
-          link here. These links act like a normal login, setting up a
-          persistent cookie-based session, but the links themselves are
-          one-time-use and expire after 12 hours (as well as whenever the server
-          restarts).
-        </p>
+        <div class="generate-direct-login">
+          <p>
+            If you need to log in on a device that is not itself logged into any
+            of the auth providers you're using, you can generate a direct login
+            link here. These links act like a normal login, setting up a
+            persistent cookie-based session, but the links themselves are
+            one-time-use and expire after 12 hours (as well as whenever the
+            server restarts).
+          </p>
 
-        <p>
-          Also note that <em>anyone</em> can use your link, so if you need one:
-          generate it, send it to yourself, and immediately use it to log in.
-        </p>
+          <p>
+            Note that in order to log in you will need both the link, and the
+            randomly generated characters: they are your password for this link.
+          </p>
 
-        <p style="text-align: center">
-          <button class="generate">generate a link</button>
-          <input type="text" class="auth-link" />
-        </p>
+          <p style="text-align: center">
+            <button class="generate">generate a link</button>
+            <input type="text" class="auth-url" />
+            <input type="text" class="auth-password" />
+          </p>
+        </div>
       </section>
     {% endif %}
 
@@ -158,24 +161,27 @@
             </ul>
           </fieldset>
 
+          <h2>Changes</h2>
           <input type="reset" value="cancel" />
           <input type="submit" value="save" />
         </form>
       </section>
     {% endif %}
 
-    <h2>Projects</h2>
+    <section id="projects">
+      <h2>Projects</h2>
 
-    {% if profile.projects.length %}
-      <ul>
-        {% if profile.ownProfile %}{% set ownProject = true %}{% endif %}
-        {% for project in profile.projects %}
-          {% include "fragments/project-card.html" %}
-        {% endfor %}
-      </ul>
-    {% else %}
-      This user does not have any projects yet.
-    {% endif %}
+      {% if profile.projects.length %}
+        <ul>
+          {% if profile.ownProfile %}{% set ownProject = true %}{% endif %}
+          {% for project in profile.projects %}
+            {% include "fragments/project-card.html" %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        This user does not have any projects yet.
+      {% endif %}
+    </section>
 
     {% if user %}
       {% include "fragments/file-issues.html" %}

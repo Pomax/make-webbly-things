@@ -32011,7 +32011,7 @@ var EditorEntry = class _EditorEntry {
     }
     return data3 || new ErrorNotice(`Could not load ${path2}`);
   }
-  // FIXME: this function is too long to easily maintain.
+  // FIXME: this function is too long to easily maintain. See https://github.com/Pomax/make-webbly-things/issues/213
   async load() {
     const { fileEntry, virtual } = this;
     const { path: path2 } = this.fileEntry;
