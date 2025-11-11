@@ -49,9 +49,15 @@ So putting it all together: the endpoints define which steps must complete in or
 
 This also means there are three stages of testing: endpoint testing, to see if URL requests lead to expected responses; middleware tests, to see if providing specific req/res combinations lead to the expected behaviour; and functional tests, which simply check that plain code functions do what they're supposed to.
 
+## Editor concepts
+
+The editor state is based on `EditorEntry` instances, which wrap a file entry, editor panel, and navigation tab such that any one of those can influence the others. Clicking a file entry in the file tree will create, or reveal, its associated editor panel and highlight its tab, clicking a tab with create, or reveal, its associated editor panel and highlight its file tree entry, and closing a tab will unload the entry's tab and editor panel in a way that they can be easily restored.
+
+There are two types of editor entries: real files, and virtual files. Real files are, unsurprisingly, real project files in the file system. Virtual files are things that "should have a tab and editor panel" but aren't backed by the file system, with the main example being the server logs: there is no "log file", instead the platform lets you view the server logs as if it were a file, with its own tab and editor panel, but without an associated file tree entry.
+
 ## Testing
 
-Testing uses the built in Node test framework. Just run `npm test` and it'll will run through bothc code auto-formatting, a client build, and then the full battery of tests found in the `src/tests` folder. Note that every file in the `src` dir has a corresponding `test.js` file in the `src/tests` folder: if you're making new files, remember to also write new tests =D
+Testing uses the built in Node test framework. Just run `npm test` and it'll will run through both code auto-formatting, a client build, and then the full battery of tests found in the `src/tests` folder. Note that every file in the `src` dir has a corresponding `test.js` file in the `src/tests` folder: if you're making new files, remember to also write new tests =D
 
 Note that tests will throw a lot of unstyled errors about not being able to `cd` or write files: that's expected, the test suite simply doesn't suppress any stdout/stderr while running, so errors that are _supposed_ to happen in the code in order for a test to pass will still end up writing error text to the console. Just wait for it to finish, and then _then_ see if there are any real errors: they'll be mentioned after the coverage table.
 
