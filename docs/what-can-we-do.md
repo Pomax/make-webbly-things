@@ -40,7 +40,7 @@ As a signed in and approved user you can do everything the platform was meant fo
   - you can edit project settings, including the project run script and its environment variables, as well as specify whether it's a static project (e.g. in only needs a static server pointed at a root dir in production) or a persistent project that needs a full-fat Ubuntu container to always be running in order to serve content.
   - you can edit project files, including auto-formatting them if they're file types that are recognized by `prettier` (for html/css/js) or `black` (for python).
   - you can create a folder called `.data` that counts as the only safe place to put private project data (This folder will not be copied over when someone remixes your project).
-  - you can view the server logs for persistent process projects.
+  - you can view the server logs for any project running as a Docker container (which is all persistent projects, as well as static projects when open in the editor)
   - you can download your project as zip file with both public and private data included.
   - you can force-restart your project's docker container, which is useful for when it gets stuck, or when you're running a project that doesn't auto-reload things when you change source files.
 - Remix projects, using the remix link. This creates a new copy of the public code parts with either a name you pick, or "yourusername-projectname" (so you'll probably want to rename it afterwards!). Note that you can remix _any_ project, so that includes your own!

@@ -1,5 +1,15 @@
 # Release notes
 
+## version 1.9 (11 November 2025)
+
+This release adds several new features:
+
+1. Users can now generate "direct login" links on their profile page, which can be used to log into the platform on devices that may not have third party logins saved in any browser.
+1. Starter projects now show up on the homepage, so folks can see what's on offer beyond user-generated content.
+1. Users can now examine the run logs for their project while in the editor, allowing for a much better insight into what their code is doing server-side (especially when it's not doing what it's supposed to!)
+
+This release also includes numerous improvements for delevopers, with improved linting and code formatting, tests, and CI testing for pull requests filed via GitHub.
+
 ## version 1.8 (15 October 2025)
 
 This release adds a dedicated "superuser" flag for admins, so that they can use the system like any other user unless and until they turn on superuser mode on the admin page. With superuser turned off, loading someone else's project will show you the same things, with the same edit rights, as any other authenticated user would see. However, with superuser turned on, admins can edit files, update project settings, etc. as if they were that project's owner.
