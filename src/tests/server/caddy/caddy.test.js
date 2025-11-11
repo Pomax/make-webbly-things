@@ -28,7 +28,7 @@ describe(`Caddy test`, async () => {
 
   test(`updateCaddyFile`, () => {
     Caddy.updateCaddyFile(project, 0);
-    assert.deepEqual(bindings[project.slug], { port: 0 });
+    assert.deepEqual(bindings[project.slug], new Caddy.PortBinding(0));
   });
 
   test(`removeCaddyEntry`, () => {

@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { checkFor, STDIO } from "./utils.js";
+import { BYPASS_CADDY, BYPASS_DOCKER } from "../helpers.js";
 
 /**
  * Verify we have all the tools necessary to run the codebase.
@@ -7,9 +8,9 @@ import { checkFor, STDIO } from "./utils.js";
 export function checkDependencies() {
   const missing = [];
   checkForGit(missing);
-  checkForCaddy(missing);
+  BYPASS_CADDY && checkForCaddy(missing);
   checkForSqlite(missing);
-  const dockerRunning = checkForDocker(missing); // has to be last
+  const dockerRunning = BYPASS_DOCKER ? true : checkForDocker(missing); // has to be last
   if (missing.length) {
     throw new Error(`Missing dependencies: ${missing.join(`, `)}`);
   }
@@ -38,7 +39,6 @@ function checkForDocker(missing) {
     execSync(`docker ps`, { shell: true, stdio: STDIO });
     return true;
   } catch (e) {}
-  return false;
 }
 
 /**

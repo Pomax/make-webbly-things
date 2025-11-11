@@ -1,5 +1,6 @@
 <!doctype html>
 {% set project = lookups.project %}{% set projectId = lookups.project.id %}
+{% set editRights = user and (user.superuser or projectMember) %}
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -46,7 +47,7 @@
           </div>
           <div>
             {% if user %}
-              {% if user.superuser or projectOwner %}
+              {% if editRights and projectOwner %}
                 <button
                   class="project-settings"
                   title="change your project settings"
@@ -59,7 +60,7 @@
                   💾
                 </button>
               {% endif %}
-              {% if user.superuser or projectMember %}
+              {% if editRights %}
                 <button id="format" title="Make my code pretty!">🤩</button>
                 <button id="rewind" title="Use the time machine!">🔄</button>
               {% endif %}
@@ -69,8 +70,16 @@
 
         <file-tree
           id="filetree"
-          {% if not projectMember %}readonly{% endif %}
+          {% if not user.superuser and not projectMember %}
+            class="full-height" readonly
+          {% endif %}
         ></file-tree>
+
+        {% if editRights %}
+          <div class="utility">
+            <button class="view-logs">view logs</button>
+          </div>
+        {% endif %}
       </div>
 
       <div class="full resize">

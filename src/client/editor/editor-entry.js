@@ -1,6 +1,10 @@
 import { API } from "../utils/api.js";
 import { setupView } from "./code-mirror-6.js";
-import { fetchFileContents, create } from "../utils/utils.js";
+import {
+  SERVER_LOG_TAB_NAME,
+  fetchFileContents,
+  create,
+} from "../utils/utils.js";
 import { getViewType, verifyViewType } from "../files/content-types.js";
 import { syncContent } from "../files/sync.js";
 import { ErrorNotice, Notice } from "../utils/notifications.js";
@@ -17,11 +21,6 @@ const editors = document.getElementById(`editors`);
 let movingTab;
 const emptyImage = new Image();
 emptyImage.src = `data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=`;
-
-// Drop-in replacement for editor-components.js:getOrCreateFileEditTab
-export function getOrCreateFileEditTab(fileEntry) {
-  return EditorEntry.getOrCreateFileEditTab(fileEntry);
-}
 
 export class EditorEntry {
   // Static properties and methods
@@ -48,10 +47,10 @@ export class EditorEntry {
     return entries.at(pos + 1);
   }
 
-  static getOrCreateFileEditTab(fileEntry) {
+  static getOrCreateFileEditTab(fileEntry, virtual = false) {
     const entry = EditorEntry.entries.find((e) => e.fileEntry === fileEntry);
     if (entry) return entry.select();
-    return new EditorEntry(fileEntry);
+    return new EditorEntry(fileEntry, virtual);
   }
 
   static sortFromTabs() {
@@ -72,8 +71,9 @@ export class EditorEntry {
 
   setEditable = () => {}; // Relies on the function binding performed in getInitialState()
 
-  constructor(fileEntry) {
+  constructor(fileEntry, virtual = false) {
     this.fileEntry = fileEntry;
+    this.virtual = virtual;
     EditorEntry.entries.push(this);
     fileEntry.setState({ editorEntry: this });
     this.select();
@@ -100,28 +100,32 @@ export class EditorEntry {
     return data || new ErrorNotice(`Could not load ${path}`);
   }
 
+  // FIXME: this function is too long to easily maintain. See https://github.com/Pomax/make-webbly-things/issues/213
   async load() {
-    const { fileEntry } = this;
+    const { fileEntry, virtual } = this;
     const { path } = this.fileEntry;
     const filename = path.split(`/`).at(-1);
 
     const viewType = getViewType(filename);
     const { text, unknown, media, type } = viewType;
 
-    const data = await this.getFileData(path, type);
-    if (data instanceof Notice) return data;
+    let data = ``;
+    if (!virtual) {
+      data = await this.getFileData(path, type);
+      if (data instanceof Notice) return data;
 
-    const verified = verifyViewType(viewType.type, data);
-    if (!verified) {
-      return new ErrorNotice(
-        `Content for ${path} does not match the file extension!`,
-      );
+      const verified = verifyViewType(viewType.type, data);
+      if (!verified) {
+        return new ErrorNotice(
+          `Content for ${path} does not match the file extension!`,
+        );
+      }
     }
 
     this.editable = viewType.editable;
 
     // set up our content panel, used to either slot in a codemirror, or media
-    this.createEditorPanel();
+    this.createEditorPanel(path);
 
     // Fill the editor panel: is this plain text?
     if (text || unknown) {
@@ -141,8 +145,12 @@ export class EditorEntry {
     fileEntry.addEventListener(`content:update`, (evt) => this.update(evt));
   }
 
-  createEditorPanel() {
-    const editor = (this.editor = create(`div`, { class: `editor panel` }));
+  createEditorPanel(path) {
+    let classes = `editor panel`;
+    if (path === SERVER_LOG_TAB_NAME) {
+      classes += ` logs`;
+    }
+    const editor = (this.editor = create(`div`, { class: classes }));
     editors.appendChild(editor);
   }
 
@@ -159,7 +167,9 @@ export class EditorEntry {
         click: () => this.focus(),
       },
     ));
+
     tab.addEventListener(`click`, async () => this.focus());
+
     tab.addEventListener(`dragstart`, (evt) => {
       movingTab = tab;
       tab.classList.add(`moving`);
@@ -170,6 +180,7 @@ export class EditorEntry {
       dataTransfer.setDragImage(emptyImage, 0, 0);
       dataTransfer.effectAllowed = `move`;
     });
+
     tab.addEventListener(`dragover`, (evt) => {
       const { target } = evt;
       const source = movingTab;
@@ -182,12 +193,24 @@ export class EditorEntry {
         tabs.insertBefore(source, target.nextSibling);
       }
     });
+
     tab.addEventListener(`dragend`, (evt) => {
       movingTab.classList.remove(`moving`);
       movingTab = undefined;
       EditorEntry.sortFromTabs();
     });
-    tabs.appendChild(tab);
+
+    // The server log gets to live on the left.
+    if (path === SERVER_LOG_TAB_NAME) {
+      const first = tabs.children[0];
+      if (first) {
+        tabs.insertBefore(tab, first);
+      } else {
+        tabs.appendChild(tab);
+      }
+    } else {
+      tabs.appendChild(tab);
+    }
 
     // set up the
     const close = (this.close = create(
@@ -200,6 +223,7 @@ export class EditorEntry {
         click: () => this.unload(),
       },
     ));
+
     close.addEventListener(`pointerdown`, () => this.unload());
     close.addEventListener(`click`, () => this.unload());
     tab.appendChild(close);
@@ -276,6 +300,7 @@ export class EditorEntry {
     }
     delete fileEntry.state.editorEntry;
     EditorEntry.removeEntry(this);
+    fileEntry.onUnload?.();
   }
 
   async update(evt) {
@@ -292,6 +317,7 @@ export class EditorEntry {
   sync() {
     const { fileEntry, editable } = this;
     if (!editable) return;
+    if (this.virtual) return;
     syncContent(projectSlug, fileEntry);
   }
 

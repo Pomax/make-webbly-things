@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { randomBytes, randomUUID } from "node:crypto";
 import { processUserSignup, processUserLogin } from "../../database/index.js";
 
 import { passport } from "./middleware.js";
@@ -28,7 +29,6 @@ import {
 
 import { addLoginProviderForUser } from "../../database/user.js";
 import { bindCommonValues, verifyLogin } from "../middleware.js";
-import { randomUUID } from "node:crypto";
 const { WEB_EDITOR_HOSTNAME } = process.env;
 
 const PERSONAL_LINK_TTL = 12 * 3600 * 1000; // 12h in milliseconds
@@ -169,7 +169,7 @@ export function addMastodonAuth(app, settings = mastodonSettings) {
 }
 
 /**
- * Set up direct auth links, for when logged in users need
+ * Set up direct login links, for when logged in users need
  * to log in a device that has no github or google etc. login
  */
 export function addPersonalAuthLinks(app) {
@@ -179,12 +179,17 @@ export function addPersonalAuthLinks(app) {
   function generateLoginLink(req, res, next) {
     const { user } = res.locals;
     const loginCode = randomUUID();
+    const password = randomBytes(24).toString(`base64`);
     transientCodes[loginCode] = {
       user,
       createdAt: Date.now(),
       ttl: PERSONAL_LINK_TTL,
+      password,
     };
-    res.locals.authLink = `https://${WEB_EDITOR_HOSTNAME}/auth/personal/login/${loginCode}`;
+    res.locals.directLogin = {
+      password,
+      url: `https://${WEB_EDITOR_HOSTNAME}/auth/personal/login/${loginCode}`,
+    };
     next();
   }
 
@@ -195,7 +200,7 @@ export function addPersonalAuthLinks(app) {
     bindCommonValues,
     verifyLogin,
     generateLoginLink,
-    (req, res) => res.send(res.locals.authLink),
+    (_req, res) => res.json(res.locals.directLogin),
   );
 
   // Generate the confirmation-seeking page (so that
@@ -218,7 +223,11 @@ export function addPersonalAuthLinks(app) {
       // so they can't just script themselves some access.
       return next();
     }
-    const { user, createdAt, ttl } = transientCodes[uuid];
+    const { user, createdAt, ttl, password } = transientCodes[uuid];
+    if (req.body.password !== password) {
+      // Obviously, the passwords need to match.
+      return next();
+    }
     delete transientCodes[uuid];
     if (createdAt + ttl < Date.now()) {
       // Expired auth code... but again, we don't want to
@@ -233,7 +242,7 @@ export function addPersonalAuthLinks(app) {
   // Confirm the link uuid, and if it's good, log this user in.
   // If not, just send them to the front page and you'll wonder
   // why they didn't end up logged in.
-  personal.get(
+  personal.post(
     // TODO: this probably wants some kind of express-rate-limit
     `/confirm/:uuid`,
     bindCommonValues,

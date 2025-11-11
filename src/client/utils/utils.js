@@ -1,6 +1,7 @@
 import { API } from "./api.js";
 
 export const noop = () => {};
+export const SERVER_LOG_TAB_NAME = `Server Log`;
 
 const { min } = Math;
 
@@ -88,6 +89,7 @@ export async function updateViewMaintainScroll(
   editable = editorEntry.editable,
 ) {
   const { view } = editorEntry;
+  if (!view) return;
   editorEntry.setEditable(editable);
   const { doc, selection } = view.state;
   const cursor = doc.lineAt(selection.main.head);
@@ -103,5 +105,17 @@ export async function updateViewMaintainScroll(
       head: min(content.length, line.from ?? 0),
     },
     scrollIntoView: true,
+  });
+}
+
+export async function appendViewContent(editorEntry, newContent) {
+  const { view } = editorEntry;
+  if (!view) return;
+  const { doc } = view.state;
+  view.dispatch({
+    changes: {
+      from: doc.length,
+      insert: newContent,
+    },
   });
 }

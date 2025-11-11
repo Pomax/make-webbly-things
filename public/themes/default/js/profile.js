@@ -1,18 +1,27 @@
 const edit = document.querySelector(`button.show-edit`);
 const presentation = document.querySelector(`section.presentation`);
 const editForm = document.querySelector(`section.edit-form`);
+const generateSection = document.querySelector(`.generate-direct-login`);
 const generate = document.querySelector(`.generate`);
+const projects = document.querySelector(`section#projects`);
 
 (function setup() {
   if (generate) {
     generate.addEventListener(`click`, async () => {
-      const link = await fetch(`/auth/personal/link`).then((t) => t.text());
-      if (link.startsWith(`https://`)) {
-        const linkField = document.querySelector(`.auth-link`);
-        linkField.value = link;
-        linkField.focus();
-        linkField.select();
-      }
+      const response = await fetch(`/auth/personal/link`);
+      const directLogin = await response.json();
+      const { password, url } = directLogin ?? {};
+
+      if (!password) return;
+      if (!url) return;
+
+      const passwordField = document.querySelector(`.auth-password`);
+      passwordField.value = password;
+
+      const urlField = document.querySelector(`.auth-url`);
+      urlField.value = url;
+      urlField.focus();
+      urlField.select();
     });
   }
 
@@ -22,8 +31,19 @@ const generate = document.querySelector(`.generate`);
 
   // hook up toggle
   edit.addEventListener(`click`, () => {
-    presentation.classList.toggle(`hidden`);
-    editForm.classList.toggle(`hidden`);
+    [projects, presentation, generateSection].forEach((e) =>
+      e?.classList.toggle(`hidden`, true)
+    );
+    editForm.classList.toggle(`hidden`, false);
+    edit.disabled = true;
+    editForm.querySelector(`fieldset:first-child`).scrollIntoView();
+    editForm.querySelector(`[type="reset"]`).addEventListener(`click`, () => {
+      edit.disabled = false;
+      editForm.classList.toggle(`hidden`, true);
+      [projects, presentation, generateSection].forEach((e) =>
+        e?.classList.toggle(`hidden`, false)
+      );
+    });
   });
 
   // hook up links add/remove buttons
