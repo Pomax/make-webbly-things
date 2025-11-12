@@ -1,17 +1,27 @@
-import test, { after, before, describe } from "node:test";
+import test, { after, before, beforeEach, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
   initTestDatabase,
   concludeTesting,
-  Models,
+  clearTestData,
 } from "../../../../../server/database/index.js";
 import * as Project from "../../../../../server/database/project.js";
 import * as User from "../../../../../server/database/user.js";
 import * as Middleware from "../../../../../server/routing/v1/admin/middleware.js";
+import {
+  createAdminUser,
+  createProject,
+  createUser,
+} from "../../../../test-helpers.js";
+import { closeReader } from "../../../../../setup/utils.js";
 
-describe(`admin middlerware tests`, async () => {
+describe(`admin middleware tests`, async () => {
   before(async () => await initTestDatabase());
-  after(() => concludeTesting());
+  beforeEach(() => clearTestData());
+  after(() => {
+    concludeTesting();
+    closeReader();
+  });
 
   test(`back`, () => {
     let path;
@@ -25,12 +35,14 @@ describe(`admin middlerware tests`, async () => {
   });
 
   test(`loadAdminData`, () => {
-    const user = User.getUser(`test-admin`);
+    const user = createAdminUser(`test-admin`);
+    createProject(`admin-project`, user);
+
     const req = {};
     const res = { locals: { user } };
     Middleware.loadAdminData(req, res, () => {
       const { admin } = res.locals;
-      assert.equal(admin.userList.length, 2);
+      assert.equal(admin.userList.length, 1);
       assert.equal(admin.projectList.length, 1);
     });
   });
@@ -55,7 +67,7 @@ describe(`admin middlerware tests`, async () => {
 
   describe(`user tests`, () => {
     test(`deleteUser`, () => {
-      const user = Models.User.create({ name: `bye` });
+      const user = createUser();
       const res = {
         locals: {
           lookups: {
@@ -67,9 +79,8 @@ describe(`admin middlerware tests`, async () => {
         assert.equal(true, true);
       });
     });
-
     test(`disableUser`, () => {
-      const user = User.getUser(`test-user`);
+      const user = createUser();
       const res = {
         locals: {
           lookups: {
@@ -81,9 +92,8 @@ describe(`admin middlerware tests`, async () => {
         assert.equal(true, true);
       });
     });
-
     test(`enableUser`, () => {
-      const user = User.getUser(`test-user`);
+      const user = createUser();
       const res = {
         locals: {
           lookups: {
@@ -95,9 +105,8 @@ describe(`admin middlerware tests`, async () => {
         assert.equal(true, true);
       });
     });
-
     test(`suspendUser`, () => {
-      const user = User.getUser(`test-user`);
+      const user = createUser();
       const req = {
         body: {
           reason: undefined,
@@ -113,15 +122,13 @@ describe(`admin middlerware tests`, async () => {
       Middleware.suspendUser(req, res, (err) => {
         assert.equal(!!err, true);
       });
-
       req.body.reason = `reason goes here`;
       Middleware.suspendUser(req, res, (err) => {
         assert.equal(!!err, false);
       });
     });
-
     test(`unsuspendUser`, () => {
-      const user = User.getUser(`test-user`);
+      const user = createUser();
       const s = User.suspendUser(user, `more testing`);
       const req = {
         params: {
@@ -138,8 +145,8 @@ describe(`admin middlerware tests`, async () => {
     test(`deleteProject`, () => {
       // TODO: test pending. Too many permutations atm
     });
-
     test(`suspendProject`, () => {
+      const project = createProject(`test-project`);
       const req = {
         body: {
           reason: `reason goes here`,
@@ -148,7 +155,7 @@ describe(`admin middlerware tests`, async () => {
       const res = {
         locals: {
           lookups: {
-            project: Project.getProject(`test-project`),
+            project,
           },
         },
       };
@@ -156,9 +163,8 @@ describe(`admin middlerware tests`, async () => {
         assert.equal(true, true);
       });
     });
-
     test(`unsuspendProject`, () => {
-      const project = Project.getProject(`test-project`);
+      const project = createProject();
       const s = Project.suspendProject(project, `more testing`);
       const req = {
         params: {

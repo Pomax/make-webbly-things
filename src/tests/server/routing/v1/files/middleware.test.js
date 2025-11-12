@@ -1,10 +1,11 @@
-import test, { after, before, describe } from "node:test";
+import test, { after, before, beforeEach, describe } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, dirname } from "node:path";
 import {
   initTestDatabase,
   concludeTesting,
+  clearTestData,
 } from "../../../../../server/database/index.js";
 import * as Middleware from "../../../../../server/routing/v1/files/middleware.js";
 import * as ProjectMiddleware from "../../../../../server/routing/v1/projects/middleware.js";
@@ -36,6 +37,8 @@ describe(`project middlerware tests`, async () => {
   before(async () => {
     await initTestDatabase();
   });
+
+  beforeEach(() => clearTestData());
 
   after(() => {
     concludeTesting();
