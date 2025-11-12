@@ -30621,7 +30621,7 @@ async function syncContent(projectSlug6, fileEntry, forced = false) {
   const { editorEntry } = fileEntry.state;
   if (!editorEntry) return;
   if (!editorEntry.editable) return;
-  if (!editorEntry.virtual) return;
+  if (editorEntry.virtual) return;
   const { content: currentContent, view } = editorEntry;
   const newContent = view.state.doc.toString();
   if (newContent === currentContent) return;
@@ -32183,9 +32183,9 @@ var EditorEntry = class _EditorEntry {
     updatePreview();
   }
   sync() {
-    const { fileEntry, editable: editable3 } = this;
+    const { fileEntry, editable: editable3, virtual } = this;
     if (!editable3) return;
-    if (this.virtual) return;
+    if (virtual) return;
     syncContent(projectSlug2, fileEntry);
   }
   lock() {

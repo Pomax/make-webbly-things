@@ -24,7 +24,7 @@ export async function syncContent(projectSlug, fileEntry, forced = false) {
   const { editorEntry } = fileEntry.state;
   if (!editorEntry) return;
   if (!editorEntry.editable) return;
-  if (!editorEntry.virtual) return;
+  if (editorEntry.virtual) return;
 
   // Do we even have something to sync, here?
   const { content: currentContent, view } = editorEntry;

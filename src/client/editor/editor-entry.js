@@ -315,9 +315,9 @@ export class EditorEntry {
   }
 
   sync() {
-    const { fileEntry, editable } = this;
+    const { fileEntry, editable, virtual } = this;
     if (!editable) return;
-    if (this.virtual) return;
+    if (virtual) return;
     syncContent(projectSlug, fileEntry);
   }
 
