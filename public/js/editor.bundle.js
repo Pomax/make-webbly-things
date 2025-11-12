@@ -19448,6 +19448,7 @@ var defaultKeymap = /* @__PURE__ */ [
   { key: "Alt-A", run: toggleBlockComment },
   { key: "Ctrl-m", mac: "Shift-Alt-m", run: toggleTabFocusMode }
 ].concat(standardKeymap);
+var indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
 // node_modules/@codemirror/search/dist/index.js
 var basicNormalize = typeof String.prototype.normalize == "function" ? (x) => x.normalize("NFKD") : (x) => x;
@@ -29745,13 +29746,48 @@ function htmlTagCompletions() {
   return _tagCompletions = result ? result.options : [];
 }
 
+// src/client/editor/tab-tracker.js
+var TABS_BEFORE_POPUP = 5;
+var TabTracker = class {
+  constructor(editor) {
+    this.editor = editor;
+    this.lastFiveKeys = [];
+  }
+  get full() {
+    return this.lastFiveKeys.length >= TABS_BEFORE_POPUP;
+  }
+  initialize() {
+    this.editor.addEventListener(
+      "keydown",
+      this.showEscapeMessageOnRepeatedTab
+    );
+  }
+  fullOfTabs() {
+    return this.full && this.lastFiveKeys.every((key) => key === "Tab");
+  }
+  showEscapeMessageOnRepeatedTab = (event) => {
+    if (this.full) {
+      this.lastFiveKeys.shift();
+    }
+    this.lastFiveKeys.push(event.key);
+    if (this.fullOfTabs()) {
+      alert("In order to tab out of the editor, press escape first.");
+      this.lastFiveKeys = [];
+    }
+  };
+};
+
 // src/client/editor/code-mirror-6.js
 var editable2 = !!document.body.dataset.projectMember;
 function getInitialState(editorEntry, doc2) {
   const { fileEntry } = editorEntry;
   const { path: path2 } = fileEntry;
   const fileExtension = path2.substring(path2.lastIndexOf(`.`) + 1);
-  const extensions2 = [basicSetup, EditorView.lineWrapping];
+  const extensions2 = [
+    basicSetup,
+    EditorView.lineWrapping,
+    keymap.of([indentWithTab])
+  ];
   const readOnly2 = EditorState.readOnly;
   const readOnlyCompartment = new Compartment();
   extensions2.push(readOnlyCompartment.of(readOnly2.of(!editable2)));
@@ -29790,6 +29826,8 @@ function setupView(editorEntry, data3) {
     lineWrapping: true
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
+  const tabTracker = new TabTracker(editorEntry.editor);
+  tabTracker.initialize();
   return view;
 }
 
