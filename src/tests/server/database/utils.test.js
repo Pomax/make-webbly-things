@@ -14,4 +14,14 @@ describe(`util test`, async () => {
     assert.equal(filter, `a = ? AND c = ? AND d = ?`);
     assert.deepEqual(values, [data.a, data.c, data.d]);
   });
+
+  test(`composeWhere when only suffix is present`, () => {
+    const data = {
+      updated_at: "now",
+    };
+    const suffix = [`x = 1`, `y is NULL`];
+    const { filter, values } = Utils.composeWhere(data, suffix);
+    assert.equal(filter, `x = 1 AND y is NULL`);
+    assert.deepEqual(values, []);
+  });
 });
