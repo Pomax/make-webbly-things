@@ -80,7 +80,7 @@ Please have a look at what's going on there: I'm erroring out now.
 export function composeWhere(where, suffix = []) {
   const ua = where.updated_at;
   if (where.updated_at) delete where.updated_at;
-  let filter = Object.entries(where)
+  const filter = Object.entries(where)
     .map(([k, v]) => {
       if (v === null || v === undefined) {
         suffix.push(`${k} IS NULL`);
@@ -89,8 +89,8 @@ export function composeWhere(where, suffix = []) {
       return `${k} = ?`;
     })
     .filter(Boolean)
+    .concat(suffix)
     .join(` AND `);
-  if (suffix.length) filter += ` AND ${suffix.join(` AND `)}`;
   const values = Object.values(where).filter(
     (v) => !(v === undefined || v === null),
   );
