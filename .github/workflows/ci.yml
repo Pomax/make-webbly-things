@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo rm /var/lib/man-db/auto-update
+          sudo rm -rf /var/lib/man-db/auto-update
           sudo apt-get install -y caddy sqlite3 curl
 
       - name: Install Node.js
