@@ -368,13 +368,37 @@ export async function remixProject(req, res, next) {
   const newProjectName = req.params.newname ?? `${user.name}-${project.slug}`;
 
   try {
+    // Just in case our users are lazy and don't rename remixes,
+    // let's make sure we generate a unique name using the age-old
+    // solution of "slapping a number at the end":
+    let suffix;
+    let newSlug = slugify(newProjectName);
+    if (existsSync(join(CONTENT_DIR, newSlug))) {
+      suffix = 1;
+      const nextFreeDir = slugify(`${newSlug}-${suffix}`);
+      while (existsSync(join(CONTENT_DIR, nextFreeDir))) {
+        suffix += 1;
+      }
+    }
+    if (suffix) newSlug = `${newSlug}-${suffix}`;
+
+    // Now that we have a valid slug, let's create a new project.
     const newProject = (res.locals.newProject = createProjectForUser(
       user,
-      newProjectName,
+      newSlug,
     ));
+
     const newProjectSlug = (res.locals.newProjectSlug = newProject.slug);
 
-    cloneProject(project, newProjectSlug, isStarter);
+    try {
+      cloneProject(project, newProjectSlug, isStarter);
+    } catch (e) {
+      // If something went wrong, undo our project creation
+      console.error(`Could not create project with slug ${newSlug}!`, e);
+      deleteProject(newProject.id);
+      return next(new Error(`could not create project`));
+    }
+
     recordProjectRemix(project, newProject);
 
     const s = copyProjectSettings(project, newProject);
@@ -383,6 +407,7 @@ export async function remixProject(req, res, next) {
 
     // shell scripts *must* use unix line endings.
     writeFileSync(runScript, s.run_script.replace(/\r\n/g, `\n`));
+
     next();
   } catch (e) {
     console.error(e);
@@ -468,15 +493,24 @@ export async function updateProjectSettings(req, res, next) {
   }
 
   try {
-    updateSettingsForProject(project, newSettings);
-
     let containerChange = false;
 
     if (projectSlug !== newSlug) {
+      // project renames require us to make changes to the
+      // file system, which must succeed before we apply the
+      // changes to the database.
       containerChange = true;
-      renameSync(join(CONTENT_DIR, projectSlug), newDir);
-      renameContainer(projectSlug, newSlug);
-      console.log(`rebinding res.locals.projectSlug to ${newSlug}`);
+      try {
+        renameSync(join(CONTENT_DIR, projectSlug), newDir);
+        updateSettingsForProject(project, newSettings);
+        renameContainer(projectSlug, newSlug);
+        console.log(`rebinding res.locals.projectSlug to ${newSlug}`);
+      } catch (e) {
+        console.error(`Could not rename project?`, e);
+      }
+    } else {
+      // only update the settings
+      updateSettingsForProject(project, newSettings);
     }
 
     res.locals.projectSlug = newSlug;
