@@ -13,8 +13,8 @@ import { stdin } from "../setup/utils.js";
 /**
  * for when users need to type things
  */
-export async function answer(msg) {
-  console.log(`answering "${msg}"`);
+export /* async */ function answer(msg, name) {
+  console.log(`answering "${msg}"${name ? ` for ${name}` : ``}`);
   return new Promise((resolve) =>
     setTimeout(() => resolve(stdin.write(`${msg}\n`)), 10),
   );

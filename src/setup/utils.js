@@ -94,7 +94,7 @@ export async function question(q, allowEmpty = false, autoFill = false) {
     stdin.question(`${q}? `, (value) => {
       value = value.trim();
       if (value || allowEmpty) return resolve(value);
-      resolve(question(q));
+      resolve(question(q, allowEmpty, autoFill));
     });
   });
 }

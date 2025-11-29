@@ -6,6 +6,7 @@ import { answer } from "../test-helpers.js";
 import { closeReader } from "../../setup/utils.js";
 
 const autoFill = {
+  DOCKER_EXECUTABLE: `podman`,
   LOCAL_DEV_TESTING: `false`,
   USE_WEBSOCKETS: `false`,
   USE_LIVE_EMBEDS: `false`,
@@ -31,15 +32,20 @@ describe(`Setup env writing test`, async () => {
     const env = {};
     const check = Object.assign({}, autoFill);
     const setup = setupEnv(true, env, autoFill);
-    await answer(autoFill.WEB_EDITOR_HOSTNAME);
-    await answer(autoFill.WEB_EDITOR_APPS_HOSTNAME);
-    await answer(autoFill.WEB_EDITOR_IMAGE_NAME);
+
+    await answer(autoFill.WEB_EDITOR_HOSTNAME, `WEB_EDITOR_HOSTNAME`);
+    await answer(autoFill.WEB_EDITOR_APPS_HOSTNAME, `WEB_EDITOR_APPS_HOSTNAME`);
+    await answer(autoFill.DOCKER_EXECUTABLE, `DOCKER_EXECUTABLE`);
+    await answer(autoFill.WEB_EDITOR_IMAGE_NAME, `WEB_EDITOR_IMAGE_NAME`);
+
     await setup;
     env.SETUP_TLS = autoFill.SETUP_TLS;
+
     check.WEB_EDITOR_APP_SECRET = env.WEB_EDITOR_APP_SECRET;
     check.GITHUB_CALLBACK_URL = env.GITHUB_CALLBACK_URL;
     check.GOOGLE_CALLBACK_URL = env.GOOGLE_CALLBACK_URL;
     check.MASTODON_CALLBACK_URL = env.MASTODON_CALLBACK_URL;
+
     assert.deepEqual(env, check);
   });
 });

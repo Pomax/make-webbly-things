@@ -60,6 +60,14 @@ export async function scheduleContainerCheck() {
   log(`Checking to see if any containers need to be put to sleep`);
 
   getAllRunningContainers().forEach(({ image, createdAt, p: d }) => {
+    if (!image) {
+      console.error(
+        `invalid container information from getAllRunningContainers!`,
+      );
+      console.trace();
+      return;
+    }
+
     if (!(d = project(image))) return;
 
     const created = Date.parse(createdAt);
