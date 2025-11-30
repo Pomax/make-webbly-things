@@ -142,6 +142,40 @@ describe(`project middlerware tests`, async () => {
     });
   });
 
+  test(`remixProject (multiple times)`, async () => {
+    const { res, cleanup } = await createDockerProject(WITHOUT_RUNNING);
+    const user = res.locals.user;
+    const project = res.locals.lookups.project;
+    let r1, r2;
+
+    await new Promise((resolve) => {
+      Middleware.remixProject(null, res, async (err) => {
+        assert.equal(!!err, false);
+        r1 = res.locals.newProject;
+        const remixSlug = `${user.slug}-${project.slug}`;
+        assert.equal(r1.slug, remixSlug);
+
+        Middleware.remixProject(null, res, async (err) => {
+          assert.equal(!!err, false);
+          r2 = res.locals.newProject;
+          assert.equal(r2.slug, `${remixSlug}-2`);
+
+          // Then clean up the original project
+          await cleanup(FORCE_CLEANUP);
+
+          // And clean up the remixes:
+          res.locals.lookups.project = r1;
+          Middleware.deleteProject(null, res, () => {
+            res.locals.lookups.project = r2;
+            Middleware.deleteProject(null, res, () => {
+              resolve();
+            });
+          });
+        });
+      });
+    });
+  });
+
   test(`restartProject`, async () => {
     const { res, cleanup } = await createDockerProject();
     const { slug } = res.locals.lookups.project;
