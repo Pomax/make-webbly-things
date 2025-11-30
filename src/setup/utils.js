@@ -94,6 +94,7 @@ export async function question(q, allowEmpty = false, autoFill = false) {
     stdin.question(`${q}? `, (value) => {
       value = value.trim();
       if (value || allowEmpty) return resolve(value);
+      // If we get here, only "q" is a real argument:
       resolve(question(q));
     });
   });
