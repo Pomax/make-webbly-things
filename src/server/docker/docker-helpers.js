@@ -187,11 +187,13 @@ export async function restartContainer(project, rebuild = false) {
       const command = `${DOCKER} container restart -t 0 ${slug}`;
       console.log({ command });
       execSync(command, { shell: true });
-      portBindings[slug].restarts++;
     } catch (e) {
-      // if an admin force-stops this container, we can't "restart".
+      // if an admin force-stops this container, we can't
+      // "restart", now it's simply a "run" instruction.
       runContainer(project);
+      portBindings[slug].failedRestarts++
     }
+    portBindings[slug].restarts++;
   }
   console.log(`...done!`);
 }
