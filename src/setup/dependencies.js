@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { checkFor, STDIO } from "./utils.js";
-import { BYPASS_CADDY, BYPASS_DOCKER } from "../helpers.js";
+import { BYPASS_CADDY, BYPASS_DOCKER, DOCKER } from "../helpers.js";
 
 /**
  * Verify we have all the tools necessary to run the codebase.
@@ -34,9 +34,9 @@ function checkForCaddy(missing) {
  * that running in the background.
  */
 function checkForDocker(missing) {
-  checkFor(`docker`, missing);
+  checkFor(DOCKER, missing);
   try {
-    execSync(`docker ps`, { shell: true, stdio: STDIO });
+    execSync(`${DOCKER} ps`, { shell: true, stdio: STDIO });
     return true;
   } catch (e) {}
 }

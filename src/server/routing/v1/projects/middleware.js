@@ -493,15 +493,24 @@ export async function updateProjectSettings(req, res, next) {
   }
 
   try {
-    updateSettingsForProject(project, newSettings);
-
     let containerChange = false;
 
     if (projectSlug !== newSlug) {
+      // project renames require us to make changes to the
+      // file system, which must succeed before we apply the
+      // changes to the database.
       containerChange = true;
-      renameSync(join(CONTENT_DIR, projectSlug), newDir);
-      renameContainer(projectSlug, newSlug);
-      console.log(`rebinding res.locals.projectSlug to ${newSlug}`);
+      try {
+        renameSync(join(CONTENT_DIR, projectSlug), newDir);
+        updateSettingsForProject(project, newSettings);
+        renameContainer(projectSlug, newSlug);
+        console.log(`rebinding res.locals.projectSlug to ${newSlug}`);
+      } catch (e) {
+        console.error(`Could not rename project?`, e);
+      }
+    } else {
+      // only update the settings
+      updateSettingsForProject(project, newSettings);
     }
 
     res.locals.projectSlug = newSlug;

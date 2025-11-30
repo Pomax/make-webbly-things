@@ -18,14 +18,15 @@ export async function setupEnv(
   autoFill = {},
 ) {
   let {
+    DOCKER_EXECUTABLE,
     LOCAL_DEV_TESTING,
-    USE_WEBSOCKETS,
-    USE_LIVE_EMBEDS,
-    WEB_EDITOR_HOSTNAME,
-    WEB_EDITOR_APPS_HOSTNAME,
-    WEB_EDITOR_IMAGE_NAME,
-    TLS_DNS_PROVIDER,
     TLS_DNS_API_KEY,
+    TLS_DNS_PROVIDER,
+    USE_LIVE_EMBEDS,
+    USE_WEBSOCKETS,
+    WEB_EDITOR_APPS_HOSTNAME,
+    WEB_EDITOR_HOSTNAME,
+    WEB_EDITOR_IMAGE_NAME,
   } = readFromENV ? env : autoFill;
 
   // Do we need to do any host setup?
@@ -63,19 +64,34 @@ project containers.
   // Used to lock container-starts so only Caddy can trigger them:
   const WEB_EDITOR_APP_SECRET = randomSecret().replace(/\W/g, ``);
 
+  if (!DOCKER_EXECUTABLE) {
+    console.log(`
+Projects are housed inside docker containers, which means we need
+to know which tool is going to be managing those. The two common
+tools for this are (obviously) docker itself, and podman, a newer
+docker-compatible set of tools that are considered more secure,
+as well as (at least for this platform) faster. As such:
+`);
+    const defaultDockerExecutable = `docker`;
+    DOCKER_EXECUTABLE =
+      (await question(
+        `What is the name of your docker executable? (defaults to ${defaultDockerExecutable})`,
+        true,
+        autoFill.DOCKER_EXECUTABLE,
+      )) || defaultDockerExecutable;
+  }
+
   // Docker naming setup?
   if (!WEB_EDITOR_IMAGE_NAME) {
     console.log(`
-Projects are housed inside docker containers, and to speed up the
-build time, all project containers are built off of single base
-Docker image. But that image needs a name, and while the default
-name "local-base-image" might work for most people, you may already
-have a Docker image by that name, so...
+All projects share the same base docker image. But that image needs
+a name, and while the default name "local-base-image" might work
+for most people, you may already have a Docker image by that name, so...
 `);
     const defaultImage = `local-base-image`;
     WEB_EDITOR_IMAGE_NAME =
       (await question(
-        `Base docker image name (defaults to ${defaultImage})`,
+        `Please specify a base docker image name (defaults to ${defaultImage})`,
         true,
         autoFill.WEB_EDITOR_IMAGE_NAME,
       )) || defaultImage;
@@ -167,6 +183,7 @@ This will require knowing your DNS provider and your API key for that provider.
   writeFileSync(
     join(SETUP_ROOT_DIR, `.env`),
     `LOCAL_DEV_TESTING="${LOCAL_DEV_TESTING}"
+DOCKER_EXECUTABLE="${DOCKER_EXECUTABLE}"
 USE_WEBSOCKETS="${USE_WEBSOCKETS}"
 USE_LIVE_EMBEDS="${USE_LIVE_EMBEDS}"
 
@@ -200,6 +217,7 @@ TLS_DNS_API_KEY="${TLS_DNS_API_KEY}"
   // functions rely on having these variables set:
   Object.assign(env, {
     LOCAL_DEV_TESTING,
+    DOCKER_EXECUTABLE,
     USE_WEBSOCKETS,
     USE_LIVE_EMBEDS,
     WEB_EDITOR_HOSTNAME,

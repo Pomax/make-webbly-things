@@ -14,12 +14,6 @@ We don't just need `git` for cloning the platform's own repo: it's also used to 
 - Windows and MacOS users will want to hit up https://git-scm.com and simply download the installer
 - Linux users will have to use their OS's package manager to install the `git` package.
 
-### If you're on Windows...
-
-Make sure to not just install `git` but to pick the _"Use Git and optional Unix tools from the Windows Command Prompt"_ option. You very much want things like `rm` and `cp` to just work, and they don't require ancient unix-ish-on-windows-ish solutions like CygWin or MinGW32. Just install, and done.
-
-Also, If you already have `git` installed on Windows but you never installed the Unix tools, just (re)run the latest git-scm Windows installer and pick that option.
-
 ## (3) Docker
 
 While project _content_ lives in the content directory on your computer (or your server, etc), you don't want it to _run_ in that context. That would give it access to.. well... everything, including other project's content, the editor's code, routing configs, etc. etc. So, instead, the runtime is handled by creating a Docker container (think virtual machine) running "Alpine" Linux with Node.js and Python preinstalled, with a project's content added in as a "bind mount" (meaning the files live on the host OS, but the docker container has read/write access to them).
@@ -74,3 +68,23 @@ When you run the system, Caddy will set up a name binding when you switch projec
 - Windows users will need to head over to https://www.sqlite.org/download.html and download the precompiled "tools" .zip file for your Windows architecture. I'd recommend creating a `sqlite3` folder in your `C:\Program Files\` folder (which hopefully requires UAC, because I very much hope you're not using an admin account as your normal account), and then unpack the .zip file into that folder. Then run `SystemPropertiesAdvanced`, which will open what that name suggests. Click "environment variables", in the bottom panel, scroll down and double click `Path`, and then add the sqlite3 folder as a new entry.
 - MacOS users can install `sqlite3` using whatever their favourite package manager is.
 - Linux users can install `sqlite3` using their built in package manager.
+
+### !!! WINDOWS WARNINGS !!!
+
+Windows is used by half the planet, and I am not going to tell you not to use Windows because a platform like this should just work everything... but there _are_ some issues with Windows that you need to know about, so they don't bite you in the butt:
+
+#### Windows doesn't have the standard set of unit tools
+
+Kind of ridiculous given what year it is, but windows doesn't come with fundamental tools like `cp`, `rm`, `tar`, etc.
+
+Thankfully that has a super simple solution: make sure to not just install `git` but to also pick the _"Use Git and optional Unix tools from the Windows Command Prompt"_ option. You very much want things like `rm` and `cp` to just work, and they don't require ancient unix-ish-on-windows-ish solutions like CygWin or MinGW32. Just install, and done.
+
+Also, If you already have `git` installed on Windows but you never installed the Unix tools, you can simply (re)run the latest git-scm Windows installer and pick that option.
+
+#### Do not install this platform in a network-shared folder
+
+While for obvious reasons you should never have a network share open for a platform like this (why would anyone on the network be allowed to mess with the data?), it's possible to inadvertently install it in a location that _inherits_ network sharing due to one of its parent folders being shared on the network.
+
+Thankfully, you'll probably discover this real fast because it causes terminal errors: network sharing will cause the COM Surrogate service in Windows to lock files and folders, preventing things like deleting files, or renaming projects, instead causing Node.js to throw an `EPERM` error any time it tries to (re)move data.
+
+If you're seeing those, and examining file locks shows `dllhost.exe` as the locking process, in process explorer: if you see this happening, start checking all parent folders to see if they're being shared on the network.
