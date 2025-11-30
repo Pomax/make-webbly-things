@@ -6,13 +6,17 @@ import { cpSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { pathExists, ROOT_DIR } from "../../helpers.js";
 import { tryFor } from "../test-helpers.js";
+import { parseEnvironment, NO_UPDATE } from "../../parse-environment.js";
 
 const { SETUP_ROOT_DIR } = Utils;
+
+const { DOCKER_EXECUTABLE } = parseEnvironment(`.env`, NO_UPDATE);
 
 const autoFill = {
   LOCAL_DEV_TESTING: `false`,
   USE_WEBSOCKETS: `true`,
   USE_LIVE_EMBEDS: `false`,
+  DOCKER_EXECUTABLE,
   WEB_EDITOR_HOSTNAME: `localhost.local`,
   WEB_EDITOR_APPS_HOSTNAME: `app.localhost.local`,
   WEB_EDITOR_IMAGE_NAME: `test-image-for-platform-setup`,
@@ -55,6 +59,7 @@ describe(`Setup script tests`, async () => {
   });
 
   after(() => {
+    console.log(`AFTER`);
     rmSync(SETUP_ROOT_DIR, { recursive: true, force: true });
     Utils.closeReader();
   });
@@ -86,7 +91,10 @@ describe(`Setup script tests`, async () => {
   test(`setupEnv`, async () => {
     const { setupEnv } = await import(`../../setup/env.js`);
     assert.equal(!!setupEnv, true);
+    console.log(`await setupEnv`);
     await setupEnv(false, {}, autoFill);
+    console.log(`done awaiting setupEnv`);
+    console.log(`reading .env file`);
     const data = readFileSync(join(SETUP_ROOT_DIR, `.env`)).toString();
     const entries = Object.fromEntries(
       data
@@ -94,6 +102,7 @@ describe(`Setup script tests`, async () => {
         .filter(Boolean)
         .map((e) => e.split(`=`).map((v) => v.trim().replaceAll(`"`, ``))),
     );
+    console.log(`Checking env values`);
     const keys = Object.keys(entries);
     for (const k of keys) {
       // skip randomly regenerated values

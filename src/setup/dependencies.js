@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { checkFor, STDIO } from "./utils.js";
-import { BYPASS_CADDY, BYPASS_DOCKER, DOCKER } from "../helpers.js";
+import { BYPASS_CADDY, BYPASS_DOCKER } from "../helpers.js";
 
 /**
  * Verify we have all the tools necessary to run the codebase.
@@ -34,7 +34,13 @@ function checkForCaddy(missing) {
  * that running in the background.
  */
 function checkForDocker(missing) {
+  // Note: we can't get env vars from helper.js here, because the env may
+  //       have changed _after_ helpers.js got loaded in, and there is no
+  //       "reload this module" instruction in ESM.
+  const { DOCKER_EXECUTABLE: DOCKER } = process.env;
+
   checkFor(DOCKER, missing);
+
   try {
     execSync(`${DOCKER} ps`, { shell: true, stdio: STDIO });
     return true;

@@ -4,9 +4,11 @@ import { setupEnv } from "../../setup/env.js";
 
 import { answer } from "../test-helpers.js";
 import { closeReader } from "../../setup/utils.js";
+import { parseEnvironment, NO_UPDATE } from "../../parse-environment.js";
+const { DOCKER_EXECUTABLE } = parseEnvironment(`.env`, NO_UPDATE);
 
 const autoFill = {
-  DOCKER_EXECUTABLE: `podman`,
+  DOCKER_EXECUTABLE,
   LOCAL_DEV_TESTING: `false`,
   USE_WEBSOCKETS: `false`,
   USE_LIVE_EMBEDS: `false`,
