@@ -132,14 +132,9 @@ export function deleteProjectForUser(user, project, adminCall) {
       throw new Error(`Not yours, mate`);
     }
   }
-  const { name } = project;
-  // console.log(`Deleting access rules for project ${name}...`);
-  const rules = Access.findAll({ project_id: project.id });
-  for (const r of rules) Access.delete(r);
-  // console.log(`Deleting project ${name}...`);
-  Project.delete(project);
-  // console.log(`Deletion complete.`);
-  return name;
+  for (const a of Access.findAll({ project_id: project.id })) {
+    Access.delete(a);
+  }
 }
 
 /**

@@ -3,6 +3,7 @@ import { applyPatch } from "../../../public/vendor/diff.js";
 import { syncContent } from "./sync.js";
 
 const FORCE_SYNC = true;
+const fileTree = document.querySelector(`file-tree`);
 
 /**
  * A class for handling rewinds per fileEntry
@@ -12,6 +13,7 @@ export class Rewinder {
 
   static enable() {
     Rewinder.active = true;
+    fileTree.classList.add(`rewinding`);
   }
 
   static close() {
@@ -20,6 +22,7 @@ export class Rewinder {
       r.close();
     }
     Rewinder.active = false;
+    fileTree.classList.remove(`rewinding`);
   }
 
   open = false;
@@ -157,10 +160,10 @@ export class Rewinder {
         points[pos + 1]?.click();
       }
       if (key === `Enter`) {
-        this.close();
+        Rewinder.close();
       }
       if (key === `Escape`) {
-        this.close();
+        Rewinder.close();
       }
     };
 

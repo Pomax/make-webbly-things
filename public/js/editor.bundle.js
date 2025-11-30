@@ -30417,10 +30417,12 @@ function applyPatch2(source, uniDiff) {
 
 // src/client/files/rewind.js
 var FORCE_SYNC = true;
+var fileTree = document.querySelector(`file-tree`);
 var Rewinder = class _Rewinder {
   static rewinders = [];
   static enable() {
     _Rewinder.active = true;
+    fileTree.classList.add(`rewinding`);
   }
   static close() {
     const { rewinders } = _Rewinder;
@@ -30428,6 +30430,7 @@ var Rewinder = class _Rewinder {
       r.close();
     }
     _Rewinder.active = false;
+    fileTree.classList.remove(`rewinding`);
   }
   open = false;
   pos = 0;
@@ -30544,10 +30547,10 @@ var Rewinder = class _Rewinder {
         points[pos + 1]?.click();
       }
       if (key === `Enter`) {
-        this.close();
+        _Rewinder.close();
       }
       if (key === `Escape`) {
-        this.close();
+        _Rewinder.close();
       }
     };
     document.addEventListener(`keydown`, handleKeyInput);
@@ -30820,8 +30823,8 @@ var WebSocketInterface = class {
    * Set up a websocket connection to a secure
    * endpoint for a given file tree element.
    */
-  constructor(fileTree4, url, basePath = `.`, keepAliveInterval = 6e4) {
-    Object.assign(this, { fileTree: fileTree4, url, basePath, keepAliveInterval });
+  constructor(fileTree5, url, basePath = `.`, keepAliveInterval = 6e4) {
+    Object.assign(this, { fileTree: fileTree5, url, basePath, keepAliveInterval });
     this.connect();
   }
   /**
@@ -31011,10 +31014,10 @@ var WebSocketInterface = class {
    * }
    */
   async oncreate({ path: path2, isFile, from }) {
-    const { id: id2, fileTree: fileTree4 } = this;
+    const { id: id2, fileTree: fileTree5 } = this;
     if (from === id2) return;
-    const entry2 = fileTree4.__create(path2, isFile);
-    fileTree4.dispatchEvent(
+    const entry2 = fileTree5.__create(path2, isFile);
+    fileTree5.dispatchEvent(
       new CustomEvent(`ot:created`, { detail: { entry: entry2, path: path2, isFile } })
     );
   }
@@ -31035,10 +31038,10 @@ var WebSocketInterface = class {
    * }
    */
   async ondelete({ path: path2, from }) {
-    const { id: id2, fileTree: fileTree4 } = this;
+    const { id: id2, fileTree: fileTree5 } = this;
     if (from === id2) return;
-    const entries = fileTree4.__delete(path2);
-    fileTree4.dispatchEvent(
+    const entries = fileTree5.__delete(path2);
+    fileTree5.dispatchEvent(
       new CustomEvent(`ot:deleted`, { detail: { entries, path: path2 } })
     );
   }
@@ -31059,10 +31062,10 @@ var WebSocketInterface = class {
    * }
    */
   async onmove({ isFile, oldPath, newPath, from }) {
-    const { id: id2, fileTree: fileTree4 } = this;
+    const { id: id2, fileTree: fileTree5 } = this;
     if (from === id2) return;
-    const entry2 = fileTree4.__move(isFile, oldPath, newPath);
-    fileTree4.dispatchEvent(
+    const entry2 = fileTree5.__move(isFile, oldPath, newPath);
+    fileTree5.dispatchEvent(
       new CustomEvent(`ot:moved`, {
         detail: { entry: entry2, isFile, oldPath, newPath }
       })
@@ -31095,8 +31098,8 @@ var WebSocketInterface = class {
    * }
    */
   async onupdate({ path: path2, type, update, from }) {
-    const { id: id2, fileTree: fileTree4 } = this;
-    fileTree4.__update(path2, type, update, from === id2);
+    const { id: id2, fileTree: fileTree5 } = this;
+    fileTree5.__update(path2, type, update, from === id2);
   }
 };
 
@@ -31938,7 +31941,7 @@ var CustomWebsocketInterface = class extends WebSocketInterface {
 
 // src/client/editor/editor-entry.js
 var { projectSlug: projectSlug2, useWebsockets: useWebsockets2 } = document.body.dataset;
-var fileTree = document.querySelector(`file-tree`);
+var fileTree2 = document.querySelector(`file-tree`);
 var tabs = document.getElementById(`tabs`);
 var editors = document.getElementById(`editors`);
 var movingTab;
@@ -32149,7 +32152,7 @@ var EditorEntry = class _EditorEntry {
     history.replaceState(null, null, viewURL);
     if (Rewinder.active) {
       if (useWebsockets2) {
-        fileTree.OT?.getFileHistory(fileEntry.path);
+        fileTree2.OT?.getFileHistory(fileEntry.path);
       } else {
         const history3 = await API.files.history(projectSlug2, fileEntry.path);
         handleFileHistory(fileEntry, projectSlug2, history3);
@@ -32213,7 +32216,7 @@ var DEFAULT_FILES = [
 import { unzip } from "/vendor/unzipit.module.js";
 
 // src/client/files/inject-file-tree-icons.js
-var fileTree2 = document.querySelector(`file-tree`);
+var fileTree3 = document.querySelector(`file-tree`);
 var extensions = [];
 var style = document.createElement(`style`);
 document.querySelector(`head`).appendChild(style);
@@ -32253,17 +32256,17 @@ var RETRY_INTERVAL = 3e3;
 var MAX_RETRIES = 5;
 var { useWebsockets: useWebsockets3 } = document.body.dataset;
 var { defaultCollapse, defaultFile, projectMember, projectSlug: projectSlug3 } = document.body.dataset;
-var fileTree3 = document.getElementById(`filetree`);
+var fileTree4 = document.getElementById(`filetree`);
 var col1 = document.querySelector(`.left.column`);
-fileTree3.addEventListener(`tree:ready`, async () => {
+fileTree4.addEventListener(`tree:ready`, async () => {
   let fileEntry;
-  fileTree3.findAll(`file-entry`).forEach(({ extension }) => supportFileExtension(extension));
+  fileTree4.findAll(`file-entry`).forEach(({ extension }) => supportFileExtension(extension));
   if (defaultFile) {
-    fileEntry = fileTree3.querySelector(`file-entry[path="${defaultFile}"]`);
+    fileEntry = fileTree4.querySelector(`file-entry[path="${defaultFile}"]`);
   }
   if (!fileEntry) {
     for (const d of DEFAULT_FILES) {
-      fileEntry = fileTree3.querySelector(`file-entry[path="${d}"]`);
+      fileEntry = fileTree4.querySelector(`file-entry[path="${d}"]`);
       if (fileEntry) break;
     }
   }
@@ -32271,7 +32274,7 @@ fileTree3.addEventListener(`tree:ready`, async () => {
     const entries = defaultCollapse.split(`
 `).map((v) => v.trim()).filter(Boolean);
     entries.forEach((path2) => {
-      const entry2 = fileTree3.querySelector(`dir-entry[path="${path2}/"]`);
+      const entry2 = fileTree4.querySelector(`dir-entry[path="${path2}/"]`);
       entry2?.toggle(true);
     });
   }
@@ -32295,7 +32298,7 @@ async function setupFileTree() {
           RETRY_INTERVAL
         );
       }
-      const OT = await fileTree3.connectViaWebSocket(
+      const OT = await fileTree4.connectViaWebSocket(
         url,
         projectSlug3,
         6e4,
@@ -32329,25 +32332,25 @@ async function setupFileTree() {
       connect();
     }
   } else {
-    fileTree3.setContent(dirData);
+    fileTree4.setContent(dirData);
   }
   addFileTreeHandling();
 }
 function addFileTreeHandling() {
-  addFileClick(fileTree3, projectSlug3);
-  addFileCreate(fileTree3, projectSlug3);
-  addFileMove(fileTree3, projectSlug3);
-  addFileDelete(fileTree3, projectSlug3);
-  addDirClick(fileTree3, projectSlug3);
-  addDirToggle(fileTree3, projectSlug3);
-  addDirCreate(fileTree3, projectSlug3);
-  addDirMove(fileTree3, projectSlug3);
-  addDirDelete(fileTree3, projectSlug3);
+  addFileClick(fileTree4, projectSlug3);
+  addFileCreate(fileTree4, projectSlug3);
+  addFileMove(fileTree4, projectSlug3);
+  addFileDelete(fileTree4, projectSlug3);
+  addDirClick(fileTree4, projectSlug3);
+  addDirToggle(fileTree4, projectSlug3);
+  addDirCreate(fileTree4, projectSlug3);
+  addDirMove(fileTree4, projectSlug3);
+  addDirDelete(fileTree4, projectSlug3);
 }
 function ensureFileTreeWidth() {
   const wc = col1.clientWidth;
   if (wc < 16) return;
-  const wf = fileTree3.scrollWidth;
+  const wf = fileTree4.scrollWidth;
   const diff2 = wf - wc;
   if (diff2 <= 0) return;
   col1.parentNode.dispatchEvent(
@@ -32356,13 +32359,13 @@ function ensureFileTreeWidth() {
     })
   );
 }
-async function addFileClick(fileTree4, projectSlug6) {
-  fileTree4.addEventListener(`file:click`, async (evt) => {
+async function addFileClick(fileTree5, projectSlug6) {
+  fileTree5.addEventListener(`file:click`, async (evt) => {
     const fileEntry = evt.detail.grant();
     getOrCreateFileEditTab(fileEntry);
     if (Rewinder.active) {
       if (useWebsockets3) {
-        fileTree4.OT?.getFileHistory(fileEntry.path);
+        fileTree5.OT?.getFileHistory(fileEntry.path);
       } else {
         const history3 = await API.files.history(projectSlug6, fileEntry.path);
         handleFileHistory(fileEntry, projectSlug6, history3);
@@ -32371,12 +32374,12 @@ async function addFileClick(fileTree4, projectSlug6) {
     ensureFileTreeWidth();
   });
 }
-async function uploadFile(fileTree4, fileName, content2, grant) {
+async function uploadFile(fileTree5, fileName, content2, grant) {
   const fileSize = content2.byteLength;
   if (fileSize > 1e7) {
     return alert(`File uploads are limited to 10 MB`);
   }
-  if (fileTree4.OT) {
+  if (fileTree5.OT) {
     if (content2 instanceof ArrayBuffer) {
       content2 = Array.from(new Uint8Array(content2));
     }
@@ -32426,19 +32429,19 @@ async function uploadArchive(path2, content2, bulkUploadPaths) {
     if (isFile && arrayBuffer.byteLength > 0) {
       content3 = new TextDecoder().decode(arrayBuffer);
     }
-    fileTree3.createEntry(path3, isFile, content3);
+    fileTree4.createEntry(path3, isFile, content3);
   }
 }
-async function addFileCreate(fileTree4, projectSlug6) {
+async function addFileCreate(fileTree5, projectSlug6) {
   const bulkUploadPaths = [];
-  fileTree4.addEventListener(`file:create`, async (evt) => {
+  fileTree5.addEventListener(`file:create`, async (evt) => {
     const { path: path2, content: content2, bulk, grant } = evt.detail;
     if (content2) {
       if (path2.endsWith(`.zip`) && confirm(`Unpack zip file?`)) {
         bulkUploadPaths.splice(0, bulkUploadPaths.length);
         uploadArchive(path2, content2, bulkUploadPaths);
       } else {
-        const fileEntry = await uploadFile(fileTree4, path2, content2, grant);
+        const fileEntry = await uploadFile(fileTree5, path2, content2, grant);
         if (!bulk && !bulkUploadPaths.includes(path2)) {
           supportFileExtension(fileEntry.extension);
           getOrCreateFileEditTab(fileEntry, projectSlug6, path2);
@@ -32451,7 +32454,7 @@ async function addFileCreate(fileTree4, projectSlug6) {
         supportFileExtension(fileEntry.extension);
         getOrCreateFileEditTab(fileEntry, projectSlug6, path2);
       };
-      if (fileTree4.OT) {
+      if (fileTree5.OT) {
         runCreate();
       } else {
         const response = await API.files.create(projectSlug6, path2);
@@ -32467,7 +32470,7 @@ async function addFileCreate(fileTree4, projectSlug6) {
     }
     ensureFileTreeWidth();
   });
-  fileTree4.addEventListener(`ot:created`, (evt) => {
+  fileTree5.addEventListener(`ot:created`, (evt) => {
   });
 }
 function updateEditorBindings(fileTreeEntry) {
@@ -32491,7 +32494,7 @@ function updateEditorBindings(fileTreeEntry) {
   }
   fileTreeEntry.setState(entry2);
 }
-async function addFileMove(fileTree4, projectSlug6) {
+async function addFileMove(fileTree5, projectSlug6) {
   const renameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
     const runMove = () => {
@@ -32499,7 +32502,7 @@ async function addFileMove(fileTree4, projectSlug6) {
       supportFileExtension(fileEntry.extension);
       updateEditorBindings(fileEntry);
     };
-    if (fileTree4.OT) {
+    if (fileTree5.OT) {
       return runMove();
     }
     const response = await API.files.rename(projectSlug6, oldPath, newPath);
@@ -32514,21 +32517,21 @@ async function addFileMove(fileTree4, projectSlug6) {
     updatePreview();
     ensureFileTreeWidth();
   };
-  fileTree4.addEventListener(`file:rename`, renameHandler);
-  fileTree4.addEventListener(`file:move`, renameHandler);
-  fileTree4.addEventListener(`ot:moved`, async (evt) => {
+  fileTree5.addEventListener(`file:rename`, renameHandler);
+  fileTree5.addEventListener(`file:move`, renameHandler);
+  fileTree5.addEventListener(`ot:moved`, async (evt) => {
     updateEditorBindings(evt.detail.entry);
   });
 }
-async function addFileDelete(fileTree4, projectSlug6) {
-  fileTree4.addEventListener(`file:delete`, async (evt) => {
+async function addFileDelete(fileTree5, projectSlug6) {
+  fileTree5.addEventListener(`file:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
     const runDelete = () => {
       const [entry2] = grant();
       const { editorEntry } = entry2.state ?? {};
       editorEntry?.unload();
     };
-    if (fileTree4.OT) {
+    if (fileTree5.OT) {
       return runDelete();
     }
     if (path2) {
@@ -32549,29 +32552,29 @@ async function addFileDelete(fileTree4, projectSlug6) {
     updatePreview();
     ensureFileTreeWidth();
   });
-  fileTree4.addEventListener(`ot:deleted`, async (evt) => {
+  fileTree5.addEventListener(`ot:deleted`, async (evt) => {
     const { entries } = evt.detail;
     const [fileEntry] = entries;
     const { editorEntry } = fileEntry.state ?? {};
     editorEntry?.unload();
   });
 }
-async function addDirClick(fileTree4, projectSlug6) {
-  fileTree4.addEventListener(`dir:click`, async (evt) => {
+async function addDirClick(fileTree5, projectSlug6) {
+  fileTree5.addEventListener(`dir:click`, async (evt) => {
     evt.detail.grant();
     ensureFileTreeWidth();
   });
 }
-async function addDirToggle(fileTree4, projectSlug6) {
-  fileTree4.addEventListener(`dir:toggle`, async (evt) => {
+async function addDirToggle(fileTree5, projectSlug6) {
+  fileTree5.addEventListener(`dir:toggle`, async (evt) => {
     evt.detail.grant();
     ensureFileTreeWidth();
   });
 }
-async function addDirCreate(fileTree4, projectSlug6) {
-  fileTree4.addEventListener(`dir:create`, async (evt) => {
+async function addDirCreate(fileTree5, projectSlug6) {
+  fileTree5.addEventListener(`dir:create`, async (evt) => {
     const { path: path2, grant } = evt.detail;
-    if (fileTree4.OT) {
+    if (fileTree5.OT) {
       grant();
     } else {
       const response = await API.files.create(projectSlug6, path2);
@@ -32587,10 +32590,10 @@ async function addDirCreate(fileTree4, projectSlug6) {
     ensureFileTreeWidth();
   });
 }
-async function addDirMove(fileTree4, projectSlug6) {
+async function addDirMove(fileTree5, projectSlug6) {
   const dirRenameHandler = async (evt) => {
     const { oldPath, newPath, grant } = evt.detail;
-    if (fileTree4.OT) {
+    if (fileTree5.OT) {
       grant();
     } else {
       const response = await API.files.rename(projectSlug6, oldPath, newPath);
@@ -32606,13 +32609,13 @@ async function addDirMove(fileTree4, projectSlug6) {
     updatePreview();
     ensureFileTreeWidth();
   };
-  fileTree4.addEventListener(`dir:rename`, dirRenameHandler);
-  fileTree4.addEventListener(`dir:move`, dirRenameHandler);
+  fileTree5.addEventListener(`dir:rename`, dirRenameHandler);
+  fileTree5.addEventListener(`dir:move`, dirRenameHandler);
 }
-async function addDirDelete(fileTree4, projectSlug6) {
-  fileTree4.addEventListener(`dir:delete`, async (evt) => {
+async function addDirDelete(fileTree5, projectSlug6) {
+  fileTree5.addEventListener(`dir:delete`, async (evt) => {
     const { path: path2, grant } = evt.detail;
-    if (fileTree4.OT) return grant();
+    if (fileTree5.OT) return grant();
     const response = await API.files.delete(projectSlug6, path2);
     if (response instanceof Error) return;
     if (response.status === 200) {
@@ -32760,19 +32763,17 @@ function enableRewindFunctions() {
   rewindBtn.addEventListener(`click`, async () => {
     rewindBtn.blur();
     const path2 = document.querySelector(`.active.tab`).title;
-    const fileTree4 = document.querySelector(`file-tree`);
+    const fileTree5 = document.querySelector(`file-tree`);
     if (path2) {
       const fileEntry = document.querySelector(`file-entry[path="${path2}"]`);
       if (fileEntry) {
         const { rewind } = fileEntry.state ?? {};
         if (rewind?.open) {
-          fileTree4.classList.remove(`rewinding`);
           Rewinder.close();
         } else {
           Rewinder.enable();
-          fileTree4.classList.add(`rewinding`);
           if (useWebsockets4) {
-            fileTree4.OT?.getFileHistory(path2);
+            fileTree5.OT?.getFileHistory(path2);
           } else {
             const history3 = await API.files.history(projectSlug5, path2);
             handleFileHistory(fileEntry, projectSlug5, history3);
