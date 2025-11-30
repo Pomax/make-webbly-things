@@ -365,7 +365,7 @@ export async function remixProject(req, res, next) {
 
   const { project } = lookups;
   const isStarter = isStarterProject(project);
-  const newProjectName = req.params.newname ?? `${user.name}-${project.slug}`;
+  const newProjectName = req?.params?.newname ?? `${user.name}-${project.slug}`;
 
   try {
     // Just in case our users are lazy and don't rename remixes,
@@ -374,7 +374,7 @@ export async function remixProject(req, res, next) {
     let suffix;
     let newSlug = slugify(newProjectName);
     if (existsSync(join(CONTENT_DIR, newSlug))) {
-      suffix = 1;
+      suffix = 2;
       const nextFreeDir = slugify(`${newSlug}-${suffix}`);
       while (existsSync(join(CONTENT_DIR, nextFreeDir))) {
         suffix += 1;
