@@ -109,12 +109,10 @@ function enableRewindFunctions() {
       if (fileEntry) {
         const { rewind } = fileEntry.state ?? {};
         if (rewind?.open) {
-          fileTree.classList.remove(`rewinding`);
           Rewinder.close();
         } else {
           Rewinder.enable();
-          fileTree.classList.add(`rewinding`);
-          // TODO: DRY: can we unify this with file-tree-utils and editor-components
+          // TODO: DRY: can we unify this with file-tree-utils and editor-components?
           if (useWebsockets) {
             fileTree.OT?.getFileHistory(path);
           } else {
