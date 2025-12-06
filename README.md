@@ -2,7 +2,9 @@
 
 Like over on https://make.webblythings.com! (just remember to read that wall of text, because unless we're friends, I'm unlikely to activate your account on my personal instance =)
 
-See the [release notes](./RELEASES.md) for the current release, and what changed with each release.
+## The current version is 1.10
+
+See the [release notes](./RELEASES.md) for more information about the current release, as well as what changed with each release.
 
 ## Use the web to build the web
 
