@@ -16,7 +16,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo rm -rf /var/lib/man-db/auto-update
-          sudo apt-get install -y caddy sqlite3 curl podman
+          sudo apt-get install -y caddy curl podman sqlite3
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -28,7 +28,7 @@ jobs:
 
       - name: Run first time setup
         run: |
-          cp .env.ci .env
+          cp .env.ci.podman .env
           npm install
           node setup --no-auth --no-tls
           rm .finish-setup
