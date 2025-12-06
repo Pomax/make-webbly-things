@@ -54,10 +54,9 @@ No of course not: it's just web pages, so you can change the templates and CSS t
 
 1. It's a **Node.js** project, so you'll need that installed. Specifically, you will need Node version 24 or newer.
 1. You'll also need **Git** installed. Normally that goes without saying, but in this case we're also using it as an under-the-hood tool for performing version control for project content so you can't just copy this repo's source code, you _need_ `git` installed properly.
-1. You'll also need **Docker** installed, for running projects in an isolated context.
-1. And you'll want **Caddy** installed, for reverse-proxying localhost ports to normal host names.
-1. For the database, you need **SQLite3** installed because that's what we're using for our databases.
-1. And finally, you may need to run a special `playwright` command as part of first-time installtion.
+1. In order to run "persistent process" projects, you also need **Docker** or **PodMan** installed.
+1. For correct project URL resolution, you need **Caddy** installed.
+1. And you need **SQLite3** installed because that's what we're using for our databases.
 
 ### See the [how to install everything](./docs/installation.md) doc if you need help with installing any (or all) of these prerequisites.
 

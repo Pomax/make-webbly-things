@@ -36,6 +36,9 @@ parseDockerJSON(
 ).forEach((e) => {
   const { id, repository, names } = e;
   let remove = false;
+  // FIXME: This is a temporary piece of cleanup code for as long as
+  //        podman doesn't list `repository` in its JSON output.
+  //        See https://github.com/containers/podman/issues/27632
   if (repository) {
     remove = repository.startsWith(prefix);
   } else if (names) {
