@@ -10,7 +10,7 @@ export function parseEnvironment(envFile = `.env`, updatePolicy) {
       data
         .split(`\n`)
         .filter(Boolean)
-        .map((e) => e.split(`=`).map((v) => v.trim().replaceAll(`"`, ``)))
+        .map((e) => e.split(`=`).map((v) => v.trim().replaceAll(`"`, ``))),
     );
     if (updatePolicy !== NO_UPDATE) {
       Object.entries(entries).forEach(([k, v]) => (process.env[k] = v));
