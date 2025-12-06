@@ -28,9 +28,10 @@ jobs:
 
       - name: Run first time setup
         run: |
-          cp .env.ci.docker .env
+          cp .env.ci .env
           npm install
           node setup --no-auth --no-tls
+          node set-env DOCKER_EXECUTABLE docker
           rm .finish-setup
 
       - name: Run tests
