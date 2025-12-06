@@ -8,7 +8,7 @@ on:
 
 jobs:
   test_first_time_setup:
-    name: Continuous Integration Testing
+    name: Continuous Integration Testing with Docker
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
@@ -16,7 +16,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo rm -rf /var/lib/man-db/auto-update
-          sudo apt-get install -y caddy sqlite3 curl
+          sudo apt-get install -y caddy curl sqlite3
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -32,6 +32,11 @@ jobs:
           npm install
           node setup --no-auth --no-tls
           rm .finish-setup
+
+      - name: Use Docker
+        run: |
+          node set-env DOCKER_EXECUTABLE docker
+          node setup --no-auth --no-tls --clean
 
       - name: Run tests
         run: npm test

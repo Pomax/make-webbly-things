@@ -1,8 +1,9 @@
 import readline from "node:readline";
 import { join } from "node:path";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { TESTING, ROOT_DIR, npm } from "../helpers.js";
+import { parseEnvironment as parseAnyEnvironment } from "../parse-environment.js";
 
 // We want to make sure that test setup does
 // NOT overwrite our "production" settings!
@@ -22,21 +23,8 @@ export const stdin = readline.createInterface({
 export const STDIO = process.argv.includes(`--debug`) ? `inherit` : `ignore`;
 
 // Parse an .env file
-export function parseEnvironment(envFile = join(SETUP_ROOT_DIR, `.env`)) {
-  console.log(`Using ${envFile}`);
-  if (existsSync(envFile)) {
-    const data = readFileSync(envFile).toString();
-    const entries = Object.fromEntries(
-      data
-        .split(`\n`)
-        .filter(Boolean)
-        .map((e) => e.split(`=`).map((v) => v.trim().replaceAll(`"`, ``))),
-    );
-    const keys = Object.keys(entries);
-    for (const k of keys) {
-      process.env[k] = entries[k];
-    }
-  }
+export function parseEnvironment() {
+  parseAnyEnvironment(join(SETUP_ROOT_DIR, `.env`));
 }
 
 // Rather important for testing:
@@ -89,12 +77,19 @@ export async function checkNodeVersion() {
  * or may not, accept empty answers.
  */
 export async function question(q, allowEmpty = false, autoFill = false) {
+  console.log(`question "${q}", autofill=${!!autoFill}`);
   if (autoFill !== false) return autoFill;
+  console.log(`return promise`);
   return new Promise((resolve) => {
+    console.log(`trigger stdin.question`);
     stdin.question(`${q}? `, (value) => {
       value = value.trim();
-      if (value || allowEmpty) return resolve(value);
+      if (value || allowEmpty) {
+        console.log(`sending answer`);
+        return resolve(value);
+      }
       // If we get here, only "q" is a real argument:
+      console.log(`no answer, recurse`);
       resolve(question(q));
     });
   });

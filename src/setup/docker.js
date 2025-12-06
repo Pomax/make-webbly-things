@@ -11,13 +11,13 @@ const DOCKER_MAINTENANCE = process.argv.includes(`--clean`);
  * the codebase needs already exists, and if not, build it.
  */
 export function setupDocker() {
-  const { WEB_EDITOR_IMAGE_NAME } = process.env;
+  const { DOCKER_EXECUTABLE, WEB_EDITOR_IMAGE_NAME } = process.env;
 
   if (DOCKER_MAINTENANCE) {
     console.log(`\n- Cleaning up docker images...`);
 
     // clean up anything unrelated to currently running containers
-    execSync(`docker system prune -a -f`, {
+    execSync(`${DOCKER_EXECUTABLE} system prune -a -f`, {
       shell: true,
       stdio: STDIO,
     });
@@ -25,7 +25,7 @@ export function setupDocker() {
     console.log(`- Generating an updated ${WEB_EDITOR_IMAGE_NAME}...`);
 
     // generate a new version of the base image
-    execSync(`docker build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
+    execSync(`${DOCKER_EXECUTABLE} build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
       shell: true,
       cwd: `./src/server/docker`,
       stdio: STDIO,
@@ -37,12 +37,12 @@ export function setupDocker() {
   }
 
   try {
-    execSync(`docker image inspect ${WEB_EDITOR_IMAGE_NAME}`, {
+    execSync(`${DOCKER_EXECUTABLE} image inspect ${WEB_EDITOR_IMAGE_NAME}`, {
       shell: true,
       stdio: STDIO,
     });
   } catch (e) {
-    execSync(`docker build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
+    execSync(`${DOCKER_EXECUTABLE} build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
       shell: true,
       cwd: `./src/server/docker`,
       stdio: STDIO,
