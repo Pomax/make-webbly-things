@@ -31,8 +31,12 @@ jobs:
           cp .env.ci .env
           npm install
           node setup --no-auth --no-tls
-          node set-env DOCKER_EXECUTABLE docker
           rm .finish-setup
+
+      - name: Use Docker
+        run: |
+          node set-env DOCKER_EXECUTABLE docker
+          node setup --clean
 
       - name: Run tests
         run: npm test
