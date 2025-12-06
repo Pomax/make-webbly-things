@@ -1,6 +1,6 @@
 {
   "name": "make-webbly-things",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "type": "module",
   "description": "A platform for hosting user generated websites",
   "author": "Pomax (pomax@nihongoresources.com)",
