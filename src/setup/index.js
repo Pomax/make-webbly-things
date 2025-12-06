@@ -36,9 +36,9 @@ export function runSetup() {
   setup(
     checkNodeVersion,
     runNpmInstall,
-    checkDependencies,
     setupHooks,
     setupEnv,
+    checkDependencies,
     setupDocker,
     DOCKER_MAINTENANCE ? noop : () => setupCaddy(process.env),
     DOCKER_MAINTENANCE ? noop : setupSqlite,

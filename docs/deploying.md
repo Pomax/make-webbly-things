@@ -8,7 +8,7 @@ I'll be using an exotic mix of services for maximum "this'll probably fit your b
 
 So with that:
 
-## Setting up the domains
+## 1. Setting up the domains
 
 In my case, I had to point my NameCheap domains (webblythings.com and webblythings.online) to use the DigitalOcean nameservers (ns1.digitalocean.com, ns2.digitalocean.com, and ns3.digitalocean.com).
 
@@ -24,7 +24,7 @@ This sends `webblythings.com` and `make.webblythings.com` to my VPS IP. So far s
 
 This sends `webblythings.online` and `*.webblythings.online` to my VPS IP. That last one if a wildcard domain because we don't know what projects are going to exist, they should just all go to my hosting VPS.
 
-## Setting up the platform
+## 2. Setting up the platform
 
 The platform needs a bunch of software to be installed before it'll work, so... let's assume you're using Ubuntu 22, but if you're not, you can probably figure out the differences and adjust things appropriately.
 
@@ -49,6 +49,8 @@ sudo ufw enable
 
 A good start. `ufw status` should confirm that only ports 22, 80, and 443 are open now.
 
+## 3. Install the prerequisite software
+
 ### Confirm git is installed
 
 This should already be installed? But `sudo apt update` and then `sudo apt install git` should ensure you're on the latest version of `git`, too.
@@ -65,9 +67,11 @@ nvm use 22
 
 Done, any session should from now on default to using Node 22 (the LTS version at time of writing).
 
-### Install Docker
+### Install Docker or Podman
 
 See https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04 (whether you're on on 20 or 22, or 24, the instructions are the same). It's more work than it should be, but it's also not particularly complicated, just a whole bunch of copy-paste.
+
+Alternatively, see https://podman.io/docs/installation#installing-on-linux for instructions on how to install `podman`.
 
 ### Set up Caddy
 
@@ -128,7 +132,7 @@ While plain Node.js is fine for dev work, we're going to be running this as a pr
 npm i -g pm2
 ```
 
-## Setting up API keys...
+## 4. Setting up API keys for user authentication
 
 In order for things to work properly, you'll need to have set up a GitHub OAuth app (so you can log in), and you'll need to have a DigitalOcean API key (so that `*.webblythings.online` actually works).
 
@@ -144,7 +148,9 @@ Log into DO and go to https://cloud.digitalocean.com/account/api/tokens, then ge
 
 Again: hang on to that key, you'll need this one during setup, too.
 
-## Clone the project
+## 5. Set up the platform itself
+
+### Clone the project
 
 Standard fare:
 
@@ -158,7 +164,7 @@ npm i
 
 We shouldn't need that `nvm` instructions, but it never hurts to make sure =)
 
-## Run the setup script
+### Run the setup script
 
 Finally, we can bootstrap the platform:
 
@@ -168,11 +174,13 @@ node setup
 
 When asked for your domains, fill in the domains you have lined up, making sure not to include the `https://` part: the setup is asking for hosts, not websites.
 
+When asked about which executable to use for container management, type `docker` if you installed Docker, or `podman` if you installed Podman.
+
 When asked for your github id and secret, fill those in.
 
 When asked whether you want to set up TLS, the answer is yes. This will ask you to inpute the TLS provider, which is `digitalocean`, and your API key, which is the DigitalOcean API key you made.
 
-## Mark the deployment as production deployment
+### Mark the deployment as production deployment
 
 By default the setup process will write an `.env` file that marks the platform as running in local dev mode. That's useful for the initial setup process if you want to just test that your deployment works, but once you're ready to just "have it live online" you probably want to mark it as a production environment.
 
@@ -182,9 +190,9 @@ To do so, open the `.env` file in any text editor, and change the `LOCAL_DEV_TES
 LOCAL_DEV_TESTING=
 ```
 
-This value doesn't change anything about how the platform itself works, but it _does_ turn off some dev-only information that gets rendered into pages, most notably the "fake a user account with an email link" signin option.
+This value doesn't change anything about how the platform itself works, but it _does_ turn off some dev-only information that gets rendered into pages that you probably don't want to see in production (most notably, the "fake a user account with an email link" signin option on the landing page).
 
-## Running the platform forever
+###  Running the platform forever
 
 The setup script should run to completion and tell you to run `npm start`, which is what you do for local dev, but for production deployment we don't want to just run `npm start`, we need to let `pm2` handle things instead:
 
@@ -207,7 +215,7 @@ Then make sure pm2 is enabled as a service:
 systemctl enable pm2-root
 ```
 
-## Confirm that things work!
+## 6. Confirm that things work!
 
 The platform will now be running in "first sign in" mode, so load up the editor URL that gets printed to the console, and click the github login link. Grant permission to your app and you should end up getting redirected to the editor main page, this time with your name, and text that says you're an admin.
 
@@ -220,7 +228,7 @@ Well, almost: go remix one of the starter projects, because you'll want to verif
 
 To update your instance, you have two options:
 
-## Update to the latest release
+## 1a. Update to the latest release
 
 Hit up the https://github.com/Pomax/make-webbly-things/tags page and look at what the latest release is, then in the repository directory on your server, run:
 
@@ -235,7 +243,7 @@ pm2 restart jobnumber
 
 Where `vX.Y.Z` is the latest release number from the tags page, and the pm2 "jobnumber" is whichever job number `pm2 list` shows is the platform's `npm start` task. By default this is probably 0, but if you're doing some other things with pm2, it might not be.
 
-## Update to the latest commit
+## 1b. Update to the latest commit
 
 If you just want to be on "whatever's currently on the main branch", even if it's not part of an official release yet, you can run:
 

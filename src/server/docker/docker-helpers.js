@@ -2,6 +2,7 @@ import { sep } from "node:path";
 import {
   BYPASS_DOCKER,
   CONTENT_BASE,
+  DOCKER,
   getFreePort,
   STARTER_BASE,
   TESTING,
@@ -18,13 +19,15 @@ import {
 } from "../database/index.js";
 import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
+const { WEB_EDITOR_HOSTNAME } = process.env;
+
 /**
  * ...docs go here...
  */
 export function checkContainerHealth(project, slug = project.slug) {
   if (BYPASS_DOCKER) return `not running`;
 
-  const check = `docker ps --no-trunc -f name=^/${slug}$`;
+  const check = `${DOCKER} ps --no-trunc -f name=^/${slug}$`;
   const result = execSync(check).toString().trim();
   if (result.includes(`Exited`)) {
     return `failed`;
@@ -48,12 +51,12 @@ export function deleteContainer(project, slug = project.slug) {
   if (BYPASS_DOCKER) return;
 
   try {
-    execSync(`docker container rm ${slug}`, { stdio: `ignore` });
+    execSync(`${DOCKER} container rm ${slug}`, { stdio: `ignore` });
   } catch (e) {
     // failure just means it's already been removed.
   }
   try {
-    execSync(`docker image rm ${slug}`, { stdio: `ignore` });
+    execSync(`${DOCKER} image rm ${slug}`, { stdio: `ignore` });
   } catch (e) {
     // idem dito
   }
@@ -71,26 +74,58 @@ export function deleteContainerAndImage(project) {
 }
 
 /**
+ * Smooth over a docker/podman difference.
+ */
+export function parseDockerJSON(data) {
+  let containerData = [];
+
+  // Docker doesn't actually generate JSON, it
+  // generates "one JSON object per line" output...
+  if (DOCKER === `docker`) {
+    data.split(`\n`).forEach((line) => {
+      if (!line.trim()) return;
+      const obj = JSON.parse(line);
+      containerData.push(obj);
+    });
+  } else {
+    // not-docker, which right now is just
+    // Podman, generates actual JSON.
+    containerData = JSON.parse(data);
+  }
+
+  containerData.forEach((obj) =>
+    Object.keys(obj).forEach((k) => {
+      let key = k[0].toLowerCase() + k.substring(1);
+      if (k.length === 2) key = k.toLowerCase();
+      obj[key] = obj[k];
+      delete obj[k];
+    }),
+  );
+
+  return containerData;
+}
+
+/**
  * ...docs go here...
  */
 export function getAllRunningContainers() {
   if (BYPASS_DOCKER) return [];
 
-  const containerData = [];
-  const output = execSync(`docker ps -a --no-trunc --format json`)
-    .toString()
-    .split(`\n`);
-  output.forEach((line) => {
-    if (!line.trim()) return;
-    let obj = JSON.parse(line);
-    obj = Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => {
-        return [k[0].toLowerCase() + k.substring(1), v];
-      }),
-    );
-    const { image, command, state, iD: id, status, size, createdAt } = obj;
-    containerData.push({ image, id, command, state, status, size, createdAt });
+  let containerData = parseDockerJSON(
+    execSync(`${DOCKER} ps -a --no-trunc --format json`).toString(),
+  );
+
+  // Now that we know we have the same data irrespective of the
+  // source, get the values that we need out of each entry.
+  containerData = containerData.map((obj) => {
+    let { command, createdAt, id, image, size, state, status } = obj;
+    const colon = image.indexOf(`:`);
+    if (colon >= 0) {
+      image = image.substring(0, colon).replace(`${WEB_EDITOR_HOSTNAME}/`, ``);
+    }
+    return { command, createdAt, id, image, size, state, status };
   });
+
   return containerData;
 }
 
@@ -113,7 +148,7 @@ export function getAllRunningStaticServers() {
 export function getContainerLogs(project, since = 0) {
   if (BYPASS_DOCKER) return false;
   const { slug } = project;
-  const cmd = `docker container logs --since ${since} ${slug}`;
+  const cmd = `${DOCKER} container logs --since ${since} ${slug}`;
   try {
     const output = execSync(cmd).toString();
     // And now for the stupid part:
@@ -136,8 +171,8 @@ export function renameContainer(oldSlug, newSlug) {
 
   stopContainer(oldSlug);
   try {
-    execSync(`docker tag ${oldSlug} ${newSlug}`);
-    execSync(`docker rmi ${oldSlug}`);
+    execSync(`${DOCKER} tag ${oldSlug} ${newSlug}`);
+    execSync(`${DOCKER} rmi ${oldSlug}`);
   } catch (e) {}
 }
 
@@ -155,12 +190,19 @@ export async function restartContainer(project, rebuild = false) {
   } else {
     console.log(`restarting container for ${slug}...`);
     try {
-      execSync(`docker container restart -t 0 ${slug}`);
-      portBindings[slug].restarts++;
+      const command = `${DOCKER} container restart -t 0 ${slug}`;
+      console.log({ command });
+      execSync(command, { shell: true });
     } catch (e) {
-      // if an admin force-stops this container, we can't "restart".
+      // There are a few ways we can get here, i.e either by
+      // and admin having force-stopped a container before the
+      // user clicks restart, or because we're using a version
+      // of podman that suffers from restart bugs as noted in
+      // https://github.com/containers/podman/issues/27634
       runContainer(project);
+      portBindings[slug].failedRestarts++;
     }
+    portBindings[slug].restarts++;
   }
   console.log(`...done!`);
 }
@@ -185,7 +227,7 @@ export async function runContainer(project, slug = project.slug) {
 
   // Do we have an image?
   console.log(`- Checking for image`);
-  let result = execSync(`docker image list`).toString().trim();
+  let result = execSync(`${DOCKER} image list`).toString().trim();
   const foundProject = () =>
     result.match(new RegExp(`(^|\\s)${slug}\\b`, `gm`));
 
@@ -193,10 +235,8 @@ export async function runContainer(project, slug = project.slug) {
   if (!foundProject()) {
     console.log(`- Building image`);
     try {
-      execSync(`docker build --tag ${slug} --no-cache .`, {
-        shell: true,
-        stdio: `inherit`,
-      });
+      const build = `${DOCKER} build --tag ${slug} --no-cache .`;
+      execSync(build);
     } catch (e) {
       return console.error(e);
     }
@@ -206,7 +246,7 @@ export async function runContainer(project, slug = project.slug) {
 
   // FIXME: TODO: check if `docker ps -a` has a dead container that we need to cleanup. https://github.com/Pomax/make-webbly-things/issues/109
   console.log(`- Checking for running container`);
-  const check = `docker ps --no-trunc -f name=^/${slug}$`;
+  const check = `${DOCKER} ps --no-trunc -f name=^/${slug}$`;
   result = execSync(check).toString().trim();
 
   // There is no running container: start one
@@ -219,12 +259,23 @@ export async function runContainer(project, slug = project.slug) {
       .map(([k, v]) => `-e ${k}="${v}"`)
       .join(` `);
     const entry = `/bin/sh .container/run.sh`;
-    const runCommand = `docker run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${slug} ${entry}`;
-    if (TESTING) console.log({ runCommand });
-    execSync(runCommand);
+    const runCommand = `${DOCKER} run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${slug} ${entry}`;
+    //if (TESTING)
+    console.log({ runCommand });
+    try {
+      execSync(runCommand);
+    } catch (e) {
+      console.error(`Failed to run project!`, e);
+    }
   }
 
-  const updatePortBinding = async () => {
+  const updatePortBinding = async (retry = 1) => {
+    if (retry > 10) {
+      console.error(
+        `Retried binding port for ${project.slug} too many times, giving up`,
+      );
+      return;
+    }
     result = execSync(check).toString().trim();
     const runningPort = result.match(/0.0.0.0:(\d+)->/m)?.[1];
     if (runningPort) {
@@ -233,7 +284,7 @@ export async function runContainer(project, slug = project.slug) {
     }
     console.log(`- no network binding (yet), retrying in 500ms`);
     return new Promise((resolve) => {
-      setTimeout(() => resolve(updatePortBinding()), 500);
+      setTimeout(() => resolve(updatePortBinding(retry + 1)), 500);
     });
   };
 
@@ -288,7 +339,7 @@ export function stopContainer(project, slug = project.slug) {
   }
 
   try {
-    execSync(`docker container stop ${slug}`, { stdio: `ignore` });
+    execSync(`${DOCKER} container stop ${slug}`, { stdio: `ignore` });
   } catch (e) {
     // failure just means it's already no longer running.
   }

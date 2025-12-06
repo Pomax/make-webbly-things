@@ -18,6 +18,7 @@ export class PortBinding {
   port;
   serverProcess;
   restarts = 0;
+  failedRestarts = 0;
   constructor(p) {
     this.port = parseFloat(p);
   }
