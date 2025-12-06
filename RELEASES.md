@@ -1,11 +1,12 @@
 # Release notes
 
-
-## version 1.10 (6 December 2025)
+## version 1.10 and 1.10.1 (6 December 2025)
 
 This release adds support for `podman` as a Docker alternative, along with a new `DOCKER_EXECUTABLE` environment variable that is used to determine which command to start/stop containers with.
 
 As always, remember to run `node setup`, especially as in this case you will be asked to provide a value for the above variable.
+
+Note that the `1.10.1` patch update is a security update that doesn't impact production, but may impact local development as it pertains to a CVE related to the passport-magic-link package, which is not used in production.
 
 ## version 1.9 (11 November 2025)
 
@@ -15,7 +16,7 @@ This release adds several new features:
 1. Starter projects now show up on the homepage, so folks can see what's on offer beyond user-generated content.
 1. Users can now examine the run logs for their project while in the editor, allowing for a much better insight into what their code is doing server-side (especially when it's not doing what it's supposed to!)
 
-This release also includes numerous improvements for delevopers, with improved linting and code formatting, tests, and CI testing for pull requests filed via GitHub.
+This release also includes numerous improvements for developers, with improved linting and code formatting, tests, and CI testing for pull requests filed via GitHub.
 
 ## version 1.8 (15 October 2025)
 
@@ -55,6 +56,6 @@ This release also fixes a typo in the basic html starter project.
 
 This release has no public-facing changes, and is instead a refactor of the client-side code that handles creating and toggling editors for files, allowing for easier future development, and paying off tech debt.
 
-## verion 1.0 (undated)
+## version 1.0 (undated)
 
 This was an untagged release. All platform changes in this and older versions are commit based, rather than being versioned.
