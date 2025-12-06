@@ -10,6 +10,8 @@ import { CONTENT_DIR, scrubDateTime } from "../helpers.js";
 
 import { stdin } from "../setup/utils.js";
 
+const TEST_PREFIX = `test-suite-docker-project`;
+
 /**
  * for when users need to type things
  */
@@ -24,7 +26,7 @@ export /* async */ function answer(msg, name) {
  * obviously
  */
 export function randomDockerProjectName() {
-  return `docker-project-${randomUUID().substring(0, 8)}`;
+  return `${TEST_PREFIX}-${randomUUID().substring(0, 8)}`;
 }
 
 /**

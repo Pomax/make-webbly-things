@@ -19,6 +19,8 @@ import {
 } from "../database/index.js";
 import { scheduleScreenShot } from "../screenshots/screenshot.js";
 
+const { WEB_EDITOR_HOSTNAME } = process.env;
+
 /**
  * ...docs go here...
  */
@@ -116,7 +118,11 @@ export function getAllRunningContainers() {
   // Now that we know we have the same data irrespective of the
   // source, get the values that we need out of each entry.
   containerData = containerData.map((obj) => {
-    const { command, createdAt, id, image, size, state, status } = obj;
+    let { command, createdAt, id, image, size, state, status } = obj;
+    const colon = image.indexOf(`:`);
+    if (colon >= 0) {
+      image = image.substring(0, colon).replace(`${WEB_EDITOR_HOSTNAME}/`, ``);
+    }
     return { command, createdAt, id, image, size, state, status };
   });
 
@@ -188,10 +194,13 @@ export async function restartContainer(project, rebuild = false) {
       console.log({ command });
       execSync(command, { shell: true });
     } catch (e) {
-      // if an admin force-stops this container, we can't
-      // "restart", now it's simply a "run" instruction.
+      // There are a few ways we can get here, i.e either by
+      // and admin having force-stopped a container before the
+      // user clicks restart, or because we're using a version
+      // of podman that suffers from restart bugs as noted in
+      // https://github.com/containers/podman/issues/27634
       runContainer(project);
-      portBindings[slug].failedRestarts++
+      portBindings[slug].failedRestarts++;
     }
     portBindings[slug].restarts++;
   }
@@ -251,7 +260,8 @@ export async function runContainer(project, slug = project.slug) {
       .join(` `);
     const entry = `/bin/sh .container/run.sh`;
     const runCommand = `${DOCKER} run ${runFlags} ${bindMount} -p ${port}:8000 ${envVars} ${slug} ${entry}`;
-    if (TESTING) console.log({ runCommand });
+    //if (TESTING)
+    console.log({ runCommand });
     try {
       execSync(runCommand);
     } catch (e) {

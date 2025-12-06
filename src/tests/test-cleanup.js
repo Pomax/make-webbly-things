@@ -1,4 +1,4 @@
-// Get all docker-project-... containers, stop them,
+// Get all test-suite-docker-project-... containers, stop them,
 // and delete their images. No
 import { execSync } from "node:child_process";
 import {
@@ -8,13 +8,14 @@ import {
 } from "../server/docker/docker-helpers.js";
 import { DOCKER } from "../helpers.js";
 
+const prefix = `test-suite-docker-project`;
 console.log(`\nRunning test cleanup...\n`);
 
 // First, clean up orphaned folders
-execSync(`rm -rf ./content/docker-*`);
+execSync(`rm -rf ./content/${prefix}-*`);
 
 // And screenshots
-execSync(`rm -rf ./content/__screenshots/docker-*`);
+execSync(`rm -rf ./content/__screenshots/${prefix}`);
 
 // And test data
 execSync(`rm -rf ./data/*.data.sql`);
@@ -23,7 +24,7 @@ execSync(`rm -rf ./data/*.sqlite3-journal`);
 
 // Then clean up any test containers
 getAllRunningContainers()
-  .filter((e) => e.image.startsWith(`docker-project-`))
+  .filter((e) => e.image.startsWith(prefix))
   .forEach((e) => {
     console.log(`getAllRunningContainers - deleting ${e.image}`);
     deleteContainerAndImage({ slug: e.image });
@@ -36,9 +37,9 @@ parseDockerJSON(
   const { id, repository, names } = e;
   let remove = false;
   if (repository) {
-    remove = repository.startsWith(`docker-project-`);
+    remove = repository.startsWith(prefix);
   } else if (names) {
-    remove = names[0].includes(`/docker-project-`);
+    remove = names[0].includes(`/${prefix}`);
   }
 
   if (remove) {
