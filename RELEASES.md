@@ -1,5 +1,12 @@
 # Release notes
 
+
+## version 1.10 (6 December 2025)
+
+This release adds support for `podman` as a Docker alternative, along with a new `DOCKER_EXECUTABLE` environment variable that is used to determine which command to start/stop containers with.
+
+As always, remember to run `node setup`, especially as in this case you will be asked to provide a value for the above variable.
+
 ## version 1.9 (11 November 2025)
 
 This release adds several new features:
