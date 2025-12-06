@@ -1,0 +1,37 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test_first_time_setup:
+    name: Continuous Integration Testing with Docker
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo rm -rf /var/lib/man-db/auto-update
+          sudo apt-get install -y caddy sqlite3 curl
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run first time setup
+        run: |
+          cp .env.ci .env
+          npm install
+          node setup --no-auth --no-tls
+          rm .finish-setup
+
+      - name: Run tests
+        run: npm test
