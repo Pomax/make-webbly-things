@@ -36,7 +36,7 @@ jobs:
       - name: Use Docker
         run: |
           node set-env DOCKER_EXECUTABLE docker
-          node setup --clean
+          node setup --no-auth --no-tls --clean
 
       - name: Run tests
         run: npm test
