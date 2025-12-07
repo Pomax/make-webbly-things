@@ -11,13 +11,13 @@ const DOCKER_MAINTENANCE = process.argv.includes(`--clean`);
  * the codebase needs already exists, and if not, build it.
  */
 export function setupDocker() {
-  const { DOCKER_EXECUTABLE, WEB_EDITOR_IMAGE_NAME } = process.env;
+  const { DOCKER_EXECUTABLE: DOCKER, WEB_EDITOR_IMAGE_NAME } = process.env;
 
   if (DOCKER_MAINTENANCE) {
     console.log(`\n- Cleaning up docker images...`);
 
     // clean up anything unrelated to currently running containers
-    execSync(`${DOCKER_EXECUTABLE} system prune -a -f`, {
+    execSync(`${DOCKER} system prune -a -f`, {
       shell: true,
       stdio: STDIO,
     });
@@ -25,7 +25,7 @@ export function setupDocker() {
     console.log(`- Generating an updated ${WEB_EDITOR_IMAGE_NAME}...`);
 
     // generate a new version of the base image
-    execSync(`${DOCKER_EXECUTABLE} build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
+    execSync(`${DOCKER} build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
       shell: true,
       cwd: `./src/server/docker`,
       stdio: STDIO,
@@ -37,21 +37,21 @@ export function setupDocker() {
   }
 
   try {
-    execSync(`${DOCKER_EXECUTABLE} image inspect ${WEB_EDITOR_IMAGE_NAME}`, {
+    execSync(`${DOCKER} image inspect ${WEB_EDITOR_IMAGE_NAME}`, {
       shell: true,
       stdio: STDIO,
     });
   } catch (e) {
-    execSync(`${DOCKER_EXECUTABLE} build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
+    execSync(`${DOCKER} build -t ${WEB_EDITOR_IMAGE_NAME} .`, {
       shell: true,
       cwd: `./src/server/docker`,
-      stdio: STDIO,
+      stdio: `inherit`,
     });
   }
   writeFileSync(
     join(SETUP_ROOT_DIR, `Dockerfile`),
     `FROM ${WEB_EDITOR_IMAGE_NAME}:latest
 CMD sh .container/run.sh
-`,
+`
   );
 }
