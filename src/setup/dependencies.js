@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import { checkFor, STDIO } from "./utils.js";
 import { BYPASS_CADDY, BYPASS_DOCKER } from "../helpers.js";
+import { parseEnvironment } from "../parse-environment.js";
 
 /**
  * Verify we have all the tools necessary to run the codebase.
@@ -10,13 +11,14 @@ export function checkDependencies() {
   checkForGit(missing);
   BYPASS_CADDY && checkForCaddy(missing);
   checkForSqlite(missing);
-  const dockerRunning = BYPASS_DOCKER ? true : checkForDocker(missing); // has to be last
-  if (missing.length) {
-    throw new Error(`Missing dependencies: ${missing.join(`, `)}`);
-  }
-  if (!dockerRunning) {
+  try {
+    BYPASS_DOCKER ? true : checkForDocker(missing);
+    if (missing.length) {
+      throw new Error(`Missing dependencies: ${missing.join(`, `)}`);
+    }
+  } catch (e) {
     throw new Error(
-      `The docker command is available, but docker engine is not currently running.`,
+      `The ${DOCKER_EXECUTABLE} command is available, but ${DOCKER_EXECUTABLE} ps threw an error:\n${JSON.stringify(e)}`
     );
   }
 }
@@ -34,17 +36,13 @@ function checkForCaddy(missing) {
  * that running in the background.
  */
 function checkForDocker(missing) {
-  // Note: we can't get env vars from helper.js here, because the env may
-  //       have changed _after_ helpers.js got loaded in, and there is no
-  //       "reload this module" instruction in ESM.
+  // ensure we have the latest environment data:
+  parseEnvironment();
   const { DOCKER_EXECUTABLE: DOCKER } = process.env;
 
   checkFor(DOCKER, missing);
-
-  try {
-    execSync(`${DOCKER} ps`, { shell: true, stdio: STDIO });
-    return true;
-  } catch (e) {}
+  execSync(`${DOCKER} ps`, { shell: true, stdio: STDIO });
+  return true;
 }
 
 /**
