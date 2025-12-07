@@ -16,7 +16,9 @@ jobs:
         run: choco install caddy sqlite -y
 
       - name: Install unix tools
-        run: choco install git.install --params="/GitAndUnixToolsOnPath" -y
+        run: |
+          choco install git.install --params="/GitAndUnixToolsOnPath" -y
+          git config --global core.autocrlf false
 
       - name: Install podman
         run: |
