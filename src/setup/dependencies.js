@@ -41,7 +41,7 @@ function checkForDocker(missing) {
   const { DOCKER_EXECUTABLE: DOCKER } = process.env;
 
   checkFor(DOCKER, missing);
-  execSync(`${DOCKER} ps`, { shell: true, stdio: STDIO });
+  execSync(`${DOCKER} ps`, { shell: true, stdio: `inherit` });
   return true;
 }
 
