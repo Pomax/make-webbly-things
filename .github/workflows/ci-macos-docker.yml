@@ -18,7 +18,7 @@ jobs:
       - name: Install Docker
         run: |
           brew install colima docker
-          colima start
+          brew services start colima
 
       - name: Install Node.js
         uses: actions/setup-node@v4
