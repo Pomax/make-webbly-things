@@ -9,7 +9,7 @@ on:
 jobs:
   test_first_time_setup:
     name: MacOS with Podman
-    runs-on: macos-latest
+    runs-on: macos-15-intel
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
