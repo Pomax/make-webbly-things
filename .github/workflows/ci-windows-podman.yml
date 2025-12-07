@@ -13,7 +13,7 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
-        run: choco install caddy podman-desktop sqlite -y
+        run: choco install caddy gnuwin32-coreutils.install podman-desktop sqlite -y
 
       - name: Install Node.js
         uses: actions/setup-node@v4
