@@ -1,0 +1,39 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test_first_time_setup:
+    name: Continuous Integration Testing with Docker
+    runs-on: windows-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
+    steps:
+      - name: Install dependencies
+        run: choco install caddy podman-desktop sqlite -y
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run first time setup
+        run: |
+          cp .env.ci .env
+          npm install
+          node setup --no-auth --no-tls
+          rm .finish-setup
+
+      - name: Use Podman
+        run: |
+          node set-env DOCKER_EXECUTABLE podman
+          node setup --no-auth --no-tls --clean
+
+      - name: Run tests
+        run: npm test
