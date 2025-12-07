@@ -13,15 +13,21 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
-        run: choco install caddy podman-cli podman-desktop sqlite -y
+        run: choco install caddy sqlite -y
 
       - name: Install unix tools
         run: choco install git.install --params="/GitAndUnixToolsOnPath" -y
 
+      - name: Install podman
+        run: |
+          choco install podman-cli podman-desktop -y
+          podman machine init
+          podman machine start
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Checkout code
         uses: actions/checkout@v4
