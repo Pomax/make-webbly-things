@@ -20,7 +20,7 @@ export function checkDependencies() {
     }
   } catch (e) {
     throw new Error(
-      `The ${DOCKER} command is available, but "${DOCKER} ps" threw an error:\n${JSON.stringify(e)}`,
+      `The ${DOCKER} command is available, but "${DOCKER} ps" threw an error:\n${e.message}`,
     );
   }
 }
