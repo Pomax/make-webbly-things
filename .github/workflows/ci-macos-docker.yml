@@ -9,7 +9,7 @@ on:
 jobs:
   test_first_time_setup:
     name: MacOS with Docker
-    runs-on: macos-15
+    runs-on: macos-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
