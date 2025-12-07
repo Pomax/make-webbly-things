@@ -30,13 +30,9 @@ jobs:
         run: |
           cp .env.ci .env
           npm install
+          node set-env DOCKER_EXECUTABLE podman
           node setup --no-auth --no-tls
           rm .finish-setup
-
-      - name: Use Podman
-        run: |
-          node set-env DOCKER_EXECUTABLE podman
-          node setup --no-auth --no-tls --clean
 
       - name: Run tests
         run: npm test
