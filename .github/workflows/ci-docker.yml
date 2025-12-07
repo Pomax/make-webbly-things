@@ -8,7 +8,7 @@ on:
 
 jobs:
   test_first_time_setup:
-    name: Continuous Integration Testing with Docker
+    name: Ubuntu with Docker
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
