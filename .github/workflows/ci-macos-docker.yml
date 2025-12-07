@@ -13,7 +13,12 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
-        run: brew install caddy colima docker sqlite3
+        run: brew install caddy sqlite3
+
+      - name: Install Docker
+        run: |
+          brew install colima docker
+          colima start
 
       - name: Install Node.js
         uses: actions/setup-node@v4
