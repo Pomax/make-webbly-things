@@ -8,15 +8,23 @@ on:
 
 jobs:
   test_first_time_setup:
-    name: Ubuntu with Podman
-    runs-on: ubuntu-latest
+    name: Windows with Podman
+    runs-on: windows-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
+        run: choco install caddy sqlite -y
+
+      - name: Install unix tools
         run: |
-          sudo apt-get update
-          sudo rm -rf /var/lib/man-db/auto-update
-          sudo apt-get install -y caddy curl podman sqlite3
+          choco install git.install --params="/GitAndUnixToolsOnPath" -y
+          git config --global core.autocrlf false
+
+      - name: Install podman
+        run: |
+          choco install podman-cli podman-desktop -y
+          podman machine init
+          podman machine start
 
       - name: Install Node.js
         uses: actions/setup-node@v4
