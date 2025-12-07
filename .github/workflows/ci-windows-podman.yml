@@ -13,7 +13,7 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
-        run: choco install caddy podman-desktop sqlite -y
+        run: choco install caddy podman-cli sqlite -y
 
       - name: Install unix tools
         run: choco install git.install --params="/GitAndUnixToolsOnPath" -y
