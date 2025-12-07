@@ -8,18 +8,12 @@ on:
 
 jobs:
   test_first_time_setup:
-    name: MacOS with Podman
+    name: MacOS with Docker
     runs-on: macos-15
     if: "!contains(github.event.pull_request.labels.*.name, 'bypass-ci')"
     steps:
       - name: Install dependencies
-        run: brew install caddy sqlite3
-
-      - name: Install podman
-        run: |
-          brew install podman
-          podman machine init
-          podman machine start
+        run: brew install caddy colima docker sqlite3
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -33,7 +27,7 @@ jobs:
         run: |
           cp .env.ci .env
           npm install
-          node set-env DOCKER_EXECUTABLE podman
+          node set-env DOCKER_EXECUTABLE docker
           node setup --no-auth --no-tls
           rm .finish-setup
 
