@@ -15,7 +15,6 @@ export function parseEnvironment(envFile = `.env`, updatePolicy) {
     if (updatePolicy !== NO_UPDATE) {
       Object.entries(entries).forEach(([k, v]) => (process.env[k] = v));
     }
-    console.log(process.env);
     return entries;
   }
 }

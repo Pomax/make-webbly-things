@@ -7,6 +7,8 @@ import { parseEnvironment } from "../parse-environment.js";
  * Verify we have all the tools necessary to run the codebase.
  */
 export function checkDependencies() {
+  parseEnvironment();
+  const { DOCKER_EXECUTABLE: DOCKER } = process.env;
   const missing = [];
   checkForGit(missing);
   BYPASS_CADDY && checkForCaddy(missing);
@@ -18,7 +20,7 @@ export function checkDependencies() {
     }
   } catch (e) {
     throw new Error(
-      `The ${DOCKER_EXECUTABLE} command is available, but ${DOCKER_EXECUTABLE} ps threw an error:\n${JSON.stringify(e)}`
+      `The ${DOCKER} command is available, but "${DOCKER} ps" threw an error:\n${JSON.stringify(e)}`,
     );
   }
 }
@@ -36,8 +38,6 @@ function checkForCaddy(missing) {
  * that running in the background.
  */
 function checkForDocker(missing) {
-  // ensure we have the latest environment data:
-  parseEnvironment();
   const { DOCKER_EXECUTABLE: DOCKER } = process.env;
 
   checkFor(DOCKER, missing);
