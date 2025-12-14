@@ -1,4 +1,4 @@
-import { create } from './utils.js';
+import { create } from "./utils.js";
 
 export class Notice {
   constructor(message, ttl = 5000, type = `info`, onClose) {
@@ -7,7 +7,7 @@ export class Notice {
     }));
     notice.textContent = message;
     const close = create(`button`, {
-      class: 'close',
+      class: "close",
     });
     close.textContent = `x`;
     notice.addEventListener(`transitionend`, () => notice.remove());

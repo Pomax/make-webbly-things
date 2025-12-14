@@ -1,17 +1,17 @@
 // This test script uses Codemirror v6
-import { basicSetup, EditorView } from 'codemirror';
-import { EditorState, Compartment } from '@codemirror/state';
-import { keymap } from '@codemirror/view';
-import { indentWithTab } from '@codemirror/commands';
+import { basicSetup, EditorView } from "codemirror";
+import { EditorState, Compartment } from "@codemirror/state";
+import { keymap } from "@codemirror/view";
+import { indentWithTab } from "@codemirror/commands";
 
 // Language-specific features:
-import { css } from '@codemirror/lang-css';
-import { html } from '@codemirror/lang-html';
-import { markdown } from '@codemirror/lang-markdown';
-import { javascript } from '@codemirror/lang-javascript';
+import { css } from "@codemirror/lang-css";
+import { html } from "@codemirror/lang-html";
+import { markdown } from "@codemirror/lang-markdown";
+import { javascript } from "@codemirror/lang-javascript";
 // See https://github.com/orgs/codemirror/repositories?q=lang for more options
 
-import { OneTimeNotice } from '../utils/notifications';
+import { OneTimeNotice } from "../utils/notifications";
 
 const editable = !!document.body.dataset.projectMember;
 
@@ -80,7 +80,7 @@ export function getInitialState(editorEntry, doc) {
         editorEntry.debounce = setTimeout(() => editorEntry.sync(), 1000);
       }
       editorEntry.contentReset = false;
-    })
+    }),
   );
 
   // Thank god, we're done.
@@ -99,12 +99,12 @@ export function setupView(editorEntry, data) {
 
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
   editorEntry.editor.addEventListener(`keydown`, (event) => {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       event.preventDefault();
 
       OneTimeNotice.createIfNotRead(
         `In order to tab out of the editor, press escape first`,
-        `webblyTabNotice`
+        `webblyTabNotice`,
       );
     }
   });
