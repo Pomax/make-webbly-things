@@ -119,7 +119,7 @@ async function appendViewContent(editorEntry, newContent) {
 
 // src/client/utils/notifications.js
 var Notice = class {
-  constructor(message, ttl = 5e3, type = `info`) {
+  constructor(message, ttl = 5e3, type = `info`, onClose) {
     const notice = this.notice = create(`div`, {
       class: `${type} notice`
     });
@@ -132,6 +132,7 @@ var Notice = class {
     close.addEventListener(`click`, () => {
       close.disabled = true;
       notice.style.opacity = 0;
+      onClose?.();
     });
     notice.appendChild(close);
     document.body.appendChild(notice);
@@ -150,7 +151,20 @@ var ErrorNotice = class extends Notice {
     super(message, ttl, `error`);
   }
 };
-globalThis.__notices = { Notice, Warning, ErrorNotice };
+var OneTimeNotice = class _OneTimeNotice extends Notice {
+  static createIfNotRead(message, localStorageKey, ttl = Infinity) {
+    if (localStorage?.getItem(localStorageKey)) {
+      return;
+    }
+    new _OneTimeNotice(message, localStorageKey, ttl);
+  }
+  constructor(message, localStorageKey, ttl = Infinity) {
+    super(message, ttl, `info`, () => {
+      localStorage?.setItem(localStorageKey, true);
+    });
+  }
+};
+globalThis.__notices = { Notice, Warning, ErrorNotice, OneTimeNotice };
 
 // src/client/files/content-types.js
 function getMimeType(fileName) {
@@ -29746,37 +29760,6 @@ function htmlTagCompletions() {
   return _tagCompletions = result ? result.options : [];
 }
 
-// src/client/editor/tab-tracker.js
-var TABS_BEFORE_POPUP = 5;
-var TabTracker = class {
-  constructor(editor) {
-    this.editor = editor;
-    this.lastFiveKeys = [];
-  }
-  get full() {
-    return this.lastFiveKeys.length >= TABS_BEFORE_POPUP;
-  }
-  initialize() {
-    this.editor.addEventListener(
-      "keydown",
-      this.showEscapeMessageOnRepeatedTab
-    );
-  }
-  fullOfTabs() {
-    return this.full && this.lastFiveKeys.every((key) => key === "Tab");
-  }
-  showEscapeMessageOnRepeatedTab = (event) => {
-    if (this.full) {
-      this.lastFiveKeys.shift();
-    }
-    this.lastFiveKeys.push(event.key);
-    if (this.fullOfTabs()) {
-      alert("In order to tab out of the editor, press escape first.");
-      this.lastFiveKeys = [];
-    }
-  };
-};
-
 // src/client/editor/code-mirror-6.js
 var editable2 = !!document.body.dataset.projectMember;
 function getInitialState(editorEntry, doc2) {
@@ -29826,8 +29809,15 @@ function setupView(editorEntry, data3) {
     lineWrapping: true
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
-  const tabTracker = new TabTracker(editorEntry.editor);
-  tabTracker.initialize();
+  editorEntry.editor.addEventListener(`keydown`, (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      OneTimeNotice.createIfNotRead(
+        `In order to tab out of the editor, press escape first`,
+        `webblyTabNotice`
+      );
+    }
+  });
   return view;
 }
 

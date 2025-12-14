@@ -11,7 +11,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { javascript } from '@codemirror/lang-javascript';
 // See https://github.com/orgs/codemirror/repositories?q=lang for more options
 
-import { TabTracker } from './tab-tracker.js';
+import { OneTimeNotice } from '../utils/notifications';
 
 const editable = !!document.body.dataset.projectMember;
 
@@ -98,12 +98,16 @@ export function setupView(editorEntry, data) {
   });
 
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
+  editorEntry.editor.addEventListener(`keydown`, (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
 
-  // unsure where to actually put this yet
-  const tabTracker = new TabTracker(editorEntry.editor);
-  tabTracker.initialize();
+      OneTimeNotice.createIfNotRead(
+        `In order to tab out of the editor, press escape first`,
+        `webblyTabNotice`
+      );
+    }
+  });
 
   return view;
 }
-
-
