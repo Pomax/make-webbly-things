@@ -1,0 +1,35 @@
+name: Podman on macOS CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest # Use the latest macOS runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Podman and start VM
+        run: |
+          # Install Podman via Homebrew
+          brew install podman
+
+          # Initialize and start the Podman machine (VM)
+          podman machine init
+          podman machine start
+
+          # Set DOCKER_HOST environment variable for compatibility
+          # This allows tools expecting DOCKER_HOST to work with Podman
+          echo "DOCKER_HOST=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')" >> "$GITHUB_ENV"
+        
+      - name: Verify Podman installation and connection
+        run: |
+          podman info
+          podman --version
+
+      - name: Run a container (Example)
+        run: |
+          podman pull alpine:latest
+          podman run -d --name test-container alpine:latest sleep 30
+          podman ps
