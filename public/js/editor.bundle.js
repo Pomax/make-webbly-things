@@ -119,7 +119,7 @@ async function appendViewContent(editorEntry, newContent) {
 
 // src/client/utils/notifications.js
 var Notice = class {
-  constructor(message, ttl = 5e3, type = `info`) {
+  constructor(message, ttl = 5e3, type = `info`, onClose) {
     const notice = this.notice = create(`div`, {
       class: `${type} notice`
     });
@@ -132,6 +132,7 @@ var Notice = class {
     close.addEventListener(`click`, () => {
       close.disabled = true;
       notice.style.opacity = 0;
+      onClose?.();
     });
     notice.appendChild(close);
     document.body.appendChild(notice);
@@ -150,7 +151,20 @@ var ErrorNotice = class extends Notice {
     super(message, ttl, `error`);
   }
 };
-globalThis.__notices = { Notice, Warning, ErrorNotice };
+var OneTimeNotice = class _OneTimeNotice extends Notice {
+  static createIfNotRead(message, localStorageKey, ttl = Infinity) {
+    if (localStorage?.getItem(localStorageKey)) {
+      return;
+    }
+    new _OneTimeNotice(message, localStorageKey, ttl);
+  }
+  constructor(message, localStorageKey, ttl = Infinity) {
+    super(message, ttl, `info`, () => {
+      localStorage?.setItem(localStorageKey, true);
+    });
+  }
+};
+globalThis.__notices = { Notice, Warning, ErrorNotice, OneTimeNotice };
 
 // src/client/files/content-types.js
 function getMimeType(fileName) {
@@ -19448,6 +19462,7 @@ var defaultKeymap = /* @__PURE__ */ [
   { key: "Alt-A", run: toggleBlockComment },
   { key: "Ctrl-m", mac: "Shift-Alt-m", run: toggleTabFocusMode }
 ].concat(standardKeymap);
+var indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
 // node_modules/@codemirror/search/dist/index.js
 var basicNormalize = typeof String.prototype.normalize == "function" ? (x) => x.normalize("NFKD") : (x) => x;
@@ -29751,7 +29766,11 @@ function getInitialState(editorEntry, doc2) {
   const { fileEntry } = editorEntry;
   const { path: path2 } = fileEntry;
   const fileExtension = path2.substring(path2.lastIndexOf(`.`) + 1);
-  const extensions2 = [basicSetup, EditorView.lineWrapping];
+  const extensions2 = [
+    basicSetup,
+    EditorView.lineWrapping,
+    keymap.of([indentWithTab])
+  ];
   const readOnly2 = EditorState.readOnly;
   const readOnlyCompartment = new Compartment();
   extensions2.push(readOnlyCompartment.of(readOnly2.of(!editable2)));
@@ -29790,6 +29809,15 @@ function setupView(editorEntry, data3) {
     lineWrapping: true
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
+  editorEntry.editor.addEventListener(`keydown`, (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      OneTimeNotice.createIfNotRead(
+        `In order to tab out of the editor, press escape first`,
+        `webblyTabNotice`
+      );
+    }
+  });
   return view;
 }
 
