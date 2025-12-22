@@ -1,8 +1,9 @@
 // This test script uses Codemirror v6
 import { basicSetup, EditorView } from "codemirror";
 import { EditorState, Compartment } from "@codemirror/state";
+import { indentUnit } from "@codemirror/language";
 import { keymap } from "@codemirror/view";
-import { indentWithTab } from "@codemirror/commands";
+import { insertTab, indentLess } from "@codemirror/commands";
 
 // Language-specific features:
 import { css } from "@codemirror/lang-css";
@@ -11,9 +12,57 @@ import { markdown } from "@codemirror/lang-markdown";
 import { javascript } from "@codemirror/lang-javascript";
 // See https://github.com/orgs/codemirror/repositories?q=lang for more options
 
-import { OneTimeNotice } from "../utils/notifications";
+import { Notice, createOneTimeNotice } from "../utils/notifications";
 
 const editable = !!document.body.dataset.projectMember;
+const INDENT_STRING = `  `;
+
+/**
+ * ...
+ * @returns
+ */
+function addTabHandling(extensions) {
+  let bypassTabs = false;
+
+  const TAB_NOTICE_TEXT = `Using tab for code indentation. To tab out of the editor, press escape first.`;
+
+  extensions.push(
+    // FIXME: CM6 seems to be ignoring this entirely... See the following forum post:
+    //        https://discuss.codemirror.net/t/bug-in-commands-inserttab/9623
+    indentUnit.of(INDENT_STRING),
+    EditorState.tabSize.of(INDENT_STRING.length),
+    // This part works, though.
+    keymap.of([
+      {
+        key: `Escape`,
+        run: () => {
+          bypassTabs = true;
+          new Notice(
+            `Escaping the editor: pressing tab will now focus on the next focusable element on the page.`,
+          );
+        },
+      },
+      {
+        key: `Tab`,
+        preventDefault: true,
+        run: (view) => {
+          if (bypassTabs) return (bypassTabs = false);
+          createOneTimeNotice(TAB_NOTICE_TEXT, 5000);
+          return insertTab(view);
+        },
+      },
+      {
+        key: `Shift-Tab`,
+        preventDefault: true,
+        run: (view) => {
+          if (bypassTabs) return (bypassTabs = false);
+          createOneTimeNotice(TAB_NOTICE_TEXT, 5000);
+          return indentLess(view);
+        },
+      },
+    ]),
+  );
+}
 
 /**
  * Create an initial CodeMirror6 state object
@@ -24,11 +73,7 @@ export function getInitialState(editorEntry, doc) {
   const fileExtension = path.substring(path.lastIndexOf(`.`) + 1);
 
   // Our list of codemirror extensions:
-  const extensions = [
-    basicSetup,
-    EditorView.lineWrapping,
-    keymap.of([indentWithTab]),
-  ];
+  const extensions = [basicSetup, EditorView.lineWrapping];
 
   // We want to be able to toggle the editable state of our
   // editor, so we need to do some truly mad things here.
@@ -83,6 +128,9 @@ export function getInitialState(editorEntry, doc) {
     }),
   );
 
+  // Make sure tabs are handled correctly
+  addTabHandling(extensions);
+
   // Thank god, we're done.
   return EditorState.create({ doc, extensions });
 }
@@ -98,16 +146,6 @@ export function setupView(editorEntry, data) {
   });
 
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
-  editorEntry.editor.addEventListener(`keydown`, (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-
-      OneTimeNotice.createIfNotRead(
-        `In order to tab out of the editor, press escape first`,
-        `webblyTabNotice`,
-      );
-    }
-  });
 
   return view;
 }

@@ -142,29 +142,23 @@ var Notice = class {
   }
 };
 var Warning = class extends Notice {
-  constructor(message, ttl = Infinity) {
-    super(message, ttl, `warning`);
+  constructor(message, ttl = Infinity, onClose) {
+    super(message, ttl, `warning`, onClose);
   }
 };
 var ErrorNotice = class extends Notice {
-  constructor(message, ttl = Infinity) {
-    super(message, ttl, `error`);
+  constructor(message, ttl = Infinity, onClose) {
+    super(message, ttl, `error`, onClose);
   }
 };
-var OneTimeNotice = class _OneTimeNotice extends Notice {
-  static createIfNotRead(message, localStorageKey, ttl = Infinity) {
-    if (localStorage?.getItem(localStorageKey)) {
-      return;
-    }
-    new _OneTimeNotice(message, localStorageKey, ttl);
-  }
-  constructor(message, localStorageKey, ttl = Infinity) {
-    super(message, ttl, `info`, () => {
-      localStorage?.setItem(localStorageKey, true);
-    });
-  }
-};
-globalThis.__notices = { Notice, Warning, ErrorNotice, OneTimeNotice };
+function createOneTimeNotice(message, ttl = Infinity, onClose) {
+  const time = localStorage?.getItem(message) ?? 0;
+  const expiry = 24 * 3600 * 1e3;
+  if (time > Date.now() - expiry) return;
+  localStorage?.setItem(message, Date.now());
+  new Notice(message, ttl, onClose);
+}
+globalThis.__notices = { Notice, Warning, ErrorNotice, createOneTimeNotice };
 
 // src/client/files/content-types.js
 function getMimeType(fileName) {
@@ -19399,6 +19393,12 @@ var toggleTabFocusMode = (view) => {
   view.setTabFocusMode();
   return true;
 };
+var insertTab = ({ state, dispatch }) => {
+  if (state.selection.ranges.some((r) => !r.empty))
+    return indentMore({ state, dispatch });
+  dispatch(state.update(state.replaceSelection("	"), { scrollIntoView: true, userEvent: "input" }));
+  return true;
+};
 var emacsStyleKeymap = [
   { key: "Ctrl-b", run: cursorCharLeft, shift: selectCharLeft, preventDefault: true },
   { key: "Ctrl-f", run: cursorCharRight, shift: selectCharRight },
@@ -19462,7 +19462,6 @@ var defaultKeymap = /* @__PURE__ */ [
   { key: "Alt-A", run: toggleBlockComment },
   { key: "Ctrl-m", mac: "Shift-Alt-m", run: toggleTabFocusMode }
 ].concat(standardKeymap);
-var indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
 // node_modules/@codemirror/search/dist/index.js
 var basicNormalize = typeof String.prototype.normalize == "function" ? (x) => x.normalize("NFKD") : (x) => x;
@@ -29762,15 +29761,52 @@ function htmlTagCompletions() {
 
 // src/client/editor/code-mirror-6.js
 var editable2 = !!document.body.dataset.projectMember;
+var INDENT_STRING = `  `;
+function addTabHandling(extensions2) {
+  let bypassTabs = false;
+  const TAB_NOTICE_TEXT = `Using tab for code indentation. To tab out of the editor, press escape first.`;
+  extensions2.push(
+    // FIXME: CM6 seems to be ignoring this entirely... See the following forum post:
+    //        https://discuss.codemirror.net/t/bug-in-commands-inserttab/9623
+    indentUnit.of(INDENT_STRING),
+    EditorState.tabSize.of(INDENT_STRING.length),
+    // This part works, though.
+    keymap.of([
+      {
+        key: `Escape`,
+        run: () => {
+          bypassTabs = true;
+          new Notice(
+            `Escaping the editor: pressing tab will now focus on the next focusable element on the page.`
+          );
+        }
+      },
+      {
+        key: `Tab`,
+        preventDefault: true,
+        run: (view) => {
+          if (bypassTabs) return bypassTabs = false;
+          createOneTimeNotice(TAB_NOTICE_TEXT, 5e3);
+          return insertTab(view);
+        }
+      },
+      {
+        key: `Shift-Tab`,
+        preventDefault: true,
+        run: (view) => {
+          if (bypassTabs) return bypassTabs = false;
+          createOneTimeNotice(TAB_NOTICE_TEXT, 5e3);
+          return indentLess(view);
+        }
+      }
+    ])
+  );
+}
 function getInitialState(editorEntry, doc2) {
   const { fileEntry } = editorEntry;
   const { path: path2 } = fileEntry;
   const fileExtension = path2.substring(path2.lastIndexOf(`.`) + 1);
-  const extensions2 = [
-    basicSetup,
-    EditorView.lineWrapping,
-    keymap.of([indentWithTab])
-  ];
+  const extensions2 = [basicSetup, EditorView.lineWrapping];
   const readOnly2 = EditorState.readOnly;
   const readOnlyCompartment = new Compartment();
   extensions2.push(readOnlyCompartment.of(readOnly2.of(!editable2)));
@@ -29800,6 +29836,7 @@ function getInitialState(editorEntry, doc2) {
       editorEntry.contentReset = false;
     })
   );
+  addTabHandling(extensions2);
   return EditorState.create({ doc: doc2, extensions: extensions2 });
 }
 function setupView(editorEntry, data3) {
@@ -29809,15 +29846,6 @@ function setupView(editorEntry, data3) {
     lineWrapping: true
   });
   document.addEventListener(`layout:resize`, () => view.requestMeasure());
-  editorEntry.editor.addEventListener(`keydown`, (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      OneTimeNotice.createIfNotRead(
-        `In order to tab out of the editor, press escape first`,
-        `webblyTabNotice`
-      );
-    }
-  });
   return view;
 }
 

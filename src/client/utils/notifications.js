@@ -25,32 +25,24 @@ export class Notice {
 }
 
 export class Warning extends Notice {
-  constructor(message, ttl = Infinity) {
-    super(message, ttl, `warning`);
+  constructor(message, ttl = Infinity, onClose) {
+    super(message, ttl, `warning`, onClose);
   }
 }
 
 export class ErrorNotice extends Notice {
-  constructor(message, ttl = Infinity) {
-    super(message, ttl, `error`);
+  constructor(message, ttl = Infinity, onClose) {
+    super(message, ttl, `error`, onClose);
   }
 }
 
-export class OneTimeNotice extends Notice {
-  static createIfNotRead(message, localStorageKey, ttl = Infinity) {
-    if (localStorage?.getItem(localStorageKey)) {
-      return;
-    }
-
-    new OneTimeNotice(message, localStorageKey, ttl);
-  }
-
-  constructor(message, localStorageKey, ttl = Infinity) {
-    super(message, ttl, `info`, () => {
-      localStorage?.setItem(localStorageKey, true);
-    });
-  }
+export function createOneTimeNotice(message, ttl = Infinity, onClose) {
+  const time = localStorage?.getItem(message) ?? 0;
+  const expiry = 24 * 3600 * 1000; // 1 day
+  if (time > Date.now() - expiry) return;
+  localStorage?.setItem(message, Date.now());
+  new Notice(message, ttl, onClose);
 }
 
 // Expose as globals, too
-globalThis.__notices = { Notice, Warning, ErrorNotice, OneTimeNotice };
+globalThis.__notices = { Notice, Warning, ErrorNotice, createOneTimeNotice };
