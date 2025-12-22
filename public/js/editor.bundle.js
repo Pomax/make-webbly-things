@@ -19393,12 +19393,6 @@ var toggleTabFocusMode = (view) => {
   view.setTabFocusMode();
   return true;
 };
-var insertTab = ({ state, dispatch }) => {
-  if (state.selection.ranges.some((r) => !r.empty))
-    return indentMore({ state, dispatch });
-  dispatch(state.update(state.replaceSelection("	"), { scrollIntoView: true, userEvent: "input" }));
-  return true;
-};
 var emacsStyleKeymap = [
   { key: "Ctrl-b", run: cursorCharLeft, shift: selectCharLeft, preventDefault: true },
   { key: "Ctrl-f", run: cursorCharRight, shift: selectCharRight },
@@ -29766,8 +29760,6 @@ function addTabHandling(extensions2) {
   let bypassTabs = false;
   const TAB_NOTICE_TEXT = `Using tab for code indentation. To tab out of the editor, press escape first.`;
   extensions2.push(
-    // FIXME: CM6 seems to be ignoring this entirely... See the following forum post:
-    //        https://discuss.codemirror.net/t/bug-in-commands-inserttab/9623
     indentUnit.of(INDENT_STRING),
     EditorState.tabSize.of(INDENT_STRING.length),
     // This part works, though.
@@ -29787,7 +29779,23 @@ function addTabHandling(extensions2) {
         run: (view) => {
           if (bypassTabs) return bypassTabs = false;
           createOneTimeNotice(TAB_NOTICE_TEXT, 5e3);
-          return insertTab(view);
+          const { doc: doc2, selection } = view.state;
+          const { ranges } = selection ?? {};
+          const aLine = doc2.lineAt(ranges.at(0).from);
+          const hLine = doc2.lineAt(ranges.at(-1).to);
+          const multiline = aLine.number !== hLine.number;
+          if (multiline) return indentMore(view);
+          const pos = selection.main.head;
+          const { from, to } = ranges[0] ?? {};
+          const indent = (from2, to2 = from2) => {
+            view.dispatch({
+              changes: { from: from2, to: to2, insert: INDENT_STRING },
+              selection: { anchor: from2 + INDENT_STRING.length }
+            });
+            return true;
+          };
+          if (from !== to) return indent(from, to);
+          return indent(pos);
         }
       },
       {
