@@ -18,8 +18,9 @@ const editable = !!document.body.dataset.projectMember;
 const INDENT_STRING = `  `;
 
 /**
- * ...
- * @returns
+ * Add "normal code editor" tab handling, for indenting/outdenting blocks.
+ * This also has the same "Replace text with spaces" that you get in sublime
+ * or vs code, when you select a bunch of text in a single line.
  */
 function addTabHandling(extensions) {
   let bypassTabs = false;
